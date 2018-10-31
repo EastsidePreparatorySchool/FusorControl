@@ -1,0 +1,42 @@
+<!doctype HTML>
+<html>
+  <head>
+    <title>Fusor Controller</title>
+    <link rel='stylesheet' href='/style/index.css' />
+  </head>
+  <body>
+    <button onclick='stop()'><p>Stop</p></button>
+    <button onclick='slow()'><p>Start</p></button>
+
+    <div><h1>Diagnostic</h1></div>
+
+    <div class='field'><p>Is Greater than 800 rpm: </p></div>
+    <div class='field'><p>Voltage: <div id="psu"></div></p></div>
+    <div class='field'><p>RPMs: <div id="speed"></div></p></div>
+    <div class='field'><p>Has Failed: <div id="error"></div></p></div>
+  </body>
+
+  <script src='/socket.io/socket.io.js'></script>
+  <script src='/script/http.js'></script>
+  <script src='/script/lib/jquery-3.2.1.min.js'></script>
+  <script src='/script/index.js'></script>
+  <script>
+    socket = io();
+    function stop() { socket.emit('turbopump_stop', {}); }
+    function slow() { socket.emit('turbopump_slow', {}); }
+    function fast() { socket.emit('turbopump_fast', {}); }
+
+
+
+    socket.on('update', (data) => {
+      console.log(data);
+      if(data['psu']!=undefined) document.getElementById("psu").innerHTML = data.psu;
+      if(data['speed']!=undefined) document.getElementById("speed").innerHTML = data.speed;
+      if(data['error']!=undefined) document.getElementById("error").innerHTML = data.error;
+    });
+
+
+
+    function close() {}
+  </script>
+</html>
