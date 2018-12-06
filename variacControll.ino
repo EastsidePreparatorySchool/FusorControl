@@ -4,7 +4,7 @@ const int ENA = 5; //define Enable Pin
 const int DELAY = 5000; 
 const int STEPSPERREV = 400; //adjusted with SW1,SW2,SW3 set to ON OFF OFF
 const double REVSPERVARIAC = 3;//2 + ((double) 11)/((double) 12); //adjusted with the limit set at 100V
-const double MAXVOLTS = 100; //where the stopper is
+const double MAXVOLTS = 100; //where the A0per is
 int rotation = 0; //initialized with voltage at 0
 void setup() {
   pinMode (PUL, OUTPUT);
@@ -12,20 +12,26 @@ void setup() {
   pinMode (ENA, OUTPUT);
   digitalWrite(DIR, LOW);
   digitalWrite(ENA, HIGH);
+  overrideCurrentVolts(60);
+  turnToVolts(10);
 }
 
 void zero(){ 
-  //turns two full variac revolutions counterclockwise, MAKE SURE YOU TRUST THE STOPPER
+  //turns one and a half full variac revolutions towards 0, stopping when it hits the stopper. 
+  //If the stopper fails, this will still zero the variac but will likely damage either the variac or the gears or both.
   digitalWrite(DIR, LOW);
   for(int i = 0; i < STEPSPERREV * REVSPERVARIAC * 1.5; i++){
       delayMicroseconds(DELAY);
       digitalWrite(PUL, LOW);
       digitalWrite(PUL, HIGH);
+      if(analogRead(A0) + analogRead(A0) + analogRead(A0) + analogRead(A0) == 0){
+        break;
+      }
   }
   rotation = 0;
 }
 
-void setCurrentVolts(double volts){ 
+void overrideCurrentVolts(double volts){ 
   //Tells the system where it is right now, if you are initializing with the voltage not at 0
   rotation = voltsToSteps(volts);
 }
@@ -63,6 +69,10 @@ void turnToSteps(int steps){
       delayMicroseconds(DELAY);
       digitalWrite(PUL, LOW);
       digitalWrite(PUL, HIGH);
+      if(analogRead(A0) + analogRead(A0) + analogRead(A0) + analogRead(A0) == 0){
+        rotation = 0;
+        return;
+      }
     }
   }
 }
