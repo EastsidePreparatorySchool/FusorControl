@@ -19,6 +19,7 @@ public class WebServer {
     SerialPort arduino;
     String msgBuffer;
     Queue msgqueue;
+    final int serialTimeout = 1500;
     
     public WebServer (){
         msgqueue = new LinkedBlockingQueue<String>();
@@ -30,6 +31,16 @@ public class WebServer {
         get("/", (req, res) -> "<h1><a href='index.html'>Go to index.html</a></h1>");
         get("/kill", (req, res) -> {stop(); System.out.println("Server ended with /kill"); return "server ended";});
         get("/inita", (req, res) -> serialInit()?"success":"serial init failed");
+        get("/getstatus", (req, res) -> {
+            boolean arcon = arduino != null;
+            long start = System.currentTimeMillis();
+            write("$status;");
+            String message = "hold";
+            do {
+                
+            } while(!message.equals("statusend"));
+            return "";
+        });
     }
     
     private boolean serialInit() {
@@ -67,7 +78,7 @@ public class WebServer {
             int semi = msgBuffer.indexOf(";");
             System.out.println(msgBuffer.substring(0, semi));
             msgqueue.add(msgBuffer.substring(0, semi));
-            msgBuffer = msgBuffer.substring(semi);        
+            msgBuffer = msgBuffer.substring(semi+1);        
         }
         while(!msgqueue.isEmpty()) {
             System.out.println(msgqueue.remove());
