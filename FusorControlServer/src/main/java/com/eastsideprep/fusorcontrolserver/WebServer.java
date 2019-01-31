@@ -36,7 +36,7 @@ public class WebServer {
             long start = System.currentTimeMillis();
             String tmps="";
             String tmpv="";
-            write("$status;");
+            write("getstatusend");
             String message = "hold";
             do {
                 int coli = message.indexOf(":");
