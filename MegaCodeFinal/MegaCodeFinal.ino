@@ -27,7 +27,7 @@ void loop()
   
   for (int i = (completed) ? 0 : 1; i < num; i += 2) 
   {
-    bp1 = buffer[i];
+    p1 = buffer[i];
     if (i + 1 < num) 
     {
       code = buffer[i+1];

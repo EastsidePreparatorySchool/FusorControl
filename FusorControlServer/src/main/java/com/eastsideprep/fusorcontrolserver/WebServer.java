@@ -34,12 +34,21 @@ public class WebServer {
         get("/getstatus", (req, res) -> {
             boolean arcon = arduino != null;
             long start = System.currentTimeMillis();
+            String tmps="";
+            String tmpv="";
             write("$status;");
             String message = "hold";
             do {
-                
-            } while(!message.equals("statusend"));
-            return "";
+                int coli = message.indexOf(":");
+                if(message.startsWith("tmpv")) {
+                    tmpv = message.substring(coli+1);
+                } if(message.startsWith("tmps")) {
+                    tmps = message.substring(coli+1);
+                }                
+            } while(!message.equals("statusend")&&System.currentTimeMillis()-start<=serialTimeout);
+            String ret = "{ tmps:" + tmps + ", tmpv:" + tmpv + ", arcon:" + (arcon?1:0);
+            System.out.println(ret);
+            return ret;
         });
     }
     
