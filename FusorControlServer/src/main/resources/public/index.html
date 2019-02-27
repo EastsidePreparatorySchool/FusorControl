@@ -14,6 +14,21 @@ and open the template in the editor.
         <script type="text/javascript">
             var xhr = new XMLHttpRequest();
             
+            function request(page, callback) {
+                xhr.onreadystatechange = () => {
+                    if (this.readyState == 4 && this.status == 200) {
+                        callback();
+                    }
+                }
+                xhttp.open("GET", page, true);
+                xhttp.send();
+            }
+            
+            function getStatus () {
+                request("/", ()=>{
+                    console.log(xhr.responseText);
+                });
+            }
         </script>
     </body>
 </html>

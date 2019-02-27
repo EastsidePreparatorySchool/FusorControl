@@ -36,7 +36,7 @@ public class WebServer {
             long start = System.currentTimeMillis();
             String tmps="";
             String tmpv="";
-            write("getstatusend");
+            write("GETstatusEND");
             String message = "hold";
             do {
                 int coli = message.indexOf(":");
@@ -84,7 +84,7 @@ public class WebServer {
         //System.out.println(arg);
         msgBuffer += arg;
         while(msgBuffer.indexOf(";")!=-1) {
-            int semi = msgBuffer.indexOf(";");
+            int semi = msgBuffer.indexOf("END");
             System.out.println(msgBuffer.substring(0, semi));
             msgqueue.add(msgBuffer.substring(0, semi));
             msgBuffer = msgBuffer.substring(semi+1);        

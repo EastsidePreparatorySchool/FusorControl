@@ -1,6 +1,7 @@
 #include <Queue.h>
 
-Queue<char[]> commands;
+Queue<String> commands;
+String buffs = "";
 
 void setup() 
 {
@@ -12,51 +13,38 @@ void loop()
 {
     //collects serial messages from the hardware buffer
   int num = Serial.available();
-  int buffer[num];
+  char buffer[num];
   int i = 0;
   while (Serial.available() > 0) buffer[i++] = Serial.read();
-
-  //code to process results in pairs
-  //sometimes the full pair wont make it through in a single cycle
-  if(!completed) 
-  {
-    code = buffer[0];
-    process();
-    completed = true;
-  }
   
-  for (int i = (completed) ? 0 : 1; i < num; i += 2) 
+  buffs = buffs + String(buffer);
+  int eindex = buffs.indexOf("END");
+  while(eindex != -1)
   {
-    p1 = buffer[i];
-    if (i + 1 < num) 
-    {
-      code = buffer[i+1];
-      handleBuffer();
-    } 
-    else 
-    {
-      completed = false;
-      break;
-    }
+    commands.enqueue(buffs.substring(0,eindex));
+    buffs = buffs.substring(eindex + 2);
+    eindex = buffs.indexOf("END");
   }
 
+  while(!commands.isEmpty())
+  {
+    handleBuffer(commands.dequeue());
+  }
+    
+  delay(100);
 }
 
-void handleBuffer()
+void handleBuffer(String command)
 {  
-  if (classifier == 99) //c
+  String pre = command.substring(0,3);
+  String cont = command.substring(3);
+  if(pre.equals("SET"))
   {
-    if (code == 48) send(ID); //c0
-  } 
-  else if (classifier == 112) //p
+    if(cont.startsWith("volts"));
+  }
+
+  if(pre.equals("GET"))
   {
-    if (code == 48) turboOff(); //p0
-    else if (code == 49) turboOn(); //p1
-    else if (code == 50) turboFast(); //p2
-    else if (code == 51) respond(); //p3
-  } 
-  else if (classifier == 114) //r
-  {
-    
+    Serial.println("meme;");
   }
 }
