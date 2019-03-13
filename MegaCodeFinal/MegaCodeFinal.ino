@@ -19,6 +19,8 @@ void loop()
   
   buffs = buffs + String(buffer);
   int eindex = buffs.indexOf("END");
+
+  //finds the END int the string, separates it, adds that command to the queue, 
   while(eindex != -1)
   {
     commands.enqueue(buffs.substring(0,eindex));
@@ -26,6 +28,7 @@ void loop()
     eindex = buffs.indexOf("END");
   }
 
+  //run every command in the buffer
   while(!commands.isEmpty())
   {
     handleBuffer(commands.dequeue());
@@ -36,6 +39,7 @@ void loop()
 
 void handleBuffer(String command)
 {  
+  //parses GET and SET commands and does things with them
   String pre = command.substring(0,3);
   String cont = command.substring(3);
   if(pre.equals("SET"))
@@ -45,6 +49,6 @@ void handleBuffer(String command)
 
   if(pre.equals("GET"))
   {
-    Serial.println("meme;");
+    Serial.println("memeEND");
   }
 }

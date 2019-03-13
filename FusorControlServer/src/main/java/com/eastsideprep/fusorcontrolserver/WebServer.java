@@ -27,7 +27,11 @@ public class WebServer {
     
     public void init() {
         port(8080); //switch to 80 for regular use
+        //sets default public location
         staticFiles.location("/public");
+        
+        //these set all the commands that are going to be sent from the client
+        //ones like getstatus will have functions that communicate with the arduino
         get("/", (req, res) -> "<h1><a href='index.html'>Go to index.html</a></h1>");
         get("/kill", (req, res) -> {stop(); System.out.println("Server ended with /kill"); return "server ended";});
         get("/inita", (req, res) -> serialInit()?"success":"serial init failed");
@@ -38,6 +42,8 @@ public class WebServer {
             String tmpv="";
             write("GETstatusEND");
             String message = "hold";
+            //I plan on having a colon for between the key and number,
+            //this takes all messages coming in on the buffer until 'statusend' and sends the correct values back to the client
             do {
                 int coli = message.indexOf(":");
                 if(message.startsWith("tmpv")) {
@@ -53,6 +59,7 @@ public class WebServer {
     }
     
     private boolean serialInit() {
+        //sets up arduino serial communication
         try {
             System.out.println(Arrays.toString(SerialPort.getCommPorts()));
         arduino = SerialPort.getCommPorts()[0];
@@ -63,6 +70,11 @@ public class WebServer {
             public int getListeningEvents() { return SerialPort.LISTENING_EVENT_DATA_AVAILABLE; }
             
             @Override
+            //this is event that happens whenever something gets written from the arduino
+            //it takes and characters and puts it into the handle function
+            //important note, even if you write something as one message on the arduino, it might not come in all at once here
+            //the handle function deals with this by looking for deliniators\
+            //the current delineator 
             public void serialEvent(SerialPortEvent e) {
                 //System.out.println(e.getEventType());
                 if(e.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE) 
@@ -83,12 +95,16 @@ public class WebServer {
     private void handle(String arg) {
         //System.out.println(arg);
         msgBuffer += arg;
-        while(msgBuffer.indexOf(";")!=-1) {
+        //this function takes all the raw input from the arduino and splits it up correctly into commands
+        // 'msgBuffer' is a queue to hold commands
+        while(msgBuffer.indexOf("END")!=-1) {
             int semi = msgBuffer.indexOf("END");
             System.out.println(msgBuffer.substring(0, semi));
             msgqueue.add(msgBuffer.substring(0, semi));
             msgBuffer = msgBuffer.substring(semi+1);        
         }
+        
+        //this while loop is for testing, it should be removed for actual use, otherwise, no other things will be able to get info from the arduino
         while(!msgqueue.isEmpty()) {
             System.out.println(msgqueue.remove());
         }
