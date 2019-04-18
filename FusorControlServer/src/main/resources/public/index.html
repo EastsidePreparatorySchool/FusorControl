@@ -11,8 +11,18 @@ and open the template in the editor.
         <h2>Variac Status: <span id="vstatus"></span></h2>
         <h2>TMP Status: <span id="pstatus"></span></h2>
         <button class="cbut">meme</button>
+        <textarea id="error">
+            error message goes here <br>
+            when i set this up
+        </textarea>
+        <hr>
+        <h2>testing</h2>
+        <button onclick="test()">test</button>
+        <button onclick="end()">end test</button>
+
         <script type="text/javascript">
             var xhr = new XMLHttpRequest();
+            var endTest = false;
             
             function request(page, callback) {
                 xhr.onreadystatechange = () => {
@@ -28,6 +38,22 @@ and open the template in the editor.
                 request("/", ()=>{
                     console.log(xhr.responseText);
                 });
+            }
+
+            //there's definitely a better way to do this
+            function end() {
+                endTest = true;
+            }
+
+            //prints out "test recieved" every 0.5 seconds
+            //could be achieved with less latency if using WebSocket or Socket.io
+            function test() {
+                console.log("test recieved");
+                if (endTest) {
+                    endTest = false;
+                    return;
+                }
+                setTimeout(arguments.callee, 500);
             }
         </script>
     </body>
