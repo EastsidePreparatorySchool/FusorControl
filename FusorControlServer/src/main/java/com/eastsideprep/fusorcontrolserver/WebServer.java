@@ -56,6 +56,11 @@ public class WebServer {
             System.out.println(ret);
             return ret;
         });
+        get("/variac", (req, res) -> {
+            Double variacValue = Double.parseDouble(req.queryParams("value"));
+            //TODO: paul to connect this to the arduino
+            return "set value as " + req.queryParams("value");
+        });
     }
     
     private boolean serialInit() {

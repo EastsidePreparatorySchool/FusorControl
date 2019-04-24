@@ -5,56 +5,104 @@ To change this template file, choose Tools | Templates
 and open the template in the editor.
 -->
 <html>
-    <body>        
-        <h1>Fusor Control</h1>
+
+<body>
+    <h1>Fusor Control</h1>
+    <!--<h2>Arduino Status: <span id="astatus"></span></h2>
+    <h2>Variac Status: <span id="vstatus"></span></h2>
+    <h2>TMP Status: <span id="pstatus"></span></h2>-->
+    <hr>
+    <h2>initiation</h2>
+    <button id="inita" style="width: 15%">initiate arduino serial communication</button>
+    <button id="status" style="width: 10%" onclick="getStatus()">get status</button>
+    <button id="status" style="width: 10%; color: lightcoral;" onclick="kill()"><b>kill server</b></button>
+    <hr>
+    <h2>variac control</h2>
+    <input id="variacValue"><button onclick="variac()" id="variacButton">Set</button>
+    <hr>
+    <h2>testing (for status reports only)</h2>
+    <button onclick="initiate()">start recieving status reports</button>
+    <button onclick="endTest()">stop recieving status reports</button>
+    <div style="color: lightcoral">
         <h2>Arduino Status: <span id="astatus"></span></h2>
         <h2>Variac Status: <span id="vstatus"></span></h2>
         <h2>TMP Status: <span id="pstatus"></span></h2>
-        <button class="cbut">meme</button>
-        <textarea id="error">
-            error message goes here <br>
-            when i set this up
-        </textarea>
-        <hr>
-        <h2>testing</h2>
-        <button onclick="test()">test</button>
-        <button onclick="end()">end test</button>
+    </div>
+    <hr>
+    <textarea id="error">errors: </textarea>
 
-        <script type="text/javascript">
-            var xhr = new XMLHttpRequest();
-            var endTest = false;
-            
-            function request(page, callback) {
-                xhr.onreadystatechange = () => {
-                    if (this.readyState == 4 && this.status == 200) {
-                        callback();
-                    }
-                }
-                xhttp.open("GET", page, true);
-                xhttp.send();
+    <script type="text/javascript">
+        var xhr = new XMLHttpRequest();
+        var endTest = false;
+
+        document.getElementById("variacValue").addEventListener("keyup", function (event) {
+            if (event.keyCode === 13) { //enter key: 13
+                event.preventDefault();
+                document.getElementById("variacButton").click();
             }
-            
-            function getStatus () {
-                request("/", ()=>{
+        });
+
+        //could be achieved with less latency if using WebSocket
+        function initiate() {
+            console.log("got status"); //replace with getStatus()
+            if (endTest) {
+                endTest = false;
+                return;
+            }
+            setTimeout(arguments.callee, 500);
+        }
+
+        //paired up with initiate()
+        function Testend() {
+            endTest = true;
+        }
+
+        //requests with callback (spark stuff)
+        function request(page, callback) {
+            xhr.onreadystatechange = () => {
+                if (this.readyState == 4 && this.status == 200) {
+                    callback();
+                }
+            }
+            xhr.open("GET", page, true);
+            xhr.send();
+        }
+
+        //gets status of TMP
+        function getStatus() {
+            request("/getstatus", () => {
+                //TODO: interpret response & implement a color scale
+                //{ tmps:" + tmps + ", tmpv:" + tmpv + ", arcon:" + (arcon?1:0)
+                //arcon: arduino on or off
+                //tmps = tmp speed
+                //tmpv = tmp voltage
+
+                //waiting on paul for variac values
+                document.getElementById("pstatus").value = xhr.responseText;
+                console.log(xhr.responseText);
+            });
+        }
+
+        //this kills the server (needs testing)
+        function kill() {
+            request("/kill", () => {
+                console.log(xhr.responseText);
+            });
+        }
+
+        //sends value in textbox to variac
+        function variac() {
+            var variacValue = document.getElementById("variacValue");
+            try {
+                request("/variac?value=" + variacValue.value, () => {
                     console.log(xhr.responseText);
                 });
+            } catch (error) {
+                console.log("Error: " + error)
             }
+            variacValue.Value = "";
+        }
+    </script>
+</body>
 
-            //there's definitely a better way to do this
-            function end() {
-                endTest = true;
-            }
-
-            //prints out "test recieved" every 0.5 seconds
-            //could be achieved with less latency if using WebSocket or Socket.io
-            function test() {
-                console.log("test recieved");
-                if (endTest) {
-                    endTest = false;
-                    return;
-                }
-                setTimeout(arguments.callee, 500);
-            }
-        </script>
-    </body>
 </html>
