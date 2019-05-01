@@ -7,13 +7,6 @@ void setup()
 {
   Serial.begin(9600);
   pinMode(13, OUTPUT);
-  digitalWrite(13,HIGH);
-  delay(500);
-  digitalWrite(13,LOW);
-  delay(500);
-   digitalWrite(13,HIGH);
-  delay(500);
-  digitalWrite(13,LOW);
 }
 
 void loop() 
@@ -53,7 +46,12 @@ void handleBuffer(String command)
   
   if(pre.equals("SET"))
   {
-    if(cont.startsWith("volts"));
+    if(cont.startsWith("volt")) 
+    {
+      int volts = toInt(cont.substring(4,7));
+      voltage(volts);
+      Serial.println("setvoltageEND");
+    }
   }
 
   if(pre.equals("GET"))
@@ -69,5 +67,10 @@ void handleBuffer(String command)
   delay(500);
   digitalWrite(13,LOW);
   }
+  
+}
+
+void voltage(int v)
+{
   
 }

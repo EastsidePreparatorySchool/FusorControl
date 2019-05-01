@@ -9,9 +9,11 @@ import static spark.Spark.*;
 import com.fazecast.jSerialComm.*;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 /**
@@ -127,5 +129,9 @@ public class WebServer {
     
     public void test(){
         write("TESmemeEND");
+    }
+    
+    private void sendVoltage(int v) {        
+        write("SETvolt" + String.format("%03d", v) + "END");
     }
 }
