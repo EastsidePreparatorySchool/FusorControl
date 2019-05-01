@@ -44,7 +44,7 @@ and open the template in the editor.
 
         //could be achieved with less latency if using WebSocket
         function initiate() {
-            console.log("got status"); //replace with getStatus()
+            getStatus();
             if (endTest) {
                 endTest = false;
                 return;
@@ -71,15 +71,16 @@ and open the template in the editor.
         //gets status of TMP
         function getStatus() {
             request("/getstatus", () => {
-                //TODO: interpret response & implement a color scale
-                //{ tmps:" + tmps + ", tmpv:" + tmpv + ", arcon:" + (arcon?1:0)
-                //arcon: arduino on or off
-                //tmps = tmp speed
-                //tmpv = tmp voltage
-
-                //waiting on paul for variac values
-                document.getElementById("pstatus").value = xhr.responseText;
-                console.log(xhr.responseText);
+                try {
+                    let status = JSON.parse(xhr.responseText);
+                    if (status.length != 0) {
+                        document.getElementById("astatus").value = status.arcon;
+                        document.getElementById("vstatus").value = "waiting for variac values...";
+                        document.getElementById("pstatus").value = "tmpv = " + status.tmpv + "; tmps = " + status.tmps;
+                    }
+                } catch (error) {
+                    console.log(xhr.responseText);
+                }
             });
         }
 
