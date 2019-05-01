@@ -5,30 +5,105 @@ To change this template file, choose Tools | Templates
 and open the template in the editor.
 -->
 <html>
-    <body>        
-        <h1>Fusor Control</h1>
+
+<body>
+    <h1>Fusor Control</h1>
+    <!--<h2>Arduino Status: <span id="astatus"></span></h2>
+    <h2>Variac Status: <span id="vstatus"></span></h2>
+    <h2>TMP Status: <span id="pstatus"></span></h2>-->
+    <hr>
+    <h2>initiation</h2>
+    <button id="inita" style="width: 15%">initiate arduino serial communication</button>
+    <button id="status" style="width: 10%" onclick="getStatus()">get status</button>
+    <button style="width: 10%; color: lightcoral;" onclick="kill()"><b>kill server</b></button>
+    <hr>
+    <h2>variac control</h2>
+    <input id="variacValue"><button onclick="variac()" id="variacButton">Set</button>
+    <hr>
+    <h2>testing (for status reports only)</h2>
+    <button onclick="initiate()">start recieving status reports</button>
+    <button onclick="endTest()">stop recieving status reports</button>
+    <div style="color: lightcoral">
         <h2>Arduino Status: <span id="astatus"></span></h2>
         <h2>Variac Status: <span id="vstatus"></span></h2>
         <h2>TMP Status: <span id="pstatus"></span></h2>
-        <button class="cbut">meme</button>
-        <script type="text/javascript">
-            var xhr = new XMLHttpRequest();
-            
-            function request(page, callback) {
-                xhr.onreadystatechange = () => {
-                    if (this.readyState == 4 && this.status == 200) {
-                        callback();
-                    }
-                }
-                xhttp.open("GET", page, true);
-                xhttp.send();
+    </div>
+    <hr>
+    <textarea id="error">errors: </textarea>
+
+    <script type="text/javascript">
+        var xhr = new XMLHttpRequest();
+        var endTest = false;
+
+        document.getElementById("variacValue").addEventListener("keyup", function (event) {
+            if (event.keyCode === 13) { //enter key: 13
+                event.preventDefault();
+                document.getElementById("variacButton").click();
             }
-            
-            function getStatus () {
-                request("/", ()=>{
+        });
+
+        //could be achieved with less latency if using WebSocket
+        function initiate() {
+            getStatus();
+            if (endTest) {
+                endTest = false;
+                return;
+            }
+            setTimeout(arguments.callee, 500);
+        }
+
+        //paired up with initiate()
+        function Testend() {
+            endTest = true;
+        }
+
+        //requests with callback (spark stuff)
+        function request(page, callback) {
+            xhr.onreadystatechange = () => {
+                if (this.readyState == 4 && this.status == 200) {
+                    callback();
+                }
+            }
+            xhr.open("GET", page, true);
+            xhr.send();
+        }
+
+        //gets status of TMP
+        function getStatus() {
+            request("/getstatus", () => {
+                try {
+                    let status = JSON.parse(xhr.responseText);
+                    if (status.length != 0) {
+                        document.getElementById("astatus").value = status.arcon;
+                        document.getElementById("vstatus").value = "waiting for variac values...";
+                        document.getElementById("pstatus").value = "tmpv = " + status.tmpv + "; tmps = " + status.tmps;
+                    }
+                } catch (error) {
+                    console.log(xhr.responseText);
+                }
+            });
+        }
+
+        //this kills the server (needs testing)
+        function kill() {
+            request("/kill", () => {
+                console.log(xhr.responseText);
+            });
+        }
+
+        //sends value in textbox to variac
+        function variac() {
+            var variacValue = document.getElementById("variacValue");
+            try {
+                request("/variac?value=" + variacValue.value, () => {
                     console.log(xhr.responseText);
                 });
+            } catch (error) {
+                console.log("Error: " + error)
             }
-        </script>
-    </body>
+            variacValue.Value = "";
+        }
+    </script>
+</body>
+
 </html>

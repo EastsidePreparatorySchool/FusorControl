@@ -7,10 +7,14 @@ package com.eastsideprep.fusorcontrolserver;
 
 import static spark.Spark.*;
 import com.fazecast.jSerialComm.*;
+
+import java.util.ArrayList;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -42,7 +46,8 @@ public class WebServer {
         get("/", (req, res) -> "<h1><a href='index.html'>Go to index.html</a></h1>");
         get("/kill", (req, res) -> {stop(); System.out.println("Server ended with /kill"); return "server ended";});
         get("/inita", (req, res) -> serialInit()?"success":"serial init failed");
-        get("/getstatus", (req, res) -> {
+        get("/getstatus", "application/json", (req, res) -> getStatus(req, res), new JSONRT());
+        /*get("/getstatus", (req, res) -> {
             boolean arcon = arduino != null;
             long start = System.currentTimeMillis();
             String tmps="";
@@ -62,7 +67,34 @@ public class WebServer {
             String ret = "{ tmps:" + tmps + ", tmpv:" + tmpv + ", arcon:" + (arcon?1:0);
             System.out.println(ret);
             return ret;
+        });*/
+        get("/variac", (req, res) -> {
+            Double variacValue = Double.parseDouble(req.queryParams("value"));
+            //TODO: paul to connect this to the arduino
+            return "set value as " + req.queryParams("value");
         });
+    }
+
+    public Object getStatus(spark.Request req, spark.Response res) {
+        boolean arcon = arduino != null;
+        long start = System.currentTimeMillis();
+        String tmpv = "";
+        String tmps = "";
+        write("GETstatusEND");
+        String message = "hold";
+        List<Status> status = new ArrayList<>();
+        //I plan on having a colon for between the key and number,
+        //this takes all messages coming in on the buffer until 'statusend' and sends the correct values back to the client
+        do {
+            int coli = message.indexOf(":");
+            if(message.startsWith("tmpv")) {
+                tmpv = message.substring(coli+1);
+            } if(message.startsWith("tmps")) {
+                tmps = message.substring(coli+1);
+            }                
+        } while(!message.equals("statusend")&&System.currentTimeMillis()-start<=serialTimeout);
+        status.add(new Status((arcon?1:0), tmpv, tmps));
+        return status;
     }
     
     public boolean serialInit() {
