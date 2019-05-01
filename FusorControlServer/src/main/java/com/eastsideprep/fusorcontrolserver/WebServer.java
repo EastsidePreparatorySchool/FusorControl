@@ -7,11 +7,19 @@ package com.eastsideprep.fusorcontrolserver;
 
 import static spark.Spark.*;
 import com.fazecast.jSerialComm.*;
+
 import java.util.ArrayList;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 /**
  *
  * @author paul
@@ -19,6 +27,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class WebServer {
     
     SerialPort arduino;
+    OutputStream os;
     String msgBuffer;
     Queue msgqueue;
     final int serialTimeout = 1500;
@@ -88,13 +97,14 @@ public class WebServer {
         return status;
     }
     
-    private boolean serialInit() {
+    public boolean serialInit() {
         //sets up arduino serial communication
         try {
             System.out.println(Arrays.toString(SerialPort.getCommPorts()));
         arduino = SerialPort.getCommPorts()[0];
         arduino.openPort();
             System.out.println("port opened?");
+            os = arduino.getOutputStream();
         arduino.addDataListener(new SerialPortDataListener() {
             @Override
             public int getListeningEvents() { return SerialPort.LISTENING_EVENT_DATA_AVAILABLE; }
@@ -142,7 +152,18 @@ public class WebServer {
     
     private void write(String arg) {
         byte[] bytes = arg.getBytes();
-        arduino.writeBytes(bytes, bytes.length);
+        try {
+            os.write(bytes);
+        } catch (IOException ex) {
+            System.out.println("Serial comm exception: " + ex);
+        }
     }
     
+    public void test(){
+        write("TESmemeEND");
+    }
+    
+    private void sendVoltage(int v) {        
+        write("SETvolt" + String.format("%03d", v) + "END");
+    }
 }

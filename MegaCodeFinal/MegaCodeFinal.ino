@@ -6,7 +6,7 @@ String buffs = "";
 void setup() 
 {
   Serial.begin(9600);
-  
+  pinMode(13, OUTPUT);
 }
 
 void loop() 
@@ -39,16 +39,38 @@ void loop()
 
 void handleBuffer(String command)
 {  
+  
   //parses GET and SET commands and does things with them
   String pre = command.substring(0,3);
   String cont = command.substring(3);
+  
   if(pre.equals("SET"))
   {
-    if(cont.startsWith("volts"));
+    if(cont.startsWith("volt")) 
+    {
+      int volts = toInt(cont.substring(4,7));
+      voltage(volts);
+      Serial.println("setvoltageEND");
+    }
   }
 
   if(pre.equals("GET"))
   {
     Serial.println("memeEND");
   }
+
+  if(pre.equals("TES"))
+  {
+    
+    Serial.println(cont+"END");
+    digitalWrite(13,HIGH);
+  delay(500);
+  digitalWrite(13,LOW);
+  }
+  
+}
+
+void voltage(int v)
+{
+  
 }

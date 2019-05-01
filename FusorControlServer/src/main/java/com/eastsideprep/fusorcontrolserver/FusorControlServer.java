@@ -13,5 +13,7 @@ public class FusorControlServer {
     public static void main(String[] args) {
         WebServer serv = new WebServer();
         serv.init();
+        serv.serialInit();
+        serv.test();
     }
 }
