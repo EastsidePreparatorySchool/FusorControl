@@ -69,8 +69,9 @@ public class WebServer {
             return ret;
         });*/
         get("/variac", (req, res) -> {
-            Double variacValue = Double.parseDouble(req.queryParams("value"));
+            int variacValue = Integer.parseInt(req.queryParams("value"));
             //TODO: paul to connect this to the arduino
+            sendVoltage(variacValue);
             return "set value as " + req.queryParams("value");
         });
     }
