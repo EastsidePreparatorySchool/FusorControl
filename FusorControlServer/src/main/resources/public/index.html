@@ -6,6 +6,21 @@ and open the template in the editor.
 -->
 <html>
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>fusor control | sensors</title>
+
+    <style>
+        html,
+        body {
+            margin: 2em 7em;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+
 <body>
     <h1>Fusor Control</h1>
     <!--<h2>Arduino Status: <span id="astatus"></span></h2>
@@ -17,8 +32,11 @@ and open the template in the editor.
     <button id="status" style="width: 10%" onclick="getStatus()">get status</button>
     <button style="width: 10%; color: lightcoral;" onclick="kill()"><b>kill server</b></button>
     <hr>
-    <h2>variac control</h2>
+    <h2>control</h2>
+    <h3>variac: </h3>
     <input id="variacValue"><button onclick="variac()" id="variacButton">Set</button>
+    <h3>tmpv: </h3>
+    <input id="tmp"><button onclick="tmp()" id="tmpButton">Set</button>
     <hr>
     <h2>testing (for status reports only)</h2>
     <button onclick="initiate()">start recieving status reports</button>
@@ -102,6 +120,18 @@ and open the template in the editor.
                 console.log("Error: " + error)
             }
             variacValue.Value = "";
+        }
+
+        function tmp() {
+            var tmpValue = document.getElementById("tmp");
+            try {
+                request("/tmp?value=" + tmpValue.value, () => {
+                    console.log(xhr.responseText);
+                });
+            } catch (error) {
+                console.log("Error: " + error)
+            }
+            tmpValue.Value = "";
         }
     </script>
 </body>

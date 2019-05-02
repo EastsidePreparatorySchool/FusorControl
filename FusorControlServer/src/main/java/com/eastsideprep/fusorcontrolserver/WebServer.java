@@ -61,8 +61,13 @@ public class WebServer {
         });*/
         get("/variac", (req, res) -> {
             Double variacValue = Double.parseDouble(req.queryParams("value"));
-            //TODO: paul to connect this to the arduino
-            return "set value as " + req.queryParams("value");
+            //TODO: control team to connect this to the arduino
+            return "set variac value as " + req.queryParams("value");
+        });
+        get("tmp", (req, res) -> {
+            Double tmpValue = Double.parseDouble(req.queryParams("value"));
+            //TODO: control team to connect this to the arduino
+            return "set tmp value as " + req.queryParams("value");
         });
     }
 
