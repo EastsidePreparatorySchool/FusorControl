@@ -43,9 +43,9 @@ and open the template in the editor.
     <button onclick="initiate()">start recieving status reports</button>
     <button onclick="endTest()">stop recieving status reports</button>
     <div style="color: lightcoral">
-        <h2>Arduino Status: <span id="astatus"></span></h2>
-        <h2>Variac Status: <span id="vstatus"></span></h2>
-        <h2>TMP Status: <span id="pstatus"></span></h2>
+        <h2>Arduino Status: <span id="astatus" style="color: black;"> </span></h2>
+        <h2>Variac Status: <span id="vstatus" style="color: black;"> </span></h2>
+        <h2>TMP Status: <span id="pstatus" style="color: black;"> </span></h2>
     </div>
     <hr>
     <textarea id="error">returns: </textarea>
@@ -64,10 +64,10 @@ and open the template in the editor.
         function initiate() {
             getStatus();
             if (endTest) {
-            endTest = false;
-            return;
-        }
-        setTimeout(arguments.callee, 500);
+                endTest = false;
+                return;
+            }
+            setTimeout(arguments.callee, 500);
         }
 
         //paired up with initiate()
@@ -106,17 +106,16 @@ and open the template in the editor.
             xhr.send();
         }
 
-
         //gets status of TMP
         function getStatus() {
             request({ url: "/getstatus", method: "GET" })
                 .then(data => {
-                    let status = JSON.parse(xhr.responseText);
+                    let status = JSON.parse(data);
                     console.log(status);
-                    if (status.length != 0) {
-                        document.getElementById("astatus").value = status.arcon;
-                        document.getElementById("vstatus").value = "waiting for variac values...";
-                        document.getElementById("pstatus").value = "tmpv = " + status.tmpv + "; tmps = " + status.tmps;
+                    for (var i = 0; i < status.length; i++) {
+                        document.getElementById("astatus").innerHTML = status[i].arconValue;
+                        document.getElementById("pstatus").innerHTML = "tmpv = " + status[i].tmpv + "; tmps = " + status[i].tmps;
+                        document.getElementById("vstatus").innerHTML = "waiting for variac values...";
                     }
                 })
                 .catch(error => {
@@ -149,7 +148,7 @@ and open the template in the editor.
         function variac() {
             var variacValue = document.getElementById("variacValue");
             try {
-                request({ url: "/variac?value=" , method: "GET" })
+                request({ url: "/variac?value=", method: "GET" })
                     .then(data => {
                         console.log(data);
                     })
