@@ -48,9 +48,9 @@ void handleBuffer(String command)
   {
     if(cont.startsWith("volt")) 
     {
-      int volts = toInt(cont.substring(4,7));
+      int volts = cont.substring(4,7).toInt();
       voltage(volts);
-      Serial.println("setvoltageEND");
+      Serial.println("setvoltage"+String(volts)+"END");
     }
   }
 
