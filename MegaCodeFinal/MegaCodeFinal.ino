@@ -1,4 +1,4 @@
-#include <Queue.h>
+#include "NewQueue.h"
 
 Queue<String> commands;
 String buffs = "";
@@ -24,7 +24,7 @@ void loop()
   while(eindex != -1)
   {
     commands.enqueue(buffs.substring(0,eindex));
-    buffs = buffs.substring(eindex + 2);
+    buffs = buffs.substring(eindex +2);
     eindex = buffs.indexOf("END");
   }
 
