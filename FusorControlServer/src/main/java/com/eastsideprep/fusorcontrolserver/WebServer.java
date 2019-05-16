@@ -44,7 +44,6 @@ public class WebServer {
         //these set all the commands that are going to be sent from the client
         //ones like getstatus will have functions that communicate with the arduino
         get("/", (req, res) -> "<h1><a href='index.html'>Go to index.html</a></h1>");
-        get("/isWorking", (req, res) -> "ask again later");
         get("/kill", (req, res) -> {stop(); System.out.println("Server ended with /kill"); return "server ended";});
         get("/inita", (req, res) -> serialInit()?"success":"serial init failed");
         get("/getstatus", "application/json", (req, res) -> getStatus(req, res), new JSONRT());
@@ -52,7 +51,6 @@ public class WebServer {
         //variac control
         get("/variac", (req, res) -> {
             int variacValue = Integer.parseInt(req.queryParams("value"));
-            //TODO: paul to connect this to the arduino
             sendVoltage(variacValue);
             return "set value as " + req.queryParams("value");
         });
@@ -62,6 +60,19 @@ public class WebServer {
             Double tmpValue = Double.parseDouble(req.queryParams("value"));
             //TODO: control team to connect this to the arduino
             return "set tmp value as " + req.queryParams("value");
+        });
+
+        //solenoid control
+        get("/solenoid", (req, res) -> {
+            if (req.queryParams("isOn").equals("true")) {
+                //TODO: control team to connect this to correct arduino
+                return "solenoid is on";
+            }
+            else if (req.queryParams("isOn").equals("false")) {
+                //TODO: control team to connect this to correct arduino
+                return "solenoid is off";
+            }
+            return "syntax error";
         });
     }
 

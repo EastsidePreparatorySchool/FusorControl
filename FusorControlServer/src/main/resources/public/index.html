@@ -38,6 +38,8 @@ and open the template in the editor.
     <input id="variacValue"><button onclick="variac()" id="variacButton">Set</button>
     <h3>tmpv: </h3>
     <input id="tmp"><button onclick="tmp()" id="tmpButton">Set</button>
+    <h3>solenoid: </h3>
+    <button onclick="solenoid('on')">on</button><button onclick="solenoid('off')" style="color: lightcoral;">off</button>
     <hr>
     <h2>testing (for status reports only)</h2>
     <button onclick="initiate()">start recieving status reports</button>
@@ -57,6 +59,12 @@ and open the template in the editor.
             if (event.keyCode === 13) { //enter key: 13
                 event.preventDefault();
                 document.getElementById("variacButton").click();
+            }
+        });
+        document.getElementById("tmp").addEventListener("keyup", function (event) {
+            if (event.keyCode === 13) { //enter key: 13
+                event.preventDefault();
+                document.getElementById("tmpButton").click();
             }
         });
 
@@ -123,16 +131,6 @@ and open the template in the editor.
                 });
         }
 
-        function isWorking() {
-            request({ url: "/isWorking", method: "GET" })
-                .then(data => {
-                    document.getElementById("error").value = "is this thing connected? " + data;
-                })
-                .catch(error => {
-                    console.log("error: " + error);
-                });
-        }
-
         //this kills the server (needs testing)
         function kill() {
             request({ url: "/kill", method: "GET" })
@@ -144,9 +142,8 @@ and open the template in the editor.
                 });
         }
 
-        //sends value in textbox to variac
         function variac() {
-            var variacValue = document.getElementById("variacValue");
+            let variacValue = document.getElementById("variacValue");
             try {
                 request({ url: "/variac?value=", method: "GET" })
                     .then(data => {
@@ -155,9 +152,6 @@ and open the template in the editor.
                     .catch(error => {
                         console.log("error: " + error);
                     });
-                request("/variac?value=" + variacValue.value, () => {
-                    console.log(xhr.responseText);
-                });
             } catch (error) {
                 console.log("Error: " + error)
             }
@@ -165,15 +159,30 @@ and open the template in the editor.
         }
 
         function tmp() {
-            var tmpValue = document.getElementById("tmp");
+            let tmpValue = document.getElementById("tmp");
             try {
-                request("/tmp?value=" + tmpValue.value, () => {
-                    console.log(xhr.responseText);
-                });
+                request({ url: "/tmp?value=" + tmpValue.value, method: "GET" })
+                    .then(data => {
+                        console.log(data);
+                    })
+                    .catch(error => {
+                        console.log("error: " + error);
+                    });
             } catch (error) {
                 console.log("Error: " + error)
             }
             tmpValue.Value = "";
+        }
+
+        function solenoid(isOn) {
+            let solenoidIsOn = isOn == "on";
+            request({ url: "/solenoid?isOn=" + solenoidIsOn, method: "GET" })
+                .then(data => {
+                    console.log(data);
+                })
+                .catch(error => {
+                    console.log("error: " + error);
+                });
         }
     </script>
 </body>
