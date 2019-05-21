@@ -2,11 +2,12 @@
 GC-1:  Geiger Counter – White one, sends digital pulses
   ????
 PS: Pressure Sensor
+  analog read voltage
   
 XD: X-Ray Detector
   Single voltage through analog read
 
-VM: Voltage things???
+VM1&2: Voltage things???
   single voltage through analog read
   
 
