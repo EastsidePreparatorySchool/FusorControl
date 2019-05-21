@@ -34,11 +34,19 @@ int ps;
 int msElapsed;
 int readFreq = 1; //(in 100s of ms)
 int sendFreq = 1; 
-
+volatile int ticks = 0; // number of pulses from the geiger
 void setup() {
   // communicate with the computer 
   Serial.begin(9600);
+
+  attachInterrupt(digitalPinToInterrupt(pin), ISR, RISING);
 }
+void ISR() {
+  ticks++;
+}
+
+
+
 
 void readAnalog() {
   vm1 = analogRead(VM1pin);
@@ -47,12 +55,13 @@ void readAnalog() {
   ps = analogRead(PSpin);
 }
 
-void sendMessage() {
+void sendMessage(int tic) {
   String message = "statusbegin";
   message += "VM1:" + String(vm1);
   message += "VM2:" + String(vm2);
   message += "XD:" + String(xd);
   message += "PS:" + String(ps);
+  message += "Ticks: " + String(tic); 
   message += "statusend";
   Serial.println(message);
 }
@@ -63,8 +72,14 @@ void loop() {
   if(msElapsed % readFreq == 0){
     readAnalog();
   }
+
+  int tempticks = ticks;
+  ticks = 0;
   if(msElapsed % sendFreq == 0){
-    sendMessage();
+    sendMessage(tempticks);
   }
   delay(100);
 }
+
+
+
