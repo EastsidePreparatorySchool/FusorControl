@@ -43,7 +43,7 @@ long dt = 0;
 void setup() {
   // communicate with the computer 
   Serial.begin(9600);
-  attachInterrupt(digitalPinToInterrupt(pin),geigerInterrupt(), RISING) //TODO: mode
+  attachInterrupt(digitalPinToInterrupt(GCpin),geigerInterrupt, RISING); //TODO: mode
 }
 
 void geigerInterrupt() {
