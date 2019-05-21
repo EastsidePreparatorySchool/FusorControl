@@ -6,6 +6,21 @@ and open the template in the editor.
 -->
 <html>
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>fusor control | sensors</title>
+
+    <style>
+        html,
+        body {
+            margin: 2em 7em;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+
 <body>
     <h1>Fusor Control</h1>
     <!--<h2>Arduino Status: <span id="astatus"></span></h2>
@@ -13,32 +28,43 @@ and open the template in the editor.
     <h2>TMP Status: <span id="pstatus"></span></h2>-->
     <hr>
     <h2>initiation</h2>
+    <button id="isWorking" style="width: 10%;" onclick="isWorking()">is this thing connected?</button>
     <button id="inita" style="width: 15%">initiate arduino serial communication</button>
     <button id="status" style="width: 10%" onclick="getStatus()">get status</button>
     <button style="width: 10%; color: lightcoral;" onclick="kill()"><b>kill server</b></button>
     <hr>
-    <h2>variac control</h2>
+    <h2>control</h2>
+    <h3>variac: </h3>
     <input id="variacValue"><button onclick="variac()" id="variacButton">Set</button>
+    <h3>tmpv: </h3>
+    <input id="tmp"><button onclick="tmp()" id="tmpButton">Set</button>
+    <h3>solenoid: </h3>
+    <button onclick="solenoid('on')">on</button><button onclick="solenoid('off')" style="color: lightcoral;">off</button>
     <hr>
     <h2>testing (for status reports only)</h2>
     <button onclick="initiate()">start recieving status reports</button>
     <button onclick="endTest()">stop recieving status reports</button>
     <div style="color: lightcoral">
-        <h2>Arduino Status: <span id="astatus"></span></h2>
-        <h2>Variac Status: <span id="vstatus"></span></h2>
-        <h2>TMP Status: <span id="pstatus"></span></h2>
+        <h2>Arduino Status: <span id="astatus" style="color: black;"> </span></h2>
+        <h2>Variac Status: <span id="vstatus" style="color: black;"> </span></h2>
+        <h2>TMP Status: <span id="pstatus" style="color: black;"> </span></h2>
     </div>
     <hr>
-    <textarea id="error">errors: </textarea>
+    <textarea id="error">returns: </textarea>
 
     <script type="text/javascript">
-        var xhr = new XMLHttpRequest();
         var endTest = false;
 
         document.getElementById("variacValue").addEventListener("keyup", function (event) {
             if (event.keyCode === 13) { //enter key: 13
                 event.preventDefault();
                 document.getElementById("variacButton").click();
+            }
+        });
+        document.getElementById("tmp").addEventListener("keyup", function (event) {
+            if (event.keyCode === 13) { //enter key: 13
+                event.preventDefault();
+                document.getElementById("tmpButton").click();
             }
         });
 
@@ -57,51 +83,106 @@ and open the template in the editor.
             endTest = true;
         }
 
-        //requests with callback (spark stuff)
-        function request(page, callback) {
-            xhr.onreadystatechange = () => {
-                if (this.readyState == 4 && this.status == 200) {
-                    callback();
-                }
-            }
-            xhr.open("GET", page, true);
+        //new request & xmlRequest function (spark stuff)
+        function request(obj) {
+            return new Promise((resolve, reject) => {
+                let xhr = new XMLHttpRequest();
+                xhr.open(obj.method || "GET", obj.url);
+
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        resolve(xhr.response);
+                    } else {
+                        reject(xhr.statusText);
+                    }
+                };
+                xhr.onerror = () => reject(xhr.statusText);
+
+                xhr.send(obj.body);
+            });
+        }
+
+        function xmlRequest(verb, url) {
+            var xhr = new XMLHttpRequest();
+            xhr.open(verb || "GET", url, true);
+            xhr.onload = () => {
+                console.log(xhr.response);
+            };
+            xhr.onerror = () => {
+                console.log("error: " + statusText);
+            };
             xhr.send();
         }
 
         //gets status of TMP
         function getStatus() {
-            request("/getstatus", () => {
-                try {
-                    let status = JSON.parse(xhr.responseText);
-                    if (status.length != 0) {
-                        document.getElementById("astatus").value = status.arcon;
-                        document.getElementById("vstatus").value = "waiting for variac values...";
-                        document.getElementById("pstatus").value = "tmpv = " + status.tmpv + "; tmps = " + status.tmps;
+            request({ url: "/getstatus", method: "GET" })
+                .then(data => {
+                    let status = JSON.parse(data);
+                    console.log(status);
+                    for (var i = 0; i < status.length; i++) {
+                        document.getElementById("astatus").innerHTML = status[i].arconValue;
+                        document.getElementById("pstatus").innerHTML = "tmpv = " + status[i].tmpv + "; tmps = " + status[i].tmps;
+                        document.getElementById("vstatus").innerHTML = "waiting for variac values...";
                     }
-                } catch (error) {
-                    console.log(xhr.responseText);
-                }
-            });
+                })
+                .catch(error => {
+                    console.log("error: " + error);
+                });
         }
 
         //this kills the server (needs testing)
         function kill() {
-            request("/kill", () => {
-                console.log(xhr.responseText);
-            });
+            request({ url: "/kill", method: "GET" })
+                .then(data => {
+                    console.log(data);
+                })
+                .catch(error => {
+                    console.log("error: " + error);
+                });
         }
 
-        //sends value in textbox to variac
         function variac() {
-            var variacValue = document.getElementById("variacValue");
+            let variacValue = document.getElementById("variacValue");
             try {
-                request("/variac?value=" + variacValue.value, () => {
-                    console.log(xhr.responseText);
-                });
+                request({ url: "/variac?value=", method: "GET" })
+                    .then(data => {
+                        console.log(data);
+                    })
+                    .catch(error => {
+                        console.log("error: " + error);
+                    });
             } catch (error) {
                 console.log("Error: " + error)
             }
             variacValue.Value = "";
+        }
+
+        function tmp() {
+            let tmpValue = document.getElementById("tmp");
+            try {
+                request({ url: "/tmp?value=" + tmpValue.value, method: "GET" })
+                    .then(data => {
+                        console.log(data);
+                    })
+                    .catch(error => {
+                        console.log("error: " + error);
+                    });
+            } catch (error) {
+                console.log("Error: " + error)
+            }
+            tmpValue.Value = "";
+        }
+
+        function solenoid(isOn) {
+            let solenoidIsOn = isOn == "on";
+            request({ url: "/solenoid?isOn=" + solenoidIsOn, method: "GET" })
+                .then(data => {
+                    console.log(data);
+                })
+                .catch(error => {
+                    console.log("error: " + error);
+                });
         }
     </script>
 </body>
