@@ -1,4 +1,4 @@
-#include <Queue.h>
+#include "NewQueue.h"
 
 Queue<String> commands;
 String buffs = "";
@@ -53,9 +53,9 @@ void handleBuffer(String command)
   {
     if(cont.startsWith("volt")) 
     {
-      int volts = toInt(cont.substring(4,7));
+      int volts = cont.substring(4,7).toInt();
       voltage(volts);
-      Serial.println("setvoltageEND");
+      Serial.println("setvoltage" + String(volts) + "END");
     }
   }
 
