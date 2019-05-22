@@ -3,6 +3,11 @@
 Queue<String> commands;
 String buffs = "";
 
+#define PUL 35;
+#define ENA 37;
+#define DIR 36;
+
+
 void setup() 
 {
   Serial.begin(9600);
