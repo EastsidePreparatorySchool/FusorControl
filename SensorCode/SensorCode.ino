@@ -1,3 +1,4 @@
+#include <Queue.h>
 /*Inputs:
 GC-1:  Geiger Counter – White one, sends digital pulses
   ????
@@ -26,7 +27,10 @@ FD: Fire Detector
 #define XDpin A0
 #define PSpin A0
 #define GCpin 2 // must be either 2 or 3 
+const int PINtoRESET = -1; //should be wired to the reset pin
 
+Queue<String> commands;
+String buffs = "";
 
 int vm1;
 int vm2;
@@ -35,6 +39,7 @@ int ps;
 int msElapsed;
 int readFreq = 1; //(in 100s of ms)
 int sendFreq = 1;
+int recieveFreq = 2;
 int Gcount = 0;
 int gc = 0;
 long lastRead = millis();
@@ -44,6 +49,8 @@ void setup() {
   // communicate with the computer 
   Serial.begin(9600);
   attachInterrupt(digitalPinToInterrupt(GCpin),geigerInterrupt, RISING); //TODO: mode
+  pinMode(PINtoRESET, INPUT);    // Just to be clear, as default is INPUT. Not really needed.
+  digitalWrite(PINtoRESET, LOW);
 }
 
 void geigerInterrupt() {
@@ -74,6 +81,44 @@ void sendMessage() {
   Serial.println(message);
 }
 
+void recieveInput() {
+  int num = Serial.available();
+  char buffer[num];
+  int i = 0;
+  while (Serial.available() > 0) buffer[i++] = Serial.read();
+  
+  buffs = buffs + String(buffer);
+  int eindex = buffs.indexOf("END");
+
+  //finds the END int the string, separates it, adds that command to the queue, 
+  while(eindex != -1)
+  {
+    commands.enqueue(buffs.substring(0,eindex));
+    buffs = buffs.substring(eindex + 2);
+    eindex = buffs.indexOf("END");
+  }
+
+  //run every command in the buffer
+  while(!commands.isEmpty())
+  {
+    handleBuffer(commands.dequeue());
+  }
+}
+
+void handleBuffer(String command)
+{  
+  
+  //parses GET and SET commands and does things with them
+  String pre = command.substring(0,3);
+  String cont = command.substring(3);
+  
+  if(pre.equals("KIL"))
+  {
+    pinMode(PINtoRESET, OUTPUT); 
+    while(1); 
+  }
+}
+
 void loop() {
   // put your main code here, to run repeatedly:
   msElapsed ++;
@@ -82,6 +127,9 @@ void loop() {
   }
   if(msElapsed % sendFreq == 0){
     sendMessage();
+  }
+  if(msElapsed % recieveFreq == 0){
+    recieveInput();
   }
   delay(100);
 }
