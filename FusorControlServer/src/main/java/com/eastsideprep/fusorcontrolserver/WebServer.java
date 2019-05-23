@@ -45,6 +45,8 @@ public class WebServer {
         //ones like getstatus will have functions that communicate with the arduino
         get("/", (req, res) -> "<h1><a href='index.html'>Go to index.html</a></h1>");
         get("/kill", (req, res) -> {stop(); System.out.println("Server ended with /kill"); return "server ended";});
+        get("/killSensor", (req,res) -> {killSensor(); return "reset Sensor Arduino";});
+        get("/killControl", (req,res) -> {killControl(); return "reset Control Arduino";});
         get("/inita", (req, res) -> serialInit()?"success":"serial init failed");
         get("/getstatus", "application/json", (req, res) -> getStatus(req, res), new JSONRT());
         
@@ -75,7 +77,7 @@ public class WebServer {
             return "syntax error";
         });
     }
-
+    
     public Object getStatus(spark.Request req, spark.Response res) {
         boolean arcon = arduino != null;
         long start = System.currentTimeMillis();
@@ -93,10 +95,18 @@ public class WebServer {
                 tmpv = message.substring(coli+1);
             } if(message.startsWith("tmps")) {
                 tmps = message.substring(coli+1);
-            }                
+            }
         } while(!message.equals("statusend")&&System.currentTimeMillis()-start<=serialTimeout);
         status.add(new Status((arcon?1:0), tmpv, tmps));
         return status;
+    }
+    
+    public void killSensor() {
+        write("KILEND"); //should write to sensor arduino
+    }
+    
+    public void killControl() {
+        write("KILEND"); //should write to control arduino
     }
     
     public boolean serialInit() {
