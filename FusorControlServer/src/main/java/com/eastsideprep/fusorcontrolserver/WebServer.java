@@ -28,7 +28,7 @@ public class WebServer {
     
     SerialPort arduino;
     OutputStream os;
-    String msgBuffer;
+    String msgBuffer = "";
     Queue msgqueue;
     final int serialTimeout = 1500;
     
@@ -47,7 +47,7 @@ public class WebServer {
         get("/kill", (req, res) -> {stop(); System.out.println("Server ended with /kill"); return "server ended";});
         get("/inita", (req, res) -> serialInit()?"success":"serial init failed");
         get("/getstatus", "application/json", (req, res) -> getStatus(req, res), new JSONRT());
-
+        
         //variac control
         get("/variac", (req, res) -> {
             int variacValue = Integer.parseInt(req.queryParams("value"));
@@ -134,21 +134,22 @@ public class WebServer {
         return true;
     }
     
+    //Handles the first command
     private void handle(String arg) {
-        //System.out.println(arg);
         msgBuffer += arg;
         //this function takes all the raw input from the arduino and splits it up correctly into commands
         // 'msgBuffer' is a queue to hold commands
         while(msgBuffer.indexOf("END")!=-1) {
             int semi = msgBuffer.indexOf("END");
-            System.out.println(msgBuffer.substring(0, semi));
+            System.out.println("command: " + msgBuffer.substring(0, semi));
             msgqueue.add(msgBuffer.substring(0, semi));
-            msgBuffer = msgBuffer.substring(semi+1);        
+            msgBuffer = "";
         }
         
         //this while loop is for testing, it should be removed for actual use, otherwise, no other things will be able to get info from the arduino
         while(!msgqueue.isEmpty()) {
-            System.out.println(msgqueue.remove());
+            System.out.println("msgqueue: " + msgqueue.peek());
+            msgqueue.remove();
         }
     }
     

@@ -39,18 +39,18 @@ and open the template in the editor.
     <h3>tmpv: </h3>
     <input id="tmp"><button onclick="tmp()" id="tmpButton">Set</button>
     <h3>solenoid: </h3>
-    <button onclick="solenoid('on')">on</button><button onclick="solenoid('off')" style="color: lightcoral;">off</button>
+    <button onclick="solenoid('on')">on</button><button onclick="solenoid('off')"
+        style="color: lightcoral;">off</button>
     <hr>
     <h2>testing (for status reports only)</h2>
-    <button onclick="initiate()">start recieving status reports</button>
-    <button onclick="endTest()">stop recieving status reports</button>
+    <button onclick="initStatus()">start recieving status reports</button>
     <div style="color: lightcoral">
         <h2>Arduino Status: <span id="astatus" style="color: black;"> </span></h2>
         <h2>Variac Status: <span id="vstatus" style="color: black;"> </span></h2>
         <h2>TMP Status: <span id="pstatus" style="color: black;"> </span></h2>
     </div>
     <hr>
-    <textarea id="error">returns: </textarea>
+    <p id="error">returns: </p>
 
     <script type="text/javascript">
         var endTest = false;
@@ -69,18 +69,9 @@ and open the template in the editor.
         });
 
         //could be achieved with less latency if using WebSocket
-        function initiate() {
-            getStatus();
-            if (endTest) {
-                endTest = false;
-                return;
-            }
-            setTimeout(arguments.callee, 500);
-        }
-
-        //paired up with initiate()
-        function Testend() {
-            endTest = true;
+        function initStatus() {
+            console.log("recieving status...")
+            setInterval(getStatus, 500); //per every 0.5 seconds
         }
 
         //new request & xmlRequest function (spark stuff)
@@ -100,7 +91,7 @@ and open the template in the editor.
 
                 xhr.send(obj.body);
             });
-        }
+        };
 
         function xmlRequest(verb, url) {
             var xhr = new XMLHttpRequest();
@@ -113,7 +104,6 @@ and open the template in the editor.
             };
             xhr.send();
         }
-
         //gets status of TMP
         function getStatus() {
             request({ url: "/getstatus", method: "GET" })
@@ -142,10 +132,11 @@ and open the template in the editor.
                 });
         }
 
+        //control variac
         function variac() {
-            let variacValue = document.getElementById("variacValue");
+            var variacValue = document.getElementById("variacValue");
             try {
-                request({ url: "/variac?value=", method: "GET" })
+                request({ url: "/variac?value=" + variacValue.value, method: "GET" })
                     .then(data => {
                         console.log(data);
                     })
@@ -158,8 +149,9 @@ and open the template in the editor.
             variacValue.Value = "";
         }
 
+        //control tmp
         function tmp() {
-            let tmpValue = document.getElementById("tmp");
+            var tmpValue = document.getElementById("tmp");
             try {
                 request({ url: "/tmp?value=" + tmpValue.value, method: "GET" })
                     .then(data => {
@@ -174,6 +166,7 @@ and open the template in the editor.
             tmpValue.Value = "";
         }
 
+        //control the solenoid
         function solenoid(isOn) {
             let solenoidIsOn = isOn == "on";
             request({ url: "/solenoid?isOn=" + solenoidIsOn, method: "GET" })

@@ -16,21 +16,21 @@ void setup()
 
 void loop() 
 {
-    //collects serial messages from the hardware buffer
+  //collects serial messages from the hardware buffer
   int num = Serial.available();
   char buffer[num];
   int i = 0;
   while (Serial.available() > 0) buffer[i++] = Serial.read();
   
-  buffs = buffs + String(buffer);
+  buffs = String(buffer);
   int eindex = buffs.indexOf("END");
 
   //finds the END int the string, separates it, adds that command to the queue, 
   while(eindex != -1)
   {
     commands.enqueue(buffs.substring(0,eindex));
-    buffs = buffs.substring(eindex +2);
-    eindex = buffs.indexOf("END");
+    buffs = "";
+    eindex = -1;
   }
 
   //run every command in the buffer
@@ -38,7 +38,7 @@ void loop()
   {
     handleBuffer(commands.dequeue());
   }
-    
+
   delay(100);
 }
 
@@ -69,13 +69,11 @@ void handleBuffer(String command)
     
     Serial.println(cont+"END");
     digitalWrite(13,HIGH);
-  delay(500);
-  digitalWrite(13,LOW);
+    delay(500);
+    digitalWrite(13,LOW);
   }
-  
 }
 
 void voltage(int v)
 {
-  
 }
