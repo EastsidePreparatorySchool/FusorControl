@@ -11,46 +11,76 @@ and open the template in the editor.
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>fusor control | sensors</title>
-
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <style>
         html,
         body {
-            margin: 2em 7em;
             font-size: 1.1em;
+            width: 100%;
+            background: linear-gradient(rgb(0,0,70), rgb(0, 0, 40));
+            color: white;
+        }
+
+        .container {
+            margin: 2em, 7em;
+        }
+
+        .button {
+            height: 50px;
+            width: 24.5%;
+            border: none;
+            border-radius: 8px;
+            background-color: #99c2ff;
+            color: white;
+            font-size: 16px;
+            display: inline-block;
         }
     </style>
 </head>
 
 <body>
-    <h1>Fusor Control</h1>
-    <!--<h2>Arduino Status: <span id="astatus"></span></h2>
-    <h2>Variac Status: <span id="vstatus"></span></h2>
-    <h2>TMP Status: <span id="pstatus"></span></h2>-->
-    <hr>
-    <h2>initiation</h2>
-    <button id="isWorking" style="width: 10%;" onclick="isWorking()">is this thing connected?</button>
-    <button id="inita" style="width: 15%">initiate arduino serial communication</button>
-    <button id="status" style="width: 10%" onclick="getStatus()">get status</button>
-    <button style="width: 10%; color: lightcoral;" onclick="kill()"><b>kill server</b></button>
-    <hr>
-    <h2>control</h2>
-    <h3>variac: </h3>
-    <input id="variacValue"><button onclick="variac()" id="variacButton">Set</button>
-    <h3>tmpv: </h3>
-    <input id="tmp"><button onclick="tmp()" id="tmpButton">Set</button>
-    <h3>solenoid: </h3>
-    <button onclick="solenoid('on')">on</button><button onclick="solenoid('off')"
-        style="color: lightcoral;">off</button>
-    <hr>
-    <h2>testing (for status reports only)</h2>
-    <button onclick="initStatus()">start recieving status reports</button>
-    <div style="color: lightcoral">
-        <h2>Arduino Status: <span id="astatus" style="color: black;"> </span></h2>
-        <h2>Variac Status: <span id="vstatus" style="color: black;"> </span></h2>
-        <h2>TMP Status: <span id="pstatus" style="color: black;"> </span></h2>
+    <div class="container">
+        <center>
+            <h1>Fusor Control</h1>
+        </center>
+        <!--<h2>Arduino Status: <span id="astatus"></span></h2>
+            <h2>Variac Status: <span id="vstatus"></span></h2>
+            <h2>TMP Status: <span id="pstatus"></span></h2>-->
+        <hr>
+        <h2>Initialization</h2>
+        <button id="isWorking" class='button' onclick="isWorking()">Test Connection</button>
+        <button id="inita" class='button'>Initiate Arduino Serial Comm</button>
+        <button id="status" class='button' onclick="getStatus()">Get Status</button>
+        <button class='button' style="background-color: lightcoral" onclick="kill()"><b>KILL SERVER</b></button>
+        <hr>
+
+
+
+        <h2>Control</h2>
+        <h3>Variac Input Voltage: </h3>
+        <input id="variacValue"><button onclick="variac()" id="variacButton">Set</button>
+        <h3>Turbo-Molecular Pump Voltage: </h3>
+        <input id="tmp"><button onclick="tmp()" id="tmpButton">Set</button>
+        <!--<h3>Solenoid Valve: <button onclick="solenoid('on')">OPEN</button><button onclick="solenoid('off')" 
+                style="color: lightcoral;">CLOSE</button> </h3> -->
+        <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="customSwitch1"
+                onchange="solenoid(this.checked ? 'on':'off')">
+            <h3><label class="custom-control-label" for="customSwitch1">Solenoid Valve On</label></h3>
+        </div>
+        <hr>
+        <h2>testing (for status reports only)</h2>
+        <button onclick="initStatus()">start recieving status reports</button>
+        <div style="color: lightcoral">
+            <h2>Arduino Status: <span id="astatus" style="color: black;"> </span></h2>
+            <h2>Variac Status: <span id="vstatus" style="color: black;"> </span></h2>
+            <h2>TMP Status: <span id="pstatus" style="color: black;"> </span></h2>
+        </div>
+        <hr>
+        <p id="error">returns: </p>
     </div>
-    <hr>
-    <p id="error">returns: </p>
+
 
     <script type="text/javascript">
         var endTest = false;
