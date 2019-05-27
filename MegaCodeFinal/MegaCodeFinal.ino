@@ -21,16 +21,18 @@ void loop()
   char buffer[num];
   int i = 0;
   while (Serial.available() > 0) buffer[i++] = Serial.read();
-  
+  if(num>0) Serial.println("got " + String(num) + " bytesEND");
   buffs = String(buffer);
   int eindex = buffs.indexOf("END");
-
+  String temp = buffs.substring(0);
+  temp.replace("END","OOF");
+  if(temp.length()>0) Serial.println("buffer: " + temp+"END");
   //finds the END int the string, separates it, adds that command to the queue, 
   while(eindex != -1)
   {
     commands.enqueue(buffs.substring(0,eindex));
-    buffs = "";
-    eindex = -1;
+    buffs = buffs.substring(eindex+1);    
+    eindex = buffs.indexOf("END");
   }
 
   //run every command in the buffer
@@ -48,7 +50,7 @@ void handleBuffer(String command)
   //parses GET and SET commands and does things with them
   String pre = command.substring(0,3);
   String cont = command.substring(3);
-  
+  Serial.println(command);
   if(pre.equals("SET"))
   {
     if(cont.startsWith("volt")) 
@@ -56,6 +58,21 @@ void handleBuffer(String command)
       int volts = cont.substring(4,7).toInt();
       voltage(volts);
       Serial.println("setvoltage" + String(volts) + "END");
+    }
+
+    if(cont.startsWith("tmp"))
+    {
+      if(cont.substring(3).equals("on"))
+      {
+        tmpOn();
+        Serial.println("tmponEND");
+      }
+      
+      if(cont.substring(3).equals("off"))
+      {
+        tmpOff();
+        Serial.println("tmpoffEND");
+      }
     }
   }
 
@@ -76,4 +93,15 @@ void handleBuffer(String command)
 
 void voltage(int v)
 {
+  
+}
+
+void tmpOn()
+{
+  
+}
+
+void tmpOff()
+{
+  
 }

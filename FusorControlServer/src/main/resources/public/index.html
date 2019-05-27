@@ -34,10 +34,13 @@ and open the template in the editor.
     <button style="width: 10%; color: lightcoral;" onclick="kill()"><b>kill server</b></button>
     <hr>
     <h2>control</h2>
-    <h3>variac: </h3>
+    <h3>Cariac: </h3>
     <input id="variacValue"><button onclick="variac()" id="variacButton">Set</button>
-    <h3>tmpv: </h3>
-    <input id="tmp"><button onclick="tmp()" id="tmpButton">Set</button>
+    <h3>Turbo Pump: </h3>
+    <div>
+        <button onclick="tmpOn()">TMP On</button>
+        <button onclick="tmpOff()">TMP Off</button>
+    </div>
     <h3>solenoid: </h3>
     <button onclick="solenoid('on')">on</button><button onclick="solenoid('off')"
         style="color: lightcoral;">off</button>
@@ -150,10 +153,24 @@ and open the template in the editor.
         }
 
         //control tmp
-        function tmp() {
-            var tmpValue = document.getElementById("tmp");
+        function tmpOn() {
             try {
-                request({ url: "/tmp?value=" + tmpValue.value, method: "GET" })
+                request({ url: "/tmpOn", method: "GET" })
+                    .then(data => {
+                        console.log(data);
+                    })
+                    .catch(error => {
+                        console.log("error: " + error);
+                    });
+            } catch (error) {
+                console.log("Error: " + error)
+            }
+            tmpValue.Value = "";
+        }
+        
+        function tmpOff() {
+            try {
+                request({ url: "/tmpOff", method: "GET" })
                     .then(data => {
                         console.log(data);
                     })

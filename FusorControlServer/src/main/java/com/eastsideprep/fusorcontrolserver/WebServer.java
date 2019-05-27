@@ -58,10 +58,13 @@ public class WebServer {
         });
         
         //tmp control
-        get("/tmp", (req, res) -> {
-            Double tmpValue = Double.parseDouble(req.queryParams("value"));
-            //TODO: control team to connect this to the arduino
-            return "set tmp value as " + req.queryParams("value");
+        get("/tmpOn", (req, res) -> {
+            tmpOn();
+            return "turned on TMP";
+        });
+        get("/tmpOff", (req, res) -> {
+            tmpOff();
+            return "turned off TMP";
         });
 
         //solenoid control
@@ -133,7 +136,7 @@ public class WebServer {
                     return;
                 byte[] data = new byte[arduino.bytesAvailable()];
                 int count = arduino.readBytes(data, data.length);
-                System.out.println("Read " + count + " bytes from arduino");
+                //System.out.println("Read " + count + " bytes from arduino");
                 handle(new String(data));
             }
         });
@@ -151,16 +154,12 @@ public class WebServer {
         // 'msgBuffer' is a queue to hold commands
         while(msgBuffer.indexOf("END")!=-1) {
             int semi = msgBuffer.indexOf("END");
-            System.out.println("command: " + msgBuffer.substring(0, semi));
+            System.out.println("arduino: " + msgBuffer.substring(0, semi));
             msgqueue.add(msgBuffer.substring(0, semi));
             msgBuffer = "";
         }
         
-        //this while loop is for testing, it should be removed for actual use, otherwise, no other things will be able to get info from the arduino
-        while(!msgqueue.isEmpty()) {
-            System.out.println("msgqueue: " + msgqueue.peek());
-            msgqueue.remove();
-        }
+        
     }
     
     private void write(String arg) {
@@ -178,5 +177,12 @@ public class WebServer {
     
     private void sendVoltage(int v) {        
         write("SETvolt" + String.format("%03d", v) + "END");
+    }
+    
+    private void tmpOn() {
+        write("SETtmponEND");
+    }
+    private void tmpOff() {
+        write("SETtmpoffEND");
     }
 }
