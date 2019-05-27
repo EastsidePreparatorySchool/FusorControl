@@ -3,15 +3,31 @@
 Queue<String> commands;
 String buffs = "";
 
-#define PUL 35;
-#define ENA 37;
-#define DIR 36;
+#define MINVOLTS 5
+#define MAXVOLTS 120 //incorrect
+
+#define PUL 35
+#define ENA 37
+#define DIR 36
+
+#define POT A2
+
+#define delayMicros 1000
 
 
 void setup() 
 {
-  Serial.begin(9600);
+  pinMode(PUL, OUTPUT);
+  pinMode(ENA, OUTPUT);
+  pinMode(DIR, OUTPUT);
+
+  pinMode(POT, INPUT);
   pinMode(13, OUTPUT);
+  
+  
+  Serial.begin(9600);
+  
+  zeroVoltage();
 }
 
 void loop() 
@@ -56,7 +72,7 @@ void handleBuffer(String command)
     if(cont.startsWith("volt")) 
     {
       int volts = cont.substring(4,7).toInt();
-      voltage(volts);
+      setVoltage(volts);
       Serial.println("setvoltage" + String(volts) + "END");
     }
 
@@ -91,11 +107,6 @@ void handleBuffer(String command)
   }
 }
 
-void voltage(int v)
-{
-  
-}
-
 void tmpOn()
 {
   
@@ -104,4 +115,56 @@ void tmpOn()
 void tmpOff()
 {
   
+}
+
+
+
+
+
+
+
+float potToVolts(int pot) { return map(pot, 0, 1024, MINVOLTS, MAXVOLTS); }
+int voltsToPot(int volts) {
+  if (volts < MINVOLTS) return 0;
+  return map(volts, MINVOLTS,MAXVOLTS, 0, 1024);
+}
+
+void setVoltage(int volts) {
+  int pot;
+  int targetPot = voltsToPot(volts);
+
+  int dif;
+
+  digitalWrite(ENA, HIGH);
+  do {
+    pot = analogRead(POT);
+    Serial.println(pot);
+    dif = targetPot - pot;
+
+    digitalWrite(DIR, (dif < 0) ? HIGH:LOW);
+    
+    digitalWrite(PUL, HIGH);
+    delayMicroseconds(delayMicros);
+    digitalWrite(PUL, LOW);
+    delayMicroseconds(delayMicros);
+    
+  } while( abs(dif) > 10 );
+
+  digitalWrite(ENA, LOW);
+}
+void zeroVoltage() {
+  //set the variac as low as we can
+  setVoltage(MINVOLTS);
+
+
+  //drive down some bonus steps, so we get to actual zero
+  digitalWrite(ENA, HIGH);
+  digitalWrite(DIR, HIGH);
+  for(int i = 0; i < 20; i++) {
+    digitalWrite(PUL, HIGH);
+    delayMicroseconds(delayMicros * 2);
+    digitalWrite(PUL, LOW);
+    delayMicroseconds(delayMicros * 2);
+  }
+  digitalWrite(ENA, LOW);
 }
