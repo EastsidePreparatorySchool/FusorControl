@@ -59,10 +59,13 @@ and open the template in the editor.
 
         <h2>Control</h2>
         <h3>Variac Input Voltage: </h3>
-        <input id="variacValue"><button onclick="variac()" id="variacButton">Set</button>
-        <h3>Turbo-Molecular Pump Voltage: </h3>
-        <input id="tmp"><button onclick="tmp()" id="tmpButton">Set</button>
-        <!--<h3>Solenoid Valve: <button onclick="solenoid('on')">OPEN</button><button onclick="solenoid('off')" 
+        <input id="variacValue"><button onclick="variac( document.getElementById('variacValue'))" id="variacButton">Set</button>
+        <h3>Turbo Pump: </h3>
+        <div>
+            <button onclick="tmpOn()">TMP On</button>
+            <button onclick="tmpOff()">TMP Off</button>
+        </div>
+        <!--<h3>Solenoid Valve: <button onclick="solenoid('on')">OPEN</button><button onclick="solenoid('off')"
                 style="color: lightcoral;">CLOSE</button> </h3> -->
         <div class="custom-control custom-switch">
             <input type="checkbox" class="custom-control-input" id="customSwitch1"
@@ -163,8 +166,8 @@ and open the template in the editor.
         }
 
         //control variac
-        function variac() {
-            var variacValue = document.getElementById("variacValue");
+        function variac(num) {
+            var variacValue = num;
             try {
                 request({ url: "/variac?value=" + variacValue.value, method: "GET" })
                     .then(data => {
@@ -180,10 +183,24 @@ and open the template in the editor.
         }
 
         //control tmp
-        function tmp() {
-            var tmpValue = document.getElementById("tmp");
+        function tmpOn() {
             try {
-                request({ url: "/tmp?value=" + tmpValue.value, method: "GET" })
+                request({ url: "/tmpOn", method: "GET" })
+                    .then(data => {
+                        console.log(data);
+                    })
+                    .catch(error => {
+                        console.log("error: " + error);
+                    });
+            } catch (error) {
+                console.log("Error: " + error)
+            }
+            tmpValue.Value = "";
+        }
+
+        function tmpOff() {
+            try {
+                request({ url: "/tmpOff", method: "GET" })
                     .then(data => {
                         console.log(data);
                     })
