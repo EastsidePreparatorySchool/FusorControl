@@ -188,7 +188,7 @@ and open the template in the editor.
         function variac(num) {
             var variacValue = num;
             try {
-                request({ url: "/variac?value=" + variacValue.value, method: "GET" })
+                request({ url: "/variac?value=" + variacValue, method: "GET" })
                     .then(data => {
                         console.log(data);
                     })
