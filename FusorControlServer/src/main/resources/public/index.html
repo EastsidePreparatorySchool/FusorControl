@@ -13,13 +13,19 @@ and open the template in the editor.
     <title>fusor control | sensors</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Bungee|Lato&display=swap" rel="stylesheet">
     <style>
         html,
         body {
             font-size: 1.1em;
             width: 100%;
-            background: linear-gradient(rgb(0,0,70), rgb(0, 0, 40));
-            color: white;
+            background-color: #ff9faf;
+            color: #f5e0d9;
+            font-family: 'Lato', sans-serif;
+        }
+
+        h2 {
+            font-family: 'Bungee', cursive;
         }
 
         .container {
@@ -31,35 +37,43 @@ and open the template in the editor.
             width: 24.5%;
             border: none;
             border-radius: 8px;
-            background-color: #99c2ff;
-            color: white;
+            background-color: #fc8e60;
+            color: #f5e0d9;
             font-size: 16px;
             display: inline-block;
+            font-family: 'Lato', sans-serif;
+        }
+
+        .line {
+            background-color: #1b0000;
+            height: 0.1em;
+            border-radius: 10%;
+            margin: 2%;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <center>
-            <h1>Fusor Control</h1>
-        </center>
-        <!--<h2>Arduino Status: <span id="astatus"></span></h2>
-            <h2>Variac Status: <span id="vstatus"></span></h2>
-            <h2>TMP Status: <span id="pstatus"></span></h2>-->
-        <hr>
+        <h1 style="text-align: center; font-family: 'Bungee', cursive; font-size: 500%; margin-top: 3%;">Fusor Control</h1>
+
+        <div class="line">
+
+        </div>
         <h2>Initialization</h2>
-        <button id="isWorking" class='button' onclick="isWorking()">Test Connection</button>
-        <button id="inita" class='button'>Initiate Arduino Serial Comm</button>
-        <button id="status" class='button' onclick="getStatus()">Get Status</button>
-        <button class='button' style="background-color: lightcoral" onclick="kill()"><b>KILL SERVER</b></button>
-        <hr>
+        <button id="isWorking" class="button" onclick="isWorking()">Test Connection</button>
+        <button id="inita" class="button">Initiate Arduino Serial Comm</button>
+        <button id="status" class="button" onclick="getStatus()">Get Status</button>
+        <button class="button" style="background-color: #f64072; font-family: 'Bungee', cursive;"
+            onclick="kill()"><b>KILL
+                SERVER</b></button>
 
-
+        <div class="line"></div>
 
         <h2>Control</h2>
         <h3>Variac Input Voltage: </h3>
-        <input id="variacValue"><button onclick="variac( document.getElementById('variacValue'))" id="variacButton">Set</button>
+        <input id="variacValue"><button onclick="variac( document.getElementById('variacValue'))"
+            id="variacButton">Set</button>
         <h3>Turbo Pump: </h3>
         <div>
             <button onclick="tmpOn()">TMP On</button>
@@ -72,16 +86,21 @@ and open the template in the editor.
                 onchange="solenoid(this.checked ? 'on':'off')">
             <h3><label class="custom-control-label" for="customSwitch1">Solenoid Valve On</label></h3>
         </div>
-        <hr>
-        <h2>testing (for status reports only)</h2>
-        <button onclick="initStatus()">start recieving status reports</button>
-        <div style="color: lightcoral">
+
+        <div class="line"></div>
+
+        <h2>get status (work in progress)</h2>
+        <button class="button" onclick="initStatus()">start recieving status reports</button>
+        <div style="color: #f64072; margin-top: 2%;">
             <h2>Arduino Status: <span id="astatus" style="color: black;"> </span></h2>
             <h2>Variac Status: <span id="vstatus" style="color: black;"> </span></h2>
             <h2>TMP Status: <span id="pstatus" style="color: black;"> </span></h2>
         </div>
-        <hr>
+
+        <div class="line"></div>
+
         <p id="error">returns: </p>
+        <img src="https://howimetyourotaku.files.wordpress.com/2011/02/kore-wa-zombie-desu-ka-07-mkv_snapshot_02-18_2011-02-23_01-35-29.jpg" style="width: 100%; text-align: center; border-radius: 5%; margin-bottom: 5%;">
     </div>
 
 
