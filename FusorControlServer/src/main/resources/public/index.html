@@ -34,8 +34,8 @@ and open the template in the editor.
     <button style="width: 10%; color: lightcoral;" onclick="kill()"><b>kill server</b></button>
     <hr>
     <h2>control</h2>
-    <h3>Cariac: </h3>
-    <input id="variacValue"><button onclick="variac()" id="variacButton">Set</button>
+    <h3>Variac: </h3>
+    <input id="variacValue"><button onclick="variac( document.getElementById('variacValue'))" id="variacButton">Set</button>
     <h3>Turbo Pump: </h3>
     <div>
         <button onclick="tmpOn()">TMP On</button>
@@ -136,8 +136,8 @@ and open the template in the editor.
         }
 
         //control variac
-        function variac() {
-            var variacValue = document.getElementById("variacValue");
+        function variac(num) {
+            var variacValue = num;
             try {
                 request({ url: "/variac?value=" + variacValue.value, method: "GET" })
                     .then(data => {

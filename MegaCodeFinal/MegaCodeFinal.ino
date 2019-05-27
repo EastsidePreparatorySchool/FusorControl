@@ -60,12 +60,15 @@ void loop()
   delay(100);
 }
 
+String pre;
+String cont;
+
 void handleBuffer(String command)
 {  
   
   //parses GET and SET commands and does things with them
-  String pre = command.substring(0,3);
-  String cont = command.substring(3);
+  pre = command.substring(0,3);
+  cont = command.substring(3);
   Serial.println(command);
   if(pre.equals("SET"))
   {
@@ -132,7 +135,7 @@ int voltsToPot(int volts) {
 void setVoltage(int volts) {
   int pot;
   int targetPot = voltsToPot(volts);
-
+  if(volts>90) return;
   int dif;
 
   digitalWrite(ENA, HIGH);
