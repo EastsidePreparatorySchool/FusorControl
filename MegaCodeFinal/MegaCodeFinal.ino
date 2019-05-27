@@ -29,7 +29,7 @@ void setup()
   
   zeroVoltage();
 }
-
+String temp;
 void loop() 
 {
   //collects serial messages from the hardware buffer
@@ -38,16 +38,16 @@ void loop()
   int i = 0;
   while (Serial.available() > 0) buffer[i++] = Serial.read();
   if(num>0) Serial.println("got " + String(num) + " bytesEND");
-  buffs = String(buffer);
+  buffs += String(buffer);
   int eindex = buffs.indexOf("END");
-  String temp = buffs.substring(0);
-  temp.replace("END","OOF");
+  temp = buffs.substring(0);
+  temp.replace("END","end");
   if(temp.length()>0) Serial.println("buffer: " + temp+"END");
   //finds the END int the string, separates it, adds that command to the queue, 
   while(eindex != -1)
   {
     commands.enqueue(buffs.substring(0,eindex));
-    buffs = buffs.substring(eindex+1);    
+    buffs = buffs.substring(eindex+3);    
     eindex = buffs.indexOf("END");
   }
 
@@ -138,7 +138,6 @@ void setVoltage(int volts) {
   digitalWrite(ENA, HIGH);
   do {
     pot = analogRead(POT);
-    Serial.println(pot);
     dif = targetPot - pot;
 
     digitalWrite(DIR, (dif < 0) ? HIGH:LOW);
