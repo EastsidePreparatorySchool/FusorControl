@@ -113,12 +113,7 @@ and open the template in the editor.
                 document.getElementById("variacButton").click();
             }
         });
-        document.getElementById("tmp").addEventListener("keyup", function (event) {
-            if (event.keyCode === 13) { //enter key: 13
-                event.preventDefault();
-                document.getElementById("tmpButton").click();
-            }
-        });
+        
 
         //could be achieved with less latency if using WebSocket
         function initStatus() {
