@@ -1,7 +1,8 @@
-#include "NewQueue.h"
+//
+// Fusor project code for control Arduino
+//
 
-Queue<String> commands;
-String buffs = "";
+#define CMDLENGTH  50
 
 #define MINVOLTS 5
 #define MAXVOLTS 120 //incorrect
@@ -29,65 +30,98 @@ void setup()
   
   zeroVoltage();
 }
-String temp;
+
 void loop() 
 {
-  //collects serial messages from the hardware buffer
-  int num = Serial.available();
-  char buffer[num];
-  int i = 0;
-  while (Serial.available() > 0) buffer[i++] = Serial.read();
-  if(num>0) Serial.println("got " + String(num) + " bytesEND");
-  buffs += String(buffer);
-  int eindex = buffs.indexOf("END");
-  temp = buffs.substring(0);
-  temp.replace("END","end");
-  if(temp.length()>0) Serial.println("buffer: " + temp+"END");
-  //finds the END int the string, separates it, adds that command to the queue, 
-  while(eindex != -1)
-  {
-    commands.enqueue(buffs.substring(0,eindex));
-    buffs = buffs.substring(eindex+3);    
-    eindex = buffs.indexOf("END");
-  }
+  static char buffer[CMDLENGTH+1];
 
-  //run every command in the buffer
-  while(!commands.isEmpty())
-  {
-    handleBuffer(commands.dequeue());
-  }
-
-  delay(100);
-}
-
-String pre;
-String cont;
-
-void handleBuffer(String command)
-{  
   
-  //parses GET and SET commands and does things with them
-  pre = command.substring(0,3);
-  cont = command.substring(3);
-  Serial.println(command);
-  if(pre.equals("SET"))
-  {
-    if(cont.startsWith("volt")) 
+  //collects serial messages from the hardware buffer
+  int num = 0;
+  do {
+    while (Serial.available() > 0) 
     {
-      int volts = cont.substring(4,7).toInt();
-      setVoltage(volts);
-      Serial.println("setvoltage" + String(volts) + "END");
+      buffer[num++] = Serial.read();
+      buffer[num] = 0;    
+    }
+    
+    if(num>0) 
+    {
+      Serial.println("got " + String(num) + " bytesEND");
+    }
+  } while (strstr(buffer, "END") == NULL);
+
+  // got message, let's parse
+  char *sCommand = buffer;
+  char *sEnd = strstr(sCommand, "END");
+  
+  while (sEnd != NULL) 
+  {
+    // found at least one more command
+    // terminate command string at "END"
+    *sEnd = 0;
+
+    // echo command
+    if(strlen(sCommand)>0) 
+    {
+      Serial.print("command: ");
+      Serial.print(sCommand);
+      Serial.println("END");
     }
 
-    if(cont.startsWith("tmp"))
+    // execute command
+    handleBuffer(sCommand);
+
+    // advance both pointer to next possible command
+    sCommand = sEnd+3;
+    sEnd = strstr(sCommand, "END");
+  } 
+
+  delay(5);
+}
+
+void handleBuffer(char *command)
+{  
+  char *cont;
+  int cmdLength = strlen(command);
+
+  // check here for malformed command
+  if (cmdLength < 3) 
+  {
+    return;
+  }
+
+  char cmd[4];
+  strncpy (cmd, command, 3);
+  cmd[3] = 0;
+  
+  //parses GET and SET commands and does things with them
+  cont = command + 3;
+  int contLength = strlen(cont);
+
+  // echo command
+  
+  Serial.println(command);
+  if(strcmp(cmd, "SET") == 0)
+  {
+    if(contLength > 4 && strncmp(cont, "volt", 4) == 0) 
     {
-      if(cont.substring(3).equals("on"))
+      int volts = atoi(cont+4);
+      setVoltage(volts);
+      Serial.print("setvoltage");
+      Serial.print(cont+4);
+      Serial.println("END");
+    }
+
+    if(contLength > 2 && strncmp(cont, "tmp", 3) == 0) 
+    {
+      if(strcmp(cont+3, "on") == 0)
       {
         tmpOn();
         Serial.println("tmponEND");
       }
       
-      if(cont.substring(3).equals("off"))
+      if(strcmp(cont+3, "off") == 0)
       {
         tmpOff();
         Serial.println("tmpoffEND");
@@ -95,15 +129,16 @@ void handleBuffer(String command)
     }
   }
 
-  if(pre.equals("GET"))
+ if(strcmp(cmd, "GET") == 0)
   {
     Serial.println("memeEND");
   }
 
-  if(pre.equals("TES"))
+ if(strcmp(cmd, "TES") == 0)
   {
+    Serial.print(cont);
+    Serial.println("END");
     
-    Serial.println(cont+"END");
     digitalWrite(13,HIGH);
     delay(500);
     digitalWrite(13,LOW);
