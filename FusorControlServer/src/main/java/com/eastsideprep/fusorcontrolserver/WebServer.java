@@ -52,7 +52,9 @@ public class WebServer {
         
         //variac control
         get("/variac", (req, res) -> {
+            System.out.println("Recieved Variac Set Early");
             int variacValue = Integer.parseInt(req.queryParams("value"));
+            System.out.println("Recieved Variac Set " + variacValue);
             sendVoltage(variacValue);
             return "set value as " + req.queryParams("value");
         });
