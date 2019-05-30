@@ -29,7 +29,6 @@ void setup()
   Serial.begin(9600);
   
   zeroVoltage();
-
   Serial.println("done!");
 }
 
@@ -89,11 +88,8 @@ void handleBuffer(char *command)
   int cmdLength = strlen(command);
 
   // check here for malformed command
-  if (cmdLength < 3) 
-  {
-    return;
-  }
-
+  if (cmdLength < 3) return;
+  
   char cmd[4];
   strncpy (cmd, command, 3);
   cmd[3] = 0;
@@ -102,43 +98,31 @@ void handleBuffer(char *command)
   cont = command + 3;
   int contLength = strlen(cont);
 
-  // echo command
-  
-  Serial.println(command);
-  if(strcmp(cmd, "SET") == 0)
-  {
-    if(contLength > 4 && strncmp(cont, "volt", 4) == 0) 
-    {
+  if(strcmp(cmd, "SET") == 0) {
+    if(contLength > 4 && strncmp(cont, "volt", 4) == 0) {
       int volts = atoi(cont+4);
       setVoltage(volts);
       Serial.print("setvoltage");
-      Serial.print(cont+4);
+      Serial.print(volts);
       Serial.println("END");
     }
 
-    if(contLength > 2 && strncmp(cont, "tmp", 3) == 0) 
-    {
-      if(strcmp(cont+3, "on") == 0)
-      {
+    if(contLength > 2 && strncmp(cont, "tmp", 3) == 0) {
+      if(strcmp(cont+3, "on") == 0) {
         tmpOn();
         Serial.println("tmponEND");
       }
       
-      if(strcmp(cont+3, "off") == 0)
-      {
+      if(strcmp(cont+3, "off") == 0) {
         tmpOff();
         Serial.println("tmpoffEND");
       }
     }
   }
 
- if(strcmp(cmd, "GET") == 0)
-  {
-    Serial.println("memeEND");
-  }
+ if(strcmp(cmd, "GET") == 0) Serial.println("memeEND");
 
- if(strcmp(cmd, "TES") == 0)
-  {
+ if(strcmp(cmd, "TES") == 0) {
     Serial.print(cont);
     Serial.println("END");
     
@@ -177,10 +161,10 @@ void setVoltage(int volts) {
   int dif;
 
   digitalWrite(ENA, LOW);
+  
   do {
     pot = analogRead(POT);
     dif = targetPot - pot;
-
     digitalWrite(DIR, (dif < 0) ? LOW:HIGH);
     
     digitalWrite(PUL, HIGH);
