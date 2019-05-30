@@ -13,7 +13,6 @@ and open the template in the editor.
     <title>fusor control | sensors</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css?family=Bungee|Lato&display=swap" rel="stylesheet">
     <style>
         html,
         body {
@@ -26,6 +25,10 @@ and open the template in the editor.
 
         h2 {
             font-family: 'Bungee', cursive;
+        }
+
+        h3 {
+            margin-top: 2%;
         }
 
         .container {
@@ -55,7 +58,8 @@ and open the template in the editor.
 
 <body>
     <div class="container">
-        <h1 style="text-align: center; font-family: 'Bungee', cursive; font-size: 500%; margin-top: 3%;">Fusor Control</h1>
+        <h1 style="text-align: center; font-family: 'Bungee', cursive; font-size: 500%; margin-top: 3%;">Fusor Control
+        </h1>
 
         <div class="line">
 
@@ -72,20 +76,23 @@ and open the template in the editor.
 
         <h2>Control</h2>
         <h3>Variac Input Voltage: </h3>
-        <input id="variacValue"><button onclick="variac( document.getElementById('variacValue'))"
+        <input id="variacValue"><button onclick="variac( document.getElementById('variacValue').value)"
             id="variacButton">Set</button>
         <h3>Turbo Pump: </h3>
         <div>
-            <button onclick="tmpOn()">TMP On</button>
-            <button onclick="tmpOff()">TMP Off</button>
+            <button class="button" style="width: 10%; background-color: #39a82a;" onclick="tmpOn()">ON</button>
+            <button class="button" style="width: 10%; background-color: #f64072;font-family: 'Bungee', cursive;" onclick="tmpOff()">OFF</button>
         </div>
         <!--<h3>Solenoid Valve: <button onclick="solenoid('on')">OPEN</button><button onclick="solenoid('off')"
                 style="color: lightcoral;">CLOSE</button> </h3> -->
-        <div class="custom-control custom-switch">
+        <!-- <div class="custom-control custom-switch">
             <input type="checkbox" class="custom-control-input" id="customSwitch1"
                 onchange="solenoid(this.checked ? 'on':'off')">
-            <h3><label class="custom-control-label" for="customSwitch1">Solenoid Valve On</label></h3>
-        </div>
+            <h3><label class="custom-control-label" for="customSwitch1"></label></h3>
+        </div> -->
+        <h3>Solenoid Valve:</h3>
+        <button class="button" style="width: 10%; background-color: #39a82a;" onclick="SolenoidOn()">ON</button>
+        <button class="button" style="width: 10%; background-color: #f64072;font-family: 'Bungee', cursive;" onclick="SolenoidOff()">OFF</button>
 
         <div class="line"></div>
 
@@ -100,9 +107,9 @@ and open the template in the editor.
         <div class="line"></div>
 
         <p id="error">returns: </p>
-        <img src="https://howimetyourotaku.files.wordpress.com/2011/02/kore-wa-zombie-desu-ka-07-mkv_snapshot_02-18_2011-02-23_01-35-29.jpg" style="width: 100%; text-align: center; border-radius: 5%; margin-bottom: 5%;">
+        <img src="https://howimetyourotaku.files.wordpress.com/2011/02/kore-wa-zombie-desu-ka-07-mkv_snapshot_02-18_2011-02-23_01-35-29.jpg"
+            style="width: 100%; text-align: center; border-radius: 5%; margin-bottom: 5%;">
     </div>
-
 
     <script type="text/javascript">
         var endTest = false;
@@ -113,7 +120,6 @@ and open the template in the editor.
                 document.getElementById("variacButton").click();
             }
         });
-        
 
         //could be achieved with less latency if using WebSocket
         function initStatus() {
@@ -194,7 +200,6 @@ and open the template in the editor.
             } catch (error) {
                 console.log("Error: " + error)
             }
-            variacValue.Value = "";
         }
 
         //control tmp
@@ -210,7 +215,6 @@ and open the template in the editor.
             } catch (error) {
                 console.log("Error: " + error)
             }
-            tmpValue.Value = "";
         }
 
         function tmpOff() {
@@ -229,16 +233,34 @@ and open the template in the editor.
         }
 
         //control the solenoid
-        function solenoid(isOn) {
-            let solenoidIsOn = isOn == "on";
-            request({ url: "/solenoid?isOn=" + solenoidIsOn, method: "GET" })
-                .then(data => {
-                    console.log(data);
-                })
-                .catch(error => {
-                    console.log("error: " + error);
-                });
+        function SolenoidOn() {
+            try {
+                request({ url: "/solenoidOn", method: "GET" })
+                    .then(data => {
+                        console.log(data);
+                    })
+                    .catch(error => {
+                        console.log("error: " + error);
+                    });
+            } catch (error) {
+                console.log("Error: " + error)
+            }
         }
+
+        function SolenoidOff() {
+            try {
+                request({ url: "/solenoidOff", method: "GET" })
+                    .then(data => {
+                        console.log(data);
+                    })
+                    .catch(error => {
+                        console.log("error: " + error);
+                    });
+            } catch (error) {
+                console.log("Error: " + error)
+            }
+        }
+        
     </script>
 </body>
 

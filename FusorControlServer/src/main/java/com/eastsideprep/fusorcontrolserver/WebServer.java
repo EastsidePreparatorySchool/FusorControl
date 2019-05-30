@@ -52,7 +52,9 @@ public class WebServer {
         
         //variac control
         get("/variac", (req, res) -> {
+            System.out.println("Recieved Variac Set Early");
             int variacValue = Integer.parseInt(req.queryParams("value"));
+            System.out.println("Recieved Variac Set " + variacValue);
             sendVoltage(variacValue);
             return "set value as " + req.queryParams("value");
         });
@@ -68,16 +70,13 @@ public class WebServer {
         });
 
         //solenoid control
-        get("/solenoid", (req, res) -> {
-            if (req.queryParams("isOn").equals("true")) {
-                //TODO: control team to connect this to correct arduino
-                return "solenoid is on";
-            }
-            else if (req.queryParams("isOn").equals("false")) {
-                //TODO: control team to connect this to correct arduino
-                return "solenoid is off";
-            }
-            return "syntax error";
+        get("/solenoidOn", (req, res) -> {
+            tmpOn();
+            return "turned on Solenoid";
+        });
+        get("/solenoidOff", (req, res) -> {
+            tmpOff();
+            return "turned off Solenoid";
         });
     }
     

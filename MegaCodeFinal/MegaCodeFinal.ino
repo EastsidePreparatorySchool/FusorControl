@@ -33,7 +33,10 @@ void setup()
   pinMode(TMP, OUTPUT);
   digitalWrite(TMP, HIGH);
   zeroVoltage();
+
+  Serial.println("done!");
 }
+
 
 void loop() 
 {
@@ -177,12 +180,12 @@ void setVoltage(int volts) {
   if(volts>90) return;
   int dif;
 
-  digitalWrite(ENA, HIGH);
+  digitalWrite(ENA, LOW);
   do {
     pot = analogRead(POT);
     dif = targetPot - pot;
 
-    digitalWrite(DIR, (dif < 0) ? HIGH:LOW);
+    digitalWrite(DIR, (dif < 0) ? LOW:HIGH);
     
     digitalWrite(PUL, HIGH);
     delayMicroseconds(delayMicros);
@@ -191,7 +194,7 @@ void setVoltage(int volts) {
     
   } while( abs(dif) > 10 );
 
-  digitalWrite(ENA, LOW);
+  digitalWrite(ENA, HIGH);
 }
 void zeroVoltage() {
   //set the variac as low as we can
@@ -199,13 +202,13 @@ void zeroVoltage() {
 
 
   //drive down some bonus steps, so we get to actual zero
-  digitalWrite(ENA, HIGH);
-  digitalWrite(DIR, HIGH);
+  digitalWrite(ENA, LOW);
+  digitalWrite(DIR, LOW);
   for(int i = 0; i < 20; i++) {
     digitalWrite(PUL, HIGH);
     delayMicroseconds(delayMicros * 2);
     digitalWrite(PUL, LOW);
     delayMicroseconds(delayMicros * 2);
   }
-  digitalWrite(ENA, LOW);
+  digitalWrite(ENA, HIGH);
 }
