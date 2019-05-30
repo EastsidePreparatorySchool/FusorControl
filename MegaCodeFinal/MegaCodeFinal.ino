@@ -1,3 +1,4 @@
+v
 //
 // Fusor project code for control Arduino
 //
@@ -10,6 +11,8 @@
 #define PUL 35
 #define ENA 37
 #define DIR 36
+
+#define TMP 43
 
 #define POT A2
 
@@ -27,7 +30,8 @@ void setup()
   
   
   Serial.begin(9600);
-  
+  pinMode(TMP, OUTPUT);
+  digitalWrite(TMP, HIGH);
   zeroVoltage();
 }
 
@@ -147,12 +151,12 @@ void handleBuffer(char *command)
 
 void tmpOn()
 {
-  
+  digitalWrite(TMP, LOW);
 }
 
 void tmpOff()
 {
-  
+  digitalWrite(TMP, HIGH);
 }
 
 
