@@ -1,4 +1,4 @@
-v
+
 //
 // Fusor project code for control Arduino
 //
@@ -6,13 +6,14 @@ v
 #define CMDLENGTH  50
 
 #define MINVOLTS 5
-#define MAXVOLTS 120 //incorrect
+#define MAXVOLTS 120
 
 #define PUL 35
 #define ENA 37
 #define DIR 36
 
 #define TMP 43
+#define SOL 9 //this is wrong
 
 #define POT A2
 
@@ -31,6 +32,7 @@ void setup()
   
   Serial.begin(9600);
   pinMode(TMP, OUTPUT);
+  pinMode(SOL, OUTPUT);
   digitalWrite(TMP, HIGH);
   zeroVoltage();
   Serial.println("done!");
@@ -122,6 +124,18 @@ void handleBuffer(char *command)
         Serial.println("tmpoffEND");
       }
     }
+
+    if(contLength > 2 && strncmp(cont, "sol", 3) == 0) {
+      if(strcmp(cont+3, "on") == 0) {
+        solOn();
+        Serial.println("solonEND");
+      }
+      
+      if(strcmp(cont+3, "off") == 0) {
+        solOff();
+        Serial.println("soloffEND");
+      }
+    }
   }
 
  if(strcmp(cmd, "GET") == 0) Serial.println("memeEND");
@@ -136,14 +150,19 @@ void handleBuffer(char *command)
   }
 }
 
-void tmpOn()
-{
+void tmpOn() {
   digitalWrite(TMP, LOW);
 }
 
-void tmpOff()
-{
+void tmpOff() {
   digitalWrite(TMP, HIGH);
+}
+
+void solOn() {
+  digitalWrite(SOL, HIGH);
+}
+void solOff() {
+  digitalWrite(SOL, LOW);
 }
 
 

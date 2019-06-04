@@ -70,13 +70,25 @@ public class WebServer {
 
         //solenoid control
         get("/solenoidOn", (req, res) -> {
-            tmpOn();
+            solenoidOn();
             return "turned on Solenoid";
         });
         get("/solenoidOff", (req, res) -> {
-            tmpOff();
+            solenoidOff();
             return "turned off Solenoid";
         });
+    }
+    private void solenoidOn() {
+        write("SETsolonEND");
+    }
+    private void solenoidOff() {
+        write("SETsoloffEND");
+    }
+    private void tmpOn() {
+        write("SETtmponEND");
+    }
+    private void tmpOff() {
+        write("SETtmpoffEND");
     }
     
     public Object getStatus(spark.Request req, spark.Response res) {
@@ -177,10 +189,5 @@ public class WebServer {
         write("SETvolt" + String.format("%03d", v) + "END");
     }
     
-    private void tmpOn() {
-        write("SETtmponEND");
-    }
-    private void tmpOff() {
-        write("SETtmpoffEND");
-    }
+    
 }
