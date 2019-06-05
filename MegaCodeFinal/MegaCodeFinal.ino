@@ -13,7 +13,9 @@
 #define DIR 36
 
 #define TMP 43
-#define SOL 9 //this is wrong
+#define SOL 10
+
+#define REL 9
 
 #define POT A2
 
@@ -28,6 +30,8 @@ void setup()
 
   pinMode(POT, INPUT);
   pinMode(13, OUTPUT);
+
+  pinMode(REL, OUTPUT);
   
   
   Serial.begin(9600);
@@ -184,6 +188,7 @@ void setVoltage(int volts) {
   int dif;
 
   digitalWrite(ENA, LOW);
+  digitalWrite(REL, HIGH);
   
   do {
     pot = analogRead(POT);
@@ -198,6 +203,7 @@ void setVoltage(int volts) {
   } while( abs(dif) > 10 );
 
   digitalWrite(ENA, HIGH);
+  digitalWrite(REL, LOW);
 }
 void zeroVoltage() {
   //set the variac as low as we can
@@ -206,6 +212,8 @@ void zeroVoltage() {
 
   //drive down some bonus steps, so we get to actual zero
   digitalWrite(ENA, LOW);
+  digitalWrite(REL, HIGH);
+  
   digitalWrite(DIR, LOW);
   for(int i = 0; i < 20; i++) {
     digitalWrite(PUL, HIGH);
@@ -214,4 +222,5 @@ void zeroVoltage() {
     delayMicroseconds(delayMicros * 2);
   }
   digitalWrite(ENA, HIGH);
+  digitalWrite(REL, LOW);
 }
