@@ -13,7 +13,7 @@
 #define DIR 36
 
 #define TMP 43
-#define SOL 10 //this is wrong
+#define SOL 10
 
 #define REL 9
 
