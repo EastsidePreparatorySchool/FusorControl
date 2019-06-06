@@ -43,9 +43,10 @@ public class WebServer {
         staticFiles.location("/public");
 
         before("*", (req, res) -> {
-            System.out.println("");
             System.out.print("incoming from " + req.ip());
-            if (!req.ip().equals("10.20.84.166")) {
+            if (!(req.ip().equals("10.20.84.153")
+                    || req.ip().equals("10.20.84.166")
+                    || req.ip().equals("0.0.0.1"))) {
                 System.out.println(" ... denied.");
                 halt(401, "Not authorized");
             }
@@ -152,7 +153,12 @@ public class WebServer {
         //sets up arduino serial communication
         try {
             System.out.println(Arrays.toString(SerialPort.getCommPorts()));
-            arduino = SerialPort.getCommPorts()[0];
+            arduino = SerialPort.getCommPorts()[1];
+            System.out.println("Port: " + arduino);
+            if (!arduino.toString().equals("USBSER000")) {
+                System.out.println("USBSER000 port not found in array slot 1");
+                return false;
+            }
             arduino.openPort();
             System.out.println("port opened?");
             os = arduino.getOutputStream();
@@ -180,7 +186,7 @@ public class WebServer {
                 }
             });
         } catch (Exception e) {
-            System.out.println("there was an error");
+            System.out.println("there was an error:" + e);
             return false;
         }
         return true;
