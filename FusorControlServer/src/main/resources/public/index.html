@@ -6,262 +6,272 @@ and open the template in the editor.
 -->
 <html>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>fusor control | sensors</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <style>
-        html,
-        body {
-            font-size: 1.1em;
-            width: 100%;
-            background-color: #ff9faf;
-            color: #f5e0d9;
-            font-family: 'Lato', sans-serif;
-        }
-
-        h2 {
-            font-family: 'Bungee', cursive;
-        }
-
-        h3 {
-            margin-top: 2%;
-        }
-
-        .container {
-            margin: 2em, 7em;
-        }
-
-        .button {
-            height: 50px;
-            width: 24.5%;
-            border: none;
-            border-radius: 8px;
-            background-color: #fc8e60;
-            color: #f5e0d9;
-            font-size: 16px;
-            display: inline-block;
-            font-family: 'Lato', sans-serif;
-        }
-
-        .line {
-            background-color: #1b0000;
-            height: 0.1em;
-            border-radius: 10%;
-            margin: 2%;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <h1 style="text-align: center; font-family: 'Bungee', cursive; font-size: 500%; margin-top: 3%;">Fusor Control
-        </h1>
-
-        <div class="line">
-
-        </div>
-        <h2>Initialization</h2>
-        <button id="isWorking" class="button" onclick="isWorking()">Test Connection</button>
-        <button id="inita" class="button">Initiate Arduino Serial Comm</button>
-        <button id="status" class="button" onclick="getStatus()">Get Status</button>
-        <button class="button" style="background-color: #f64072; font-family: 'Bungee', cursive;"
-            onclick="kill()"><b>KILL
-                SERVER</b></button>
-
-        <div class="line"></div>
-
-        <h2>Control</h2>
-        <h3>Variac Input Voltage: </h3>
-        <input id="variacValue"><button onclick="variac( document.getElementById('variacValue').value)"
-            id="variacButton">Set</button>
-        <h3>Turbo Pump: </h3>
-        <div>
-            <button class="button" style="width: 10%; background-color: #39a82a;" onclick="tmpOn()">ON</button>
-            <button class="button" style="width: 10%; background-color: #f64072;font-family: 'Bungee', cursive;" onclick="tmpOff()">OFF</button>
-        </div>
-        <!--<h3>Solenoid Valve: <button onclick="solenoid('on')">OPEN</button><button onclick="solenoid('off')"
-                style="color: lightcoral;">CLOSE</button> </h3> -->
-        <!-- <div class="custom-control custom-switch">
-            <input type="checkbox" class="custom-control-input" id="customSwitch1"
-                onchange="solenoid(this.checked ? 'on':'off')">
-            <h3><label class="custom-control-label" for="customSwitch1"></label></h3>
-        </div> -->
-        <h3>Solenoid Valve:</h3>
-        <button class="button" style="width: 10%; background-color: #39a82a;" onclick="SolenoidOn()">ON</button>
-        <button class="button" style="width: 10%; background-color: #f64072;font-family: 'Bungee', cursive;" onclick="SolenoidOff()">OFF</button>
-
-        <div class="line"></div>
-
-        <h2>get status (work in progress)</h2>
-        <button class="button" onclick="initStatus()">start recieving status reports</button>
-        <div style="color: #f64072; margin-top: 2%;">
-            <h2>Arduino Status: <span id="astatus" style="color: black;"> </span></h2>
-            <h2>Variac Status: <span id="vstatus" style="color: black;"> </span></h2>
-            <h2>TMP Status: <span id="pstatus" style="color: black;"> </span></h2>
-        </div>
-
-        <div class="line"></div>
-
-        <p id="error">returns: </p>
-        <img src="https://howimetyourotaku.files.wordpress.com/2011/02/kore-wa-zombie-desu-ka-07-mkv_snapshot_02-18_2011-02-23_01-35-29.jpg"
-            style="width: 100%; text-align: center; border-radius: 5%; margin-bottom: 5%;">
-    </div>
-
-    <script type="text/javascript">
-        var endTest = false;
-
-        document.getElementById("variacValue").addEventListener("keyup", function (event) {
-            if (event.keyCode === 13) { //enter key: 13
-                event.preventDefault();
-                document.getElementById("variacButton").click();
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>fusor control | sensors</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+              integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <style>
+            html,
+            body {
+                font-size: 1.1em;
+                width: 100%;
+                background-color: #ff9faf;
+                color: #f5e0d9;
+                font-family: 'Lato', sans-serif;
             }
-        });
 
-        //could be achieved with less latency if using WebSocket
-        function initStatus() {
-            console.log("recieving status...")
-            setInterval(getStatus, 500); //per every 0.5 seconds
-        }
+            h2 {
+                font-family: 'Bungee', cursive;
+            }
 
-        //new request & xmlRequest function (spark stuff)
-        function request(obj) {
-            return new Promise((resolve, reject) => {
-                let xhr = new XMLHttpRequest();
-                xhr.open(obj.method || "GET", obj.url);
+            h3 {
+                margin-top: 2%;
+            }
 
-                xhr.onload = () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        resolve(xhr.response);
-                    } else {
-                        reject(xhr.statusText);
-                    }
-                };
-                xhr.onerror = () => reject(xhr.statusText);
+            .container {
+                margin: 2em, 7em;
+            }
 
-                xhr.send(obj.body);
+            .button {
+                height: 50px;
+                width: 24.5%;
+                border: none;
+                border-radius: 8px;
+                background-color: #fc8e60;
+                color: #f5e0d9;
+                font-size: 16px;
+                display: inline-block;
+                font-family: 'Lato', sans-serif;
+            }
+
+            .line {
+                background-color: #1b0000;
+                height: 0.1em;
+                border-radius: 10%;
+                margin: 2%;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1 style="text-align: center; font-family: 'Bungee', cursive; font-size: 500%; margin-top: 3%;">Fusor Control
+            </h1>
+
+            <div class="line">
+
+            </div>
+            <h2>Initialization</h2>
+            <button id="isWorking" class="button" onclick="isWorking()">Test Connection</button>
+            <button id="inita" class="button">Initiate Arduino Serial Comm</button>
+            <button id="status" class="button" onclick="getStatus()">Get Status</button>
+            <button class="button" style="background-color: #f64072; font-family: 'Bungee', cursive;"
+                    onclick="kill()"><b>KILL
+                    SERVER</b></button>
+
+            <div class="line"></div>
+
+            <div>
+
+                <div style="width:500px; height:450px; float:left">
+                    <h2>Control</h2>
+                    <h3>Variac Input Voltage: </h3>
+                    <input id="variacValue" value="0"><button onclick="variac(document.getElementById('variacValue').value)"
+                                                    id="variacButton">Set</button>
+                    <h3>Turbo Pump: </h3>
+                    <div>
+                        <button class="button" style="width: 10%; background-color: #39a82a;" onclick="tmpOn()">ON</button>
+                        <button class="button" style="width: 10%; background-color: #f64072;font-family: 'Bungee', cursive;" onclick="tmpOff()">OFF</button>
+                    </div>
+                    <!--<h3>Solenoid Valve: <button onclick="solenoid('on')">OPEN</button><button onclick="solenoid('off')"
+                            style="color: lightcoral;">CLOSE</button> </h3> -->
+                    <!-- <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="customSwitch1"
+                            onchange="solenoid(this.checked ? 'on':'off')">
+                        <h3><label class="custom-control-label" for="customSwitch1"></label></h3>
+                    </div> -->
+                    <h3>Solenoid Valve:</h3>
+                    <button class="button" style="width: 10%; background-color: #39a82a;" onclick="SolenoidOn()">ON</button>
+                    <button class="button" style="width: 10%; background-color: #f64072;font-family: 'Bungee', cursive;" onclick="SolenoidOff()">OFF</button>
+
+                </div>
+
+                <div style="width:500px; height:450px; float:left">
+                    <img width="500" height="400" src="http://localhost:4567/mjpg">
+                </div>
+            </div>
+            <div style="clear:both" class="line"></div>
+
+            <h2>get status (work in progress)</h2>
+            <button class="button" onclick="initStatus()">start recieving status reports</button>
+            <div style="color: #f64072; margin-top: 2%;">
+                <h2>Arduino Status: <span id="astatus" style="color: black;"> </span></h2>
+                <h2>Variac Status: <span id="vstatus" style="color: black;"> </span></h2>
+                <h2>TMP Status: <span id="pstatus" style="color: black;"> </span></h2>
+            </div>
+
+            <div class="line"></div>
+
+            <p id="error">returns: </p>
+            <img src="https://howimetyourotaku.files.wordpress.com/2011/02/kore-wa-zombie-desu-ka-07-mkv_snapshot_02-18_2011-02-23_01-35-29.jpg"
+                 style="width: 100%; text-align: center; border-radius: 5%; margin-bottom: 5%;">
+        </div>
+
+        <script type="text/javascript">
+            var endTest = false;
+
+            document.getElementById("variacValue").addEventListener("keyup", function (event) {
+                if (event.keyCode === 13) { //enter key: 13
+                    event.preventDefault();
+                    document.getElementById("variacButton").click();
+                }
             });
-        };
 
-        function xmlRequest(verb, url) {
-            var xhr = new XMLHttpRequest();
-            xhr.open(verb || "GET", url, true);
-            xhr.onload = () => {
-                console.log(xhr.response);
-            };
-            xhr.onerror = () => {
-                console.log("error: " + statusText);
-            };
-            xhr.send();
-        }
-        //gets status of TMP
-        function getStatus() {
-            request({ url: "/getstatus", method: "GET" })
-                .then(data => {
-                    let status = JSON.parse(data);
-                    console.log(status);
-                    for (var i = 0; i < status.length; i++) {
-                        document.getElementById("astatus").innerHTML = status[i].arconValue;
-                        document.getElementById("pstatus").innerHTML = "tmpv = " + status[i].tmpv + "; tmps = " + status[i].tmps;
-                        document.getElementById("vstatus").innerHTML = "waiting for variac values...";
-                    }
-                })
-                .catch(error => {
-                    console.log("error: " + error);
+            //could be achieved with less latency if using WebSocket
+            function initStatus() {
+                console.log("recieving status...")
+                setInterval(getStatus, 500); //per every 0.5 seconds
+            }
+
+            //new request & xmlRequest function (spark stuff)
+            function request(obj) {
+                return new Promise((resolve, reject) => {
+                    let xhr = new XMLHttpRequest();
+                    xhr.open(obj.method || "GET", obj.url);
+
+                    xhr.onload = () => {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            resolve(xhr.response);
+                        } else {
+                            reject(xhr.statusText);
+                        }
+                    };
+                    xhr.onerror = () => reject(xhr.statusText);
+
+                    xhr.send(obj.body);
                 });
-        }
-
-        //this kills the server (needs testing)
-        function kill() {
-            request({ url: "/kill", method: "GET" })
-                .then(data => {
-                    console.log(data);
-                })
-                .catch(error => {
-                    console.log("error: " + error);
-                });
-        }
-
-        //control variac
-        function variac(num) {
-            var variacValue = num;
-            console.log(num);
-            try {
-                request({ url: "/variac?value=" + variacValue, method: "GET" })
-                    .then(data => {
-                        console.log(data);
-                    })
-                    .catch(error => {
-                        console.log("error: " + error);
-                    });
-            } catch (error) {
-                console.log("Error: " + error)
             }
-        }
+            ;
 
-        //control tmp
-        function tmpOn() {
-            try {
-                request({ url: "/tmpOn", method: "GET" })
-                    .then(data => {
-                        console.log(data);
-                    })
-                    .catch(error => {
-                        console.log("error: " + error);
-                    });
-            } catch (error) {
-                console.log("Error: " + error)
+            function xmlRequest(verb, url) {
+                var xhr = new XMLHttpRequest();
+                xhr.open(verb || "GET", url, true);
+                xhr.onload = () => {
+                    console.log(xhr.response);
+                };
+                xhr.onerror = () => {
+                    console.log("error: " + statusText);
+                };
+                xhr.send();
             }
-        }
+            //gets status of TMP
+            function getStatus() {
+                request({url: "/getstatus", method: "GET"})
+                        .then(data => {
+                            let status = JSON.parse(data);
+                            console.log(status);
+                            for (var i = 0; i < status.length; i++) {
+                                document.getElementById("astatus").innerHTML = status[i].arconValue;
+                                document.getElementById("pstatus").innerHTML = "tmpv = " + status[i].tmpv + "; tmps = " + status[i].tmps;
+                                document.getElementById("vstatus").innerHTML = "waiting for variac values...";
+                            }
+                        })
+                        .catch(error => {
+                            console.log("error: " + error);
+                        });
+            }
 
-        function tmpOff() {
-            try {
-                request({ url: "/tmpOff", method: "GET" })
-                    .then(data => {
-                        console.log(data);
-                    })
-                    .catch(error => {
-                        console.log("error: " + error);
-                    });
-            } catch (error) {
-                console.log("Error: " + error)
+            //this kills the server (needs testing)
+            function kill() {
+                request({url: "/kill", method: "GET"})
+                        .then(data => {
+                            console.log(data);
+                        })
+                        .catch(error => {
+                            console.log("error: " + error);
+                        });
             }
-            tmpValue.Value = "";
-        }
 
-        //control the solenoid
-        function SolenoidOn() {
-            try {
-                request({ url: "/solenoidOn", method: "GET" })
-                    .then(data => {
-                        console.log(data);
-                    })
-                    .catch(error => {
-                        console.log("error: " + error);
-                    });
-            } catch (error) {
-                console.log("Error: " + error)
+            //control variac
+            function variac(num) {
+                var variacValue = num;
+                console.log(num);
+                try {
+                    request({url: "/variac?value=" + variacValue, method: "GET"})
+                            .then(data => {
+                                console.log(data);
+                            })
+                            .catch(error => {
+                                console.log("error: " + error);
+                            });
+                } catch (error) {
+                    console.log("Error: " + error)
+                }
             }
-        }
 
-        function SolenoidOff() {
-            try {
-                request({ url: "/solenoidOff", method: "GET" })
-                    .then(data => {
-                        console.log(data);
-                    })
-                    .catch(error => {
-                        console.log("error: " + error);
-                    });
-            } catch (error) {
-                console.log("Error: " + error)
+            //control tmp
+            function tmpOn() {
+                try {
+                    request({url: "/tmpOn", method: "GET"})
+                            .then(data => {
+                                console.log(data);
+                            })
+                            .catch(error => {
+                                console.log("error: " + error);
+                            });
+                } catch (error) {
+                    console.log("Error: " + error)
+                }
             }
-        }
-        
-    </script>
-</body>
+
+            function tmpOff() {
+                try {
+                    request({url: "/tmpOff", method: "GET"})
+                            .then(data => {
+                                console.log(data);
+                            })
+                            .catch(error => {
+                                console.log("error: " + error);
+                            });
+                } catch (error) {
+                    console.log("Error: " + error)
+                }
+                tmpValue.Value = "";
+            }
+
+            //control the solenoid
+            function SolenoidOn() {
+                try {
+                    request({url: "/solenoidOn", method: "GET"})
+                            .then(data => {
+                                console.log(data);
+                            })
+                            .catch(error => {
+                                console.log("error: " + error);
+                            });
+                } catch (error) {
+                    console.log("Error: " + error)
+                }
+            }
+
+            function SolenoidOff() {
+                try {
+                    request({url: "/solenoidOff", method: "GET"})
+                            .then(data => {
+                                console.log(data);
+                            })
+                            .catch(error => {
+                                console.log("error: " + error);
+                            });
+                } catch (error) {
+                    console.log("Error: " + error)
+                }
+            }
+
+        </script>
+    </body>
 
 </html>
