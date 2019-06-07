@@ -44,9 +44,10 @@ public class WebServer {
 
         before("*", (req, res) -> {
             System.out.print("incoming from " + req.ip());
-            if (!(req.ip().equals("10.20.84.153")
-                    || req.ip().equals("10.20.84.166")
-                    || req.ip().equals("0.0.0.1"))) {
+            // do not change this list without explicit approval from Mr. Mein!!!!
+            if (!(req.ip().equals("10.20.84.153")       // FUSOR-CLIENT
+                    || req.ip().equals("10.20.84.166")  // GMEIN's LAPTOP
+                    || req.ip().equals("0:0:0:0:0:0:0:1"))) {   // LOCALHOST
                 System.out.println(" ... denied.");
                 halt(401, "Not authorized");
             }
@@ -160,7 +161,7 @@ public class WebServer {
                 return false;
             }
             arduino.openPort();
-            System.out.println("port opened?");
+            System.out.println("past openPort()");
             os = arduino.getOutputStream();
             arduino.addDataListener(new SerialPortDataListener() {
                 @Override
