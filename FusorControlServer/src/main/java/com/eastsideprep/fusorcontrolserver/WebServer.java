@@ -154,7 +154,7 @@ public class WebServer {
         //sets up arduino serial communication
         try {
             System.out.println(Arrays.toString(SerialPort.getCommPorts()));
-            arduino = SerialPort.getCommPorts()[1];
+            arduino = SerialPort.getCommPorts()[0];
             System.out.println("Port: " + arduino);
             if (!arduino.toString().equals("USBSER000")) {
                 System.out.println("USBSER000 port not found in array slot 1");

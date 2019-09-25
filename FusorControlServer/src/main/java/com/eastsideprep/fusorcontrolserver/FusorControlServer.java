@@ -11,13 +11,13 @@ package com.eastsideprep.fusorcontrolserver;
  */
 public class FusorControlServer {
 
-    static CamStreamer cs;
+    //static CamStreamer cs;
     static WebServer serv = new WebServer();
 
     public static void main(String[] args) {
-        serv = new WebServer();
+        //serv = new WebServer();
         serv.init();
-        cs = new CamStreamer();
+        //cs = new CamStreamer();
         serv.serialInit();
         serv.test();
     }
