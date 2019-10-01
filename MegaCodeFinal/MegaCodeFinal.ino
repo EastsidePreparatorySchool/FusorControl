@@ -50,7 +50,7 @@ void setup()
 
   // turn everything off
   tmpOff();
-  zeroVoltage();
+  //zeroVoltage();
   solOff();
 
   Serial.begin(9600);
