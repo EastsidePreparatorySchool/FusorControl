@@ -16,9 +16,9 @@ public class FusorControlServer {
 
     public static void main(String[] args) {
         //serv = new WebServer();
-        serv.init();
+        serv.initClient();
         //cs = new CamStreamer();
-        serv.serialInit();
+        serv.initPorts();
         serv.test();
     }
 }

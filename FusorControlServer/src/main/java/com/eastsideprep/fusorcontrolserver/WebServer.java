@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -27,8 +28,10 @@ import java.util.logging.Logger;
  */
 public class WebServer {
 
-    SerialPort arduino;
-    OutputStream os;
+    Arduino[] arduinos;
+    SerialPort[] ports;
+    public static HashMap<SerialPort,Arduino> portToArduino = new HashMap<>();
+
     String msgBuffer = "";
     Queue msgqueue;
     final int serialTimeout = 1500;
@@ -37,7 +40,7 @@ public class WebServer {
         msgqueue = new LinkedBlockingQueue<String>();
     }
 
-    public void init() {
+    public void initClient() {
         port(80); //switch to 80 for regular use
         //sets default public location
         staticFiles.location("/public");
@@ -45,8 +48,8 @@ public class WebServer {
         before("*", (req, res) -> {
             System.out.print("incoming from " + req.ip());
             // do not change this list without explicit approval from Mr. Mein!!!!
-            if (!(req.ip().equals("10.20.84.153")       // FUSOR-CLIENT
-                    || req.ip().equals("10.20.84.166")  // GMEIN's LAPTOP
+            if (!(req.ip().equals("10.20.84.153") // FUSOR-CLIENT
+                    || req.ip().equals("10.20.84.166") // GMEIN's LAPTOP
                     || req.ip().equals("0:0:0:0:0:0:0:1"))) {   // LOCALHOST
                 System.out.println(" ... denied.");
                 halt(401, "Not authorized");
@@ -70,7 +73,7 @@ public class WebServer {
             killControl();
             return "reset Control Arduino";
         });
-        get("/inita", (req, res) -> serialInit() ? "success" : "serial init failed");
+        get("/inita", (req, res) -> initPorts() ? "success" : "serial init failed");
         get("/getstatus", "application/json", (req, res) -> getStatus(req, res), new JSONRT());
 
         //variac control
@@ -102,28 +105,112 @@ public class WebServer {
         });
     }
 
+    
+    static SerialPortDataListener connectionListener = new SerialPortDataListener() {
+        @Override
+        public int getListeningEvents() {
+            return SerialPort.LISTENING_EVENT_DATA_AVAILABLE;
+        }
+
+        HashMap<SerialPort, String> bufferState = new HashMap<>();
+
+        @Override
+        public void serialEvent(SerialPortEvent e) {
+            if (e.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE) {
+                return;
+            }
+            SerialPort port = e.getSerialPort();
+            byte[] data = new byte[port.bytesAvailable()];
+            port.readBytes(data, data.length);
+
+            //System.out.println("Read " + count + " bytes from arduino");
+            String buffer = new String(data);
+            if (bufferState.containsKey(port)) {
+                buffer = bufferState.get(port) + buffer;
+            }
+            String[] split;
+            while ((split = parse(buffer))[0] != null) { //loop breaks when there is NOT a complete message-delineator string
+                //processSerialMessage(split[0], port);
+                System.out.println("recieved: " + split[0] + " from port: " + port.getDescriptivePortName());
+                //TODO store/process datata
+                if(split[0].startsWith("IDENTIFY")){
+                    identify(split[0],port);
+                }
+                buffer = split[1]; //the remainder of the buffer
+            }
+            bufferState.put(port, buffer);
+        }
+    };
+    
+    public boolean initPorts() {
+        this.ports = SerialPort.getCommPorts();
+        this.arduinos = new Arduino[this.ports.length];
+        int i = 0;
+        for (SerialPort port : ports) {
+            //listen for response
+            port.openPort();
+            port.addDataListener(connectionListener);
+            boolean createArduino = true;
+            //ask for identification
+            try {
+                writeToPort(port.getOutputStream(), "IDENTIFY");
+            } catch (IOException ex) {
+                System.out.println(ex.getCause());
+                //if this line is active, it prevents empty ports from being added as arduinos, but introduces potential for missing arduinos and makes it slower to add new ones
+                //createArduino = false;
+            }
+            if(createArduino){
+                this.arduinos[i] = new Arduino(port);
+                this.portToArduino.put(port, this.arduinos[i]);
+                i++;
+            }
+        }
+        return true; //this is currently just so it remains compaitble with the client until the client is updated
+        
+    }
+    
+    public static void identify(String message, SerialPort port){
+        if(message.contains("IDECONTROL")){
+            if(WebServer.portToArduino.containsKey(port)){
+                WebServer.portToArduino.get(port).type = "CONTROL";
+            }
+        }
+        if(message.contains("IDESENSOR")){
+            if(WebServer.portToArduino.containsKey(port)){
+                WebServer.portToArduino.get(port).type = "SENSOR";
+            }
+        }
+    }
+    
+    static void writeToPort(OutputStream os, String arg) throws IOException {
+        byte[] bytes = (arg + "END").getBytes();
+        os.write(bytes);
+    }
+    
     private void solenoidOn() {
-        write("SETsolonEND");
+        writeControl("SETsolonEND");
     }
 
     private void solenoidOff() {
-        write("SETsoloffEND");
+        writeControl("SETsoloffEND");
     }
 
     private void tmpOn() {
-        write("SETtmponEND");
+        writeControl("SETtmponEND");
     }
 
     private void tmpOff() {
-        write("SETtmpoffEND");
+        writeControl("SETtmpoffEND");
     }
 
+    //nonfunctional
+    
     public Object getStatus(spark.Request req, spark.Response res) {
-        boolean arcon = arduino != null;
+        boolean arcon = false;
         long start = System.currentTimeMillis();
         String tmpv = "";
         String tmps = "";
-        write("GETstatusEND");
+        writeAll("GETstatusEND");
         String message = "hold";
         List<Status> status = new ArrayList<>();
 
@@ -143,14 +230,14 @@ public class WebServer {
     }
 
     public void killSensor() {
-        write("KILEND"); //should write to sensor arduino
+        writeSensor("KILEND"); //should write to sensor arduino
     }
 
     public void killControl() {
-        write("KILEND"); //should write to control arduino
+        writeControl("KILEND"); //should write to control arduino
     }
 
-    public boolean serialInit() {
+    /*public boolean serialInit() {
         //sets up arduino serial communication
         try {
             System.out.println(Arrays.toString(SerialPort.getCommPorts()));
@@ -191,37 +278,65 @@ public class WebServer {
             return false;
         }
         return true;
-    }
-
-    //Handles the first command
-    private void handle(String arg) {
-        msgBuffer += arg;
-        //this function takes all the raw input from the arduino and splits it up correctly into commands
-        // 'msgBuffer' is a queue to hold commands
-        while (msgBuffer.indexOf("END") != -1) {
-            int semi = msgBuffer.indexOf("END");
-            System.out.println("arduino: " + msgBuffer.substring(0, semi));
-            msgqueue.add(msgBuffer.substring(0, semi));
-            msgBuffer = "";
+    }*/
+    
+     public static String[] parse(String s) {
+        String target = "END";
+        int location = s.indexOf(target);
+        if (location == -1) {
+            return new String[]{null, s};
         }
-
+        return new String[]{
+            s.substring(0, location),
+            s.substring(location + target.length())
+        };
     }
 
-    private void write(String arg) {
+    private void writeSensor(String arg) {
         byte[] bytes = arg.getBytes();
-        try {
-            os.write(bytes);
-        } catch (IOException ex) {
-            System.out.println("Serial comm exception: " + ex);
+        for (int i = 0; i < arduinos.length; i++) {
+            if(arduinos[i].type.equals("control")){
+                continue;
+            }
+            try {
+                arduinos[i].os.write(bytes);
+            } catch (IOException ex) {
+                System.out.println("Serial comm exception: " + ex + " " + "in port " + arduinos[i].port.getSystemPortName());
+            }
+        }
+    }
+    
+    private void writeAll(String arg) {
+        byte[] bytes = arg.getBytes();
+        for (int i = 0; i < arduinos.length; i++) {
+            try {
+                arduinos[i].os.write(bytes);
+            } catch (IOException ex) {
+                System.out.println("Serial comm exception: " + ex + " " + "in port " + arduinos[i].port.getSystemPortName());
+            }
+        }
+    }
+
+    private void writeControl(String arg) {
+        byte[] bytes = arg.getBytes();
+        for (int i = 0; i < arduinos.length; i++) {
+            if(arduinos[i].type.equals("sensor")){
+                continue;
+            }
+            try {
+                arduinos[i].os.write(bytes);
+            } catch (IOException ex) {
+                System.out.println("Serial comm exception: " + ex + " " + "in port " + arduinos[i].port.getSystemPortName());
+            }
         }
     }
 
     public void test() {
-        write("TESmemeEND");
+        writeAll("TESmemeEND");
     }
 
     private void sendVoltage(int v) {
-        write("SETvolt" + String.format("%03d", v) + "END");
+        writeControl("SETvolt" + String.format("%03d", v) + "END");
     }
 
 }
