@@ -103,6 +103,7 @@ public class WebServer {
             solenoidOff();
             return "turned off Solenoid";
         });
+        System.out.println("Initialized Web Server");
     }
 
     
@@ -119,6 +120,7 @@ public class WebServer {
             if (e.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE) {
                 return;
             }
+            System.out.println("Serial event happened");
             SerialPort port = e.getSerialPort();
             byte[] data = new byte[port.bytesAvailable()];
             port.readBytes(data, data.length);
@@ -129,11 +131,12 @@ public class WebServer {
                 buffer = bufferState.get(port) + buffer;
             }
             String[] split;
+            System.out.println(buffer);
             while ((split = parse(buffer))[0] != null) { //loop breaks when there is NOT a complete message-delineator string
                 //processSerialMessage(split[0], port);
                 System.out.println("recieved: " + split[0] + " from port: " + port.getDescriptivePortName());
                 //TODO store/process datata
-                if(split[0].startsWith("IDENTIFY")){
+                if(split[0].startsWith("IDE")){
                     identify(split[0],port);
                 }
                 buffer = split[1]; //the remainder of the buffer
@@ -146,14 +149,17 @@ public class WebServer {
         this.ports = SerialPort.getCommPorts();
         this.arduinos = new Arduino[this.ports.length];
         int i = 0;
+        System.out.println(this.arduinos.toString());
         for (SerialPort port : ports) {
             //listen for response
+            System.out.println("opening port: " + port.getDescriptivePortName());
             port.openPort();
             port.addDataListener(connectionListener);
             boolean createArduino = true;
             //ask for identification
             try {
-                writeToPort(port.getOutputStream(), "IDENTIFY");
+                writeToPort(port.getOutputStream(), "IDENTIFYEND");
+                System.out.println("sent identify command to: " + port.getDescriptivePortName());
             } catch (IOException ex) {
                 System.out.println(ex.getCause());
                 //if this line is active, it prevents empty ports from being added as arduinos, but introduces potential for missing arduinos and makes it slower to add new ones
@@ -173,6 +179,7 @@ public class WebServer {
         if(message.contains("IDECONTROL")){
             if(WebServer.portToArduino.containsKey(port)){
                 WebServer.portToArduino.get(port).type = "CONTROL";
+                System.out.println("Connected to Control Arduino");
             }
         }
         if(message.contains("IDESENSOR")){
@@ -185,6 +192,7 @@ public class WebServer {
     static void writeToPort(OutputStream os, String arg) throws IOException {
         byte[] bytes = (arg + "END").getBytes();
         os.write(bytes);
+        System.out.println("Wrote '" + arg + "' to an arduino");
     }
     
     private void solenoidOn() {
