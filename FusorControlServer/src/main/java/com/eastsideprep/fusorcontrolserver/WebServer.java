@@ -120,7 +120,7 @@ public class WebServer {
             if (e.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE) {
                 return;
             }
-            System.out.println("Serial event happened");
+            //System.out.println("Serial event happened");
             SerialPort port = e.getSerialPort();
             byte[] data = new byte[port.bytesAvailable()];
             port.readBytes(data, data.length);
@@ -131,7 +131,7 @@ public class WebServer {
                 buffer = bufferState.get(port) + buffer;
             }
             String[] split;
-            System.out.println(buffer);
+            //System.out.println(buffer);
             while ((split = parse(buffer))[0] != null) { //loop breaks when there is NOT a complete message-delineator string
                 //processSerialMessage(split[0], port);
                 System.out.println("recieved: " + split[0] + " from port: " + port.getDescriptivePortName());
@@ -147,29 +147,39 @@ public class WebServer {
     
     public boolean initPorts() {
         this.ports = SerialPort.getCommPorts();
-        this.arduinos = new Arduino[this.ports.length];
+        this.arduinos = new Arduino[64];
         int i = 0;
         System.out.println(this.arduinos.toString());
+        System.out.println("Serial Ports Connected: ");
+        for(SerialPort port : ports) {
+            System.out.print(port.getDescriptivePortName()+", ");
+        }
+        System.out.println("");
         for (SerialPort port : ports) {
             //listen for response
+            if(!port.getDescriptivePortName().contains("COM")) continue;
             System.out.println("opening port: " + port.getDescriptivePortName());
             port.openPort();
             port.addDataListener(connectionListener);
             boolean createArduino = true;
             //ask for identification
-            try {
-                writeToPort(port.getOutputStream(), "IDENTIFYEND");
-                System.out.println("sent identify command to: " + port.getDescriptivePortName());
-            } catch (IOException ex) {
-                System.out.println(ex.getCause());
-                //if this line is active, it prevents empty ports from being added as arduinos, but introduces potential for missing arduinos and makes it slower to add new ones
-                //createArduino = false;
-            }
             if(createArduino){
                 this.arduinos[i] = new Arduino(port);
                 this.portToArduino.put(port, this.arduinos[i]);
                 i++;
             }
+            try {
+                do{
+                    writeToPort(port.getOutputStream(), "IDENTIFYEND");
+                    //System.out.println("sent identify command to: " + port.getDescriptivePortName());
+                    try{ Thread.sleep(100); } catch (InterruptedException e) {}
+                }while(WebServer.portToArduino.get(port).name.equals("unknown"));
+            } catch (IOException ex) {
+                System.out.println(ex.getCause());
+                //if this line is active, it prevents empty ports from being added as arduinos, but introduces potential for missing arduinos and makes it slower to add new ones
+                //createArduino = false;
+            }
+            
         }
         return true; //this is currently just so it remains compaitble with the client until the client is updated
         
@@ -178,13 +188,15 @@ public class WebServer {
     public static void identify(String message, SerialPort port){
         if(message.contains("IDECONTROL")){
             if(WebServer.portToArduino.containsKey(port)){
-                WebServer.portToArduino.get(port).type = "CONTROL";
+                WebServer.portToArduino.get(port).name = "CONTROL";
                 System.out.println("Connected to Control Arduino");
             }
         }
-        if(message.contains("IDESENSOR")){
+        else if (message.contains("IDE")){
             if(WebServer.portToArduino.containsKey(port)){
-                WebServer.portToArduino.get(port).type = "SENSOR";
+                String name = message.substring(message.indexOf("IDE")+3);
+                System.out.println("New Arduino connected: " + name);
+                WebServer.portToArduino.get(port).name = name;
             }
         }
     }
@@ -192,7 +204,7 @@ public class WebServer {
     static void writeToPort(OutputStream os, String arg) throws IOException {
         byte[] bytes = (arg + "END").getBytes();
         os.write(bytes);
-        System.out.println("Wrote '" + arg + "' to an arduino");
+        //System.out.println("Wrote '" + arg + "' to an arduino");
     }
     
     private void solenoidOn() {
@@ -302,8 +314,8 @@ public class WebServer {
 
     private void writeSensor(String arg) {
         byte[] bytes = arg.getBytes();
-        for (int i = 0; i < arduinos.length; i++) {
-            if(arduinos[i].type.equals("control")){
+        for (int i = 0; i < arduinos.length && arduinos[i]!=null; i++) {
+            if(arduinos[i].name.equals("CONTROL")){
                 continue;
             }
             try {
@@ -316,26 +328,28 @@ public class WebServer {
     
     private void writeAll(String arg) {
         byte[] bytes = arg.getBytes();
-        for (int i = 0; i < arduinos.length; i++) {
+        for (int i = 0; i < arduinos.length && arduinos[i]!=null; i++) {
             try {
                 arduinos[i].os.write(bytes);
             } catch (IOException ex) {
                 System.out.println("Serial comm exception: " + ex + " " + "in port " + arduinos[i].port.getSystemPortName());
+            } catch (NullPointerException e) {
+                System.out.println("Couldnt write, nullpointer?");
             }
         }
     }
 
     private void writeControl(String arg) {
         byte[] bytes = arg.getBytes();
-        for (int i = 0; i < arduinos.length; i++) {
-            if(arduinos[i].type.equals("sensor")){
+        for (int i = 0; i < arduinos.length && arduinos[i]!=null; i++) {
+            if(arduinos[i].name.equals("SENSOR")){
                 continue;
             }
             try {
                 arduinos[i].os.write(bytes);
             } catch (IOException ex) {
                 System.out.println("Serial comm exception: " + ex + " " + "in port " + arduinos[i].port.getSystemPortName());
-            }
+            } 
         }
     }
 

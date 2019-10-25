@@ -13,7 +13,7 @@ import java.io.OutputStream;
  * @author Liam
  */
 public class Arduino {
-    String type = "unknown";
+    String name = "unknown";
     OutputStream os;
     SerialPort port;
     
