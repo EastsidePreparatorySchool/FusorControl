@@ -28,9 +28,9 @@ import java.util.logging.Logger;
  */
 public class WebServer {
 
-    Arduino[] arduinos;
+    Device[] arduinos;
     SerialPort[] ports;
-    public static HashMap<SerialPort,Arduino> portToArduino = new HashMap<>();
+    public static HashMap<SerialPort,Device> portToArduino = new HashMap<>();
 
     String msgBuffer = "";
     Queue msgqueue;
@@ -147,7 +147,7 @@ public class WebServer {
     
     public boolean initPorts() {
         this.ports = SerialPort.getCommPorts();
-        this.arduinos = new Arduino[64];
+        this.arduinos = new Device[64];
         int i = 0;
         System.out.println(this.arduinos.toString());
         System.out.println("Serial Ports Connected: ");
@@ -164,7 +164,7 @@ public class WebServer {
             boolean createArduino = true;
             //ask for identification
             if(createArduino){
-                this.arduinos[i] = new Arduino(port);
+                this.arduinos[i] = new Device(port);
                 this.portToArduino.put(port, this.arduinos[i]);
                 i++;
             }

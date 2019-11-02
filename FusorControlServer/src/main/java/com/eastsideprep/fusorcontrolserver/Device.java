@@ -12,12 +12,13 @@ import java.io.OutputStream;
  *
  * @author Liam
  */
-public class Arduino {
+public class Device {
     String name = "unknown";
     OutputStream os;
     SerialPort port;
+    String[] variables;
     
-    Arduino(SerialPort p){
+    Device(SerialPort p){
         this.port = p;
         this.os = p.getOutputStream();
     }
