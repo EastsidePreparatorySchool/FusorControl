@@ -2,8 +2,6 @@ package com.eastsideprep.fusorcontrolserver;
 
 public abstract class Device {
 
- 
-
     public abstract void write(String s);
 
     public boolean isControl() {
