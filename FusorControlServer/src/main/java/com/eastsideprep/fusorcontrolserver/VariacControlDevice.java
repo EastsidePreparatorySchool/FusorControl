@@ -1,11 +1,14 @@
 package com.eastsideprep.fusorcontrolserver;
 
 public class VariacControlDevice extends SerialDevice {
+    
+    SerialDevice sd;
+    
     VariacControlDevice(SerialDevice sd) {
-        clone(sd);
+        this.sd = sd;
     }
     
     public void setVoltage(int v) {
-        write("SETvolt" + String.format("%03d", v) + "END");
+        this.sd.write("SETvolt" + String.format("%03d", v) + "END");
     }
 }

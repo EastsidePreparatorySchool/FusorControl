@@ -112,11 +112,9 @@ public class DeviceManager {
         Object semaphore = new Object();
         queryThread = new Thread(() -> queryThreadLoop(semaphore));
         queryThread.start();
-        
-        
+
         // wait for the query thread to have acquired at least the core devices
         // it will notify the semaphore
-
         synchronized (semaphore) {
             try {
                 // wait for core devices to be available
@@ -155,7 +153,7 @@ public class DeviceManager {
         // and only ones that are not registered yet. 
         List<SerialPort> portList = new ArrayList<SerialPort>(Arrays.asList(ports));
         portList.removeIf((p) -> !p.getSystemPortName().contains("COM") || portToArduino.containsKey(p));
-        
+
         // cut this short if there is nothing new
         if (portList.isEmpty()) {
             return;
@@ -188,18 +186,18 @@ public class DeviceManager {
             if (!portToArduino.containsKey(port)) {
                 System.out.println("closing port " + port.getSystemPortName());
                 port.closePort();
-                
+
                 // add NullSerialDevice to system, to prevent further querying
                 portToArduino.put(new NullSerialDevice(port, "<unknown>"));
             }
         }
 
         // try to retrieve core devices, if successful, signal main thread to go ahead
-        //if (this.getCoreDevices() != null) 
-        synchronized (semaphore) {
-            semaphore.notify();
+        if (this.getCoreDevices() != null) {
+            synchronized (semaphore) {
+                semaphore.notify();
+            }
         }
-        //}
     }
 
     void register(SerialDevice sd) {
@@ -251,6 +249,23 @@ public class DeviceManager {
         cd.variac = (VariacControlDevice) portToArduino.get("VARIAC");
         cd.solenoid = (SolenoidControlDevice) portToArduino.get("SOLENOID");
         cd.tmp = (TMPControlDevice) portToArduino.get("TMP");
+
+        // need to be able to debug this thing away from the Arduinos
+        // so make dummy ports if necessary
+        if (FusorControlServer.debug) {
+            if (cd.variac == null) {
+                cd.variac = new VariacControlDevice(new NullSerialDevice("VARIAC"));
+                portToArduino.put(cd.variac);
+            }
+            if (cd.solenoid == null) {
+                cd.solenoid = new SolenoidControlDevice(new NullSerialDevice("SOLENOID"));
+                portToArduino.put(cd.solenoid);
+            }
+            if (cd.tmp == null) {
+                cd.tmp = new TMPControlDevice(new NullSerialDevice("TMP"));
+                portToArduino.put(cd.tmp);
+            }
+        }
 
         // we need all of these. if any of them aren't there, return null
         if (cd.variac == null || cd.solenoid == null || cd.tmp == null) {

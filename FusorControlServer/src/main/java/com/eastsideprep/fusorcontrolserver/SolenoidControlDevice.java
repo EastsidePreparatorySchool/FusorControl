@@ -2,15 +2,17 @@ package com.eastsideprep.fusorcontrolserver;
 
 public class SolenoidControlDevice extends SerialDevice {
 
+    SerialDevice sd;
+    
     SolenoidControlDevice(SerialDevice sd) {
-        clone(sd);
+       this.sd = sd;
     }
 
     public void setOpen() {
-        write("SETsolonEND");
+        this.sd.write("SETsolonEND");
     }
 
     public void setClosed() {
-        write("SETsoloffEND");
+        this.sd.write("SETsoloffEND");
     }
 }

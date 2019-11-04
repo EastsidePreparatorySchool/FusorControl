@@ -19,7 +19,7 @@ public class SerialDevice {
     SerialDevice(SerialPort p, String name) {
         this.name = name;
         this.port = p;
-        this.os = p.getOutputStream();
+        this.os = (p != null? p.getOutputStream():null);
         this.variables = new ArrayList<>();
     }
 
