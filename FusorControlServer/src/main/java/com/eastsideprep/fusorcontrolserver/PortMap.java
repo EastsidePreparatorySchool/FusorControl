@@ -3,33 +3,54 @@ package com.eastsideprep.fusorcontrolserver;
 import com.fazecast.jSerialComm.SerialPort;
 import java.util.HashMap;
 
-public class PortMap extends HashMap<SerialPort, SerialDevice> {
+public class PortMap {
+
+    HashMap<String, SerialDevice> nameMap = new HashMap<>();
+    HashMap<SerialPort, SerialDevice> portMap = new HashMap<>();
 
     public SerialDevice get(SerialPort p) {
         SerialDevice sd;
         synchronized (this) {
-            sd = super.get(p);
+            sd = portMap.get(p);
         }
         return sd;
     }
 
-    public boolean containsKey(SerialPort p) {
+    public SerialDevice get(String name) {
+        SerialDevice sd;
+        synchronized (this) {
+            sd = nameMap.get(name);
+        }
+        return sd;
+    }
+
+     public boolean containsPort(SerialPort p) {
         boolean result;
         synchronized (this) {
-            result = super.containsKey(p);
+            result = portMap.containsKey(p);
         }
         return result;
     }
 
-    public void put(SerialDevice sd) {
+     public boolean containsName(String name) {
+        boolean result;
         synchronized (this) {
-            super.put(sd.port, sd);
+            result = nameMap.containsKey(name);
+        }
+        return result;
+    }
+
+     public void put(SerialDevice sd) {
+        synchronized (this) {
+            portMap.put(sd.port, sd);
+            nameMap.put(sd.name, sd);
         }
     }
 
     public void remove(SerialDevice sd) {
         synchronized (this) {
-            super.remove(sd.port);
+            portMap.remove(sd.port);
+            nameMap.remove(sd.name);
         }
     }
 }

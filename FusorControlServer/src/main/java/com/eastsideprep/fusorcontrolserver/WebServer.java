@@ -27,7 +27,7 @@ public class WebServer {
 
         dm.init();
 //        dm.test();
-        cd = dm.getCoreDevices();
+        cd = CoreDevices.getCoreDevices(dm);
 
         port(80); //switch to 80 for regular use
         //sets default public location
