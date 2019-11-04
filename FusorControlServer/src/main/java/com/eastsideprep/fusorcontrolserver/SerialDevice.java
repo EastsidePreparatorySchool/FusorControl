@@ -23,7 +23,7 @@ public class SerialDevice extends Device {
     private final static String FUSOR_RESPONSE_IDENTIFY = "IDENTIFY:";
 
     private static SerialPort[] ports;
-    private static HashMap<SerialPort, SerialDevice> portToArduino = new HashMap<>();
+    private static PortMap portToArduino = new PortMap();
     private static DeviceManager dm;
     private static Thread queryThread;
     // keep track of partial messages
@@ -44,35 +44,8 @@ public class SerialDevice extends Device {
         }
     };
 
-    private static void putArduino(SerialDevice sd) {
-        synchronized (portToArduino) {
-            portToArduino.put(sd.port, sd);
-        }
-    }
 
-    private static void removeArduino(SerialDevice sd) {
-        synchronized (portToArduino) {
-            portToArduino.remove(sd.port);
-        }
-    }
-
-    private static SerialDevice getArduino(SerialPort port) {
-        SerialDevice sd = null;
-        synchronized (portToArduino) {
-            sd = portToArduino.get(port);
-        }
-        return sd;
-    }
-
-    private static boolean isArduino(SerialPort port) {
-        boolean result;
-        synchronized (portToArduino) {
-            result = portToArduino.containsKey(port);
-        }
-        return result;
-
-    }
-
+ 
     private static void processSerialData(SerialPortEvent e) {
         //System.out.println("Serial event happened");
 
@@ -172,8 +145,8 @@ public class SerialDevice extends Device {
         // filter the list of all ports down to only COM devices,
         // and only ones that are not registered yet. 
         List<SerialPort> portList = Arrays.asList(ports);
-        portList.removeIf((p) -> !p.getDescriptivePortName().contains("COM")
-                || isArduino(p));
+        portList.removeIf((p) -> !p.getSystemPortName().contains("COM")
+                || portToArduino.containsKey(p));
 
         for (SerialPort port : portList) {
             System.out.print("opening port: " + port.getSystemPortName() + "...");
@@ -199,7 +172,7 @@ public class SerialDevice extends Device {
 
         System.out.println("=================== closing unrecognized ports");
         for (SerialPort port : portList) {
-            if (!isArduino(port)) {
+            if (!portToArduino.containsKey(port)) {
                 System.out.println("closing port " + port.getSystemPortName());
                 port.closePort();
             }
@@ -208,11 +181,11 @@ public class SerialDevice extends Device {
     }
 
     static void register(SerialDevice sd) {
-        putArduino(sd);
+        portToArduino.put(sd);
     }
 
     static void unregister(SerialDevice sd) {
-        removeArduino(sd);
+        portToArduino.remove(sd);
     }
 
     static void writeToPort(OutputStream os, String arg) throws IOException {
