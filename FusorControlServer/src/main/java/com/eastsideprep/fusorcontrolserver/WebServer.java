@@ -99,7 +99,7 @@ public class WebServer {
         long start = System.currentTimeMillis();
         String tmpv = "";
         String tmps = "";
-        dm.updateAllStatus();
+        //dm.updateAllStatus(); // todo redesign and reimplement
         String message = "hold";
         List<Status> status = new ArrayList<>();
 
