@@ -25,9 +25,14 @@ public class WebServer {
         cs = new CamStreamer();
         dm = new DeviceManager();
 
+        // initialize the connections to all serial devices
         dm.init();
-//        dm.test();
+
+        // get the most important devices for our UI. If not present, halt. 
         cd = CoreDevices.getCoreDevices(dm);
+        if (cd == null) {
+            throw new IllegalArgumentException("missing core devices after dm.init()");
+        }
 
         port(80); //switch to 80 for regular use
         //sets default public location

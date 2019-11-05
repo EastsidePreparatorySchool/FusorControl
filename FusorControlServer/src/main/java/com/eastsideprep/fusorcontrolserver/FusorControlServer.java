@@ -2,7 +2,8 @@ package com.eastsideprep.fusorcontrolserver;
 
 public class FusorControlServer {
 
-    public static boolean debug = true;
+    // debug section
+    public static boolean fakeCoreDevices = true;
 
     private static WebServer serv;
 

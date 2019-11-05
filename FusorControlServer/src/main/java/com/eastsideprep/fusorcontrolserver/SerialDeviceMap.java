@@ -7,12 +7,12 @@ import java.util.HashMap;
 public class SerialDeviceMap {
 
     HashMap<String, SerialDevice> nameMap = new HashMap<>();
-    HashMap<SerialPort, SerialDevice> portMap = new HashMap<>();
+    HashMap<String, SerialDevice> portMap = new HashMap<>();
 
     public SerialDevice get(SerialPort p) {
         SerialDevice sd;
         synchronized (this) {
-            sd = portMap.get(p);
+            sd = portMap.get(p.getSystemPortName());
         }
         return sd;
     }
@@ -25,15 +25,15 @@ public class SerialDeviceMap {
         return sd;
     }
 
-     public boolean containsPort(SerialPort p) {
+    public boolean containsPort(SerialPort p) {
         boolean result;
         synchronized (this) {
-            result = portMap.containsKey(p);
+            result = portMap.containsKey(p.getSystemPortName());
         }
         return result;
     }
 
-     public boolean containsName(String name) {
+    public boolean containsName(String name) {
         boolean result;
         synchronized (this) {
             result = nameMap.containsKey(name);
@@ -41,20 +41,30 @@ public class SerialDeviceMap {
         return result;
     }
 
-     public void put(SerialDevice sd) {
+    public void put(SerialDevice sd) {
         synchronized (this) {
-            portMap.put(sd.port, sd);
+            //System.out.println("SDM:REGISTER:"+sd.name);
+            if (sd.port != null) {
+                portMap.put(sd.port.getSystemPortName(), sd);
+            } else {
+                portMap.put("<fake port:"+sd.name+">", sd);
+            }
             nameMap.put(sd.name, sd);
         }
     }
 
     public void remove(SerialDevice sd) {
         synchronized (this) {
-            portMap.remove(sd.port);
+            //System.out.println("SDM:REMOVE:"+sd.name);
+            if (sd.port != null) {
+                portMap.remove(sd.port.getSystemPortName());
+            } else {
+                portMap.remove("<fake port:"+sd.name+">");
+            }
             nameMap.remove(sd.name);
         }
     }
-    
+
     public ArrayList<String> getNames() {
         ArrayList<String> names;
         synchronized (this) {

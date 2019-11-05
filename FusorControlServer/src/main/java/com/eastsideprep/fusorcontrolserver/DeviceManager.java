@@ -113,14 +113,19 @@ public class DeviceManager {
         queryThread = new Thread(() -> queryThreadLoop(semaphore));
         queryThread.start();
 
-        // wait for the query thread to have acquired at least the core devices
+        // wait for the query thread to acquire some devices
         // it will notify the semaphore
         synchronized (semaphore) {
             try {
-                // wait for core devices to be available
-                semaphore.wait(10000);
+                semaphore.wait(20000);
             } catch (InterruptedException ex) {
             }
+        }
+
+        // need to be able to fakeCoreDevices this thing away from the Arduinos
+        // so make dummy ports if necessary
+        if (FusorControlServer.fakeCoreDevices) {
+            CoreDevices.fakeMissingCoreDevices(this);
         }
     }
 
@@ -151,6 +156,7 @@ public class DeviceManager {
 
         // filter the list of all ports down to only COM devices,
         // and only ones that are not registered yet. 
+        ports = SerialPort.getCommPorts();
         List<SerialPort> portList = new ArrayList<SerialPort>(Arrays.asList(ports));
         portList.removeIf((p) -> !p.getSystemPortName().contains("COM") || arduinoMap.containsPort(p));
 
@@ -178,7 +184,7 @@ public class DeviceManager {
                 System.out.println(ex.getCause());
             }
         }
-        System.out.println("=================== done querying new ports. waiting 5s");
+        System.out.println("=================== done querying new ports. waiting 5s for new devices to identify");
         Thread.sleep(5000);
 
         System.out.println("=================== closing unrecognized ports");
@@ -192,11 +198,9 @@ public class DeviceManager {
             }
         }
 
-        // try to retrieve core devices, if successful, signal main thread to go ahead
-        if (CoreDevices.getCoreDevices(this) != null) {
-            synchronized (semaphore) {
-                semaphore.notify();
-            }
+        // signal main thread to go ahead
+        synchronized (semaphore) {
+            semaphore.notify();
         }
     }
 
@@ -237,11 +241,11 @@ public class DeviceManager {
                     break;
                 case "TMP":
                     sd = new TMPControlDevice(sd);
-                    msg =  " -- recognized as TMP Arduino";
+                    msg = " -- recognized as TMP Arduino";
                     break;
                 case "SOLENOID":
                     sd = new SolenoidControlDevice(sd);
-                    msg= " -- recognized as solenoid Arduino";
+                    msg = " -- recognized as solenoid Arduino";
                     break;
                 case "GENERICTEST":
                     msg = " -- recognized as generic test Arduino";
@@ -250,7 +254,7 @@ public class DeviceManager {
                     break;
             }
             register(sd);
-            System.out.println(" -- new Arduino connected: " + sd.name + " ("+ sd.originalName+"), on: " + port.getSystemPortName() + msg);
+            System.out.println(" -- new Arduino connected: " + sd.name + " (" + sd.originalName + "), on: " + port.getSystemPortName() + msg);
         }
 
     }

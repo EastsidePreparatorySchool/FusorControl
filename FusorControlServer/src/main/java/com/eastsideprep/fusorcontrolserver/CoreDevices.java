@@ -10,7 +10,7 @@ public class CoreDevices {
     public SolenoidControlDevice solenoid;
 
     public static boolean isCoreDevice(String name) {
-        switch(name) {
+        switch (name) {
             case "VARIAC":
             case "TMP":
             case "SOLENOID":
@@ -26,22 +26,7 @@ public class CoreDevices {
         cd.solenoid = (SolenoidControlDevice) dm.get("SOLENOID");
         cd.tmp = (TMPControlDevice) dm.get("TMP");
 
-        // need to be able to debug this thing away from the Arduinos
-        // so make dummy ports if necessary
-        if (FusorControlServer.debug) {
-            if (cd.variac == null) {
-                cd.variac = new VariacControlDevice(new NullSerialDevice("VARIAC"));
-                dm.register(cd.variac);
-            }
-            if (cd.solenoid == null) {
-                cd.solenoid = new SolenoidControlDevice(new NullSerialDevice("SOLENOID"));
-                dm.register(cd.solenoid);
-            }
-            if (cd.tmp == null) {
-                cd.tmp = new TMPControlDevice(new NullSerialDevice("TMP"));
-                dm.register(cd.tmp);
-            }
-        }
+ 
 
         // we need all of these. if any of them aren't there, return null
         if (cd.variac == null || cd.solenoid == null || cd.tmp == null) {
@@ -51,4 +36,15 @@ public class CoreDevices {
         return cd;
     }
 
+    public static void fakeMissingCoreDevices(DeviceManager dm) {
+        if (dm.get("VARIAC") == null) {
+            dm.register(new VariacControlDevice(new NullSerialDevice("VARIAC")));
+        }
+        if (dm.get("SOLENOID")  == null) {
+            dm.register(new SolenoidControlDevice(new NullSerialDevice("SOLENOID")));
+        }
+        if (dm.get("TMP") == null) {
+            dm.register(new TMPControlDevice(new NullSerialDevice("TMP")));
+        }
+    }
 }

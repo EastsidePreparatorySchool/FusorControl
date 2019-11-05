@@ -34,6 +34,10 @@ public class SerialDevice {
     }
 
     public void write(String s) {
+        if (this.os == null) {
+            return;
+        }
+        
         byte[] bytes = s.getBytes();
         synchronized (port) {
             try {
