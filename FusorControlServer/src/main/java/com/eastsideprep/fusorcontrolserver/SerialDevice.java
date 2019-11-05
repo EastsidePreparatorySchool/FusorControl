@@ -14,6 +14,20 @@ public class SerialDevice {
     SerialPort port;
     ArrayList<String> variables;
 
+    public final static String FUSOR_COMMAND_PREFIX = "FusorCommand[";
+    public final static String FUSOR_RESPONSE_PREFIX = "FusorResponse[";
+    public final static String FUSOR_POSTFIX = "]END";
+
+    public final static String FUSOR_IDENTIFY = "IDENTIFY";
+    
+    public static String makeCommand(String s) {
+        return FUSOR_COMMAND_PREFIX+s+FUSOR_POSTFIX;
+    }
+    
+    public static String extractResponse(String s) {
+        return "";
+    }
+
     SerialDevice() {
     }
 
@@ -53,5 +67,5 @@ public class SerialDevice {
             }
         }
     }
-    
-   }
+
+}

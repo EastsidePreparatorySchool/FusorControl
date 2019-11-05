@@ -12,7 +12,7 @@ package com.eastsideprep.fusorcontrolserver;
 public class HVHighsideSensor extends SerialDevice {
 
     HVHighsideSensor(SerialDevice sd) {
-        clone(sd);
+        super(sd);
     }
 
 }

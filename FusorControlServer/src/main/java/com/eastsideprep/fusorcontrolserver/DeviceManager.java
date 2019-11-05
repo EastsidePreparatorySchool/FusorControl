@@ -15,12 +15,6 @@ public class DeviceManager {
     //
     // the static part of this class acts as the manager for serial devices
     //
-    private final static String FUSOR_RESPONSE_PREFIX = "FusorResponse[";
-    private final static String FUSOR_COMMAND_PREFIX = "FusorCommand[";
-    private final static String FUSOR_POSTFIX = "]END";
-
-    private final static String FUSOR_COMMAND_IDENTIFY = "IDENTIFY";
-    private final static String FUSOR_RESPONSE_IDENTIFY = "IDENTIFY:";
 
     private SerialPort[] ports;
     private SerialDeviceMap arduinoMap = new SerialDeviceMap();
@@ -68,20 +62,20 @@ public class DeviceManager {
         int start;
         int end = -1;
 
-        start = buffer.indexOf(FUSOR_RESPONSE_PREFIX);
+        start = buffer.indexOf(SerialDevice.FUSOR_RESPONSE_PREFIX);
         if (start != -1) {
-            end = buffer.indexOf(FUSOR_POSTFIX, start);
+            end = buffer.indexOf(SerialDevice.FUSOR_POSTFIX, start);
         }
         //System.out.println("" + start + ", " + end);
 
         // process all such messages
         while (start != -1 && end > start) {//while there is a complete message to process
-            String response = buffer.substring(start + FUSOR_RESPONSE_PREFIX.length(), end);
+            String response = buffer.substring(start + SerialDevice.FUSOR_RESPONSE_PREFIX.length(), end);
             processMessage(response, port);
-            buffer = buffer.substring(end + FUSOR_POSTFIX.length()); //the remainder of the buffer
-            start = buffer.indexOf(FUSOR_RESPONSE_PREFIX);
+            buffer = buffer.substring(end + SerialDevice.FUSOR_POSTFIX.length()); //the remainder of the buffer
+            start = buffer.indexOf(SerialDevice.FUSOR_RESPONSE_PREFIX);
             if (start != -1) {
-                end = buffer.indexOf(FUSOR_POSTFIX, start);
+                end = buffer.indexOf(SerialDevice.FUSOR_POSTFIX, start);
             }
             //System.out.println("" + start + ", " + end);
         }
@@ -90,8 +84,8 @@ public class DeviceManager {
 
     private void processMessage(String response, SerialPort port) {
         //System.out.println("Received message: " + response + " from port: " + port.getSystemPortName());
-        if (response.startsWith(FUSOR_RESPONSE_IDENTIFY)) {
-            identify(response.substring(FUSOR_RESPONSE_IDENTIFY.length()), port);
+        if (response.startsWith(SerialDevice.FUSOR_IDENTIFY+":")) {
+            identify(response.substring(SerialDevice.FUSOR_IDENTIFY.length()+1), port);
         }
     }
 
@@ -184,7 +178,7 @@ public class DeviceManager {
         for (SerialPort port : portList) {
             try {
                 System.out.println("sending identify command to port " + port.getSystemPortName());
-                writeToPort(port.getOutputStream(), FUSOR_COMMAND_PREFIX + FUSOR_COMMAND_IDENTIFY + FUSOR_POSTFIX);
+                writeToPort(port.getOutputStream(), SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));
             } catch (IOException ex) {
                 System.out.println(ex.getCause());
             }

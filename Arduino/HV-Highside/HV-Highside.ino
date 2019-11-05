@@ -3,7 +3,8 @@
 // 
 // Adafruit HUZZAH32-ESP32 Feather
 // www.adafruit.com
-// Board support URL http://arduino.esp8266.com/stable/package_esp8266com_index.json
+// Board support URL https://dl.espressif.com/dl/package_esp32_index.json
+// Bluetooth tutprial: https://randomnerdtutorials.com/esp32-bluetooth-classic-arduino-ide/
 //
 
 #define CMDLENGTH  50
@@ -12,6 +13,15 @@
 
 #define LED_ON()  digitalWrite(LED_BUILTIN, HIGH);
 #define LED_OFF() digitalWrite(LED_BUILTIN, LOW);
+
+
+#include "BluetoothSerial.h"
+
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+#endif
+
+BluetoothSerial SerialBT;
 
 
 void setup(){
@@ -24,7 +34,8 @@ void setup(){
 
   Serial.begin(9600);
   //Serial.println("Fusor control Arduino initialized!");
-}
+  SerialBT.begin("FUSOR_HV_HIGHSIDE"); //Bluetooth device name
+  }
 
 
 void loop() {
@@ -35,9 +46,9 @@ void loop() {
   int num = 0;
   do 
   {
-    while (Serial.available() > 0)
+    while (SerialBT.available() > 0)
     {
-      buffer[num++] = Serial.read();
+      buffer[num++] = SerialBT.read();
       buffer[num] = 0;
     }
 
@@ -63,8 +74,8 @@ void loop() {
     {
       if (strncmp(sCommand, "FusorCommand[", 13) == 0)
       {
-        Serial.print(sCommand);
-        Serial.println("]END");
+        SerialBT.print(sCommand);
+        SerialBT.println("]END");
       
         // execute command
         handleBuffer(sCommand+13);
@@ -82,7 +93,7 @@ void loop() {
 void handleBuffer(char *command)
 {
   // handle special case of identify first
-  if (strcmp(command, "IDENTIFY") == 0) Serial.println("FusorResponse[IDENTIFY:HV-HIGHSIDE]END");
+  if (strcmp(command, "IDENTIFY") == 0) SerialBT.println("FusorResponse[IDENTIFY:HV-HIGHSIDE]END");
   
   //parses GET and SET commands and does things with them
   if (strncmp(command, "SET:",4) == 0) 
@@ -110,21 +121,21 @@ void setVariable(char *var, char *val)
 {
   // this is a generic example
   int num = atoi(val);
-  Serial.print("FusorResponse[SET:");
-  Serial.print(var);
-  Serial.print("=");
-  Serial.print(val);
-  Serial.println("]END"); 
+  SerialBT.print("FusorResponse[SET:");
+  SerialBT.print(var);
+  SerialBT.print("=");
+  SerialBT.print(val);
+  SerialBT.println("]END"); 
 }
 
 void getVariable(char *var) 
 {
   // this is a generic example
-  Serial.print("FusorResponse[GET:");
-  Serial.print(var);
-  Serial.print("=");
-  Serial.print("IDKLOL");
-  Serial.println("]END"); 
+  SerialBT.print("FusorResponse[GET:");
+  SerialBT.print(var);
+  SerialBT.print("=");
+  SerialBT.print("IDKLOL");
+  SerialBT.println("]END"); 
 }
 
 void testOn() {

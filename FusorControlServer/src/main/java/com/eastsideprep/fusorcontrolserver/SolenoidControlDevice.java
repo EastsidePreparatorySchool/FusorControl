@@ -3,7 +3,7 @@ package com.eastsideprep.fusorcontrolserver;
 public class SolenoidControlDevice extends SerialDevice {
 
     SolenoidControlDevice(SerialDevice sd) {
-      clone(sd);
+      super(sd);
     }
 
     public void setOpen() {

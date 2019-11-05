@@ -30,6 +30,7 @@ public class WebServer {
 
         // get the most important devices for our UI. If not present, halt. 
         if (!cd.complete()) {
+            dm.shutdown();
             throw new IllegalArgumentException("missing core devices after dm.init()");
         }
 
@@ -122,46 +123,5 @@ public class WebServer {
         return status;
     }
 
-    /*public boolean serialInit() {
-        //sets up arduino serial communication
-        try {
-            System.out.println(Arrays.toString(SerialPort.getCommPorts()));
-            arduino = SerialPort.getCommPorts()[0];
-            System.out.println("Port: " + arduino);
-            if (!arduino.toString().equals("USBSER000")) {
-                System.out.println("USBSER000 port not found in array slot 1");
-                return false;
-            }
-            arduino.openPort();
-            System.out.println("past openPort()");
-            os = arduino.getOutputStream();
-            arduino.addDataListener(new SerialPortDataListener() {
-                @Override
-                public int getListeningEvents() {
-                    return SerialPort.LISTENING_EVENT_DATA_AVAILABLE;
-                }
-
-                @Override
-                //this is event that happens whenever something gets written from the arduino
-                //it takes and characters and puts it into the handle function
-                //important note, even if you write something as one message on the arduino, it might not come in all at once here
-                //the handle function deals with this by looking for deliniators\
-                //the current delineator 
-                public void serialEvent(SerialPortEvent e) {
-                    //System.out.println(e.getEventType());
-                    if (e.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE) {
-                        return;
-                    }
-                    byte[] data = new byte[arduino.bytesAvailable()];
-                    int count = arduino.readBytes(data, data.length);
-                    //System.out.println("Read " + count + " bytes from arduino");
-                    handle(new String(data));
-                }
-            });
-        } catch (Exception e) {
-            System.out.println("there was an error:" + e);
-            return false;
-        }
-        return true;
-    }*/
+ 
 }
