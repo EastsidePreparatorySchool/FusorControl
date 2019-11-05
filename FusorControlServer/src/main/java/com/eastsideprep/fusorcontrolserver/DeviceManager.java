@@ -23,7 +23,7 @@ public class DeviceManager {
     private final static String FUSOR_RESPONSE_IDENTIFY = "IDENTIFY:";
 
     private SerialPort[] ports;
-    private PortMap arduinoMap = new PortMap();
+    private SerialDeviceMap arduinoMap = new SerialDeviceMap();
     private Thread queryThread;
     // keep track of partial messages
     private HashMap<SerialPort, String> bufferState = new HashMap<>();
@@ -88,7 +88,7 @@ public class DeviceManager {
     }
 
     private void processMessage(String response, SerialPort port) {
-        System.out.println("Received message: " + response + " from port: " + port.getSystemPortName());
+        //System.out.println("Received message: " + response + " from port: " + port.getSystemPortName());
         if (response.startsWith(FUSOR_RESPONSE_IDENTIFY)) {
             identify(response.substring(FUSOR_RESPONSE_IDENTIFY.length()), port);
         }
@@ -167,8 +167,8 @@ public class DeviceManager {
             System.out.println("listener added.");
         }
 
-        System.out.println("=================== done opening new ports. waiting 5s");
-        Thread.sleep(5000);
+        System.out.println("=================== done opening new ports. waiting 6s");
+        Thread.sleep(6000);
 
         for (SerialPort port : portList) {
             try {
@@ -178,8 +178,8 @@ public class DeviceManager {
                 System.out.println(ex.getCause());
             }
         }
-        System.out.println("=================== done querying new ports. waiting 2s");
-        Thread.sleep(2000);
+        System.out.println("=================== done querying new ports. waiting 5s");
+        Thread.sleep(5000);
 
         System.out.println("=================== closing unrecognized ports");
         for (SerialPort port : portList) {
@@ -201,14 +201,22 @@ public class DeviceManager {
     }
 
     public void register(SerialDevice sd) {
+        // find a unique name 
+        String name = sd.name;
+        int count = 2;
+        while (arduinoMap.get(name) != null) {
+            name = sd.name + count;
+            count++;
+        }
+        sd.name = name;
+
+        // register in the map
         arduinoMap.put(sd);
     }
 
     public void unregister(SerialDevice sd) {
         arduinoMap.remove(sd);
     }
-    
-     
 
     static void writeToPort(OutputStream os, String arg) throws IOException {
         byte[] bytes = (arg + "END").getBytes();
@@ -217,36 +225,42 @@ public class DeviceManager {
     }
 
     private void identify(String name, SerialPort port) {
+        synchronized (this) {
 
-        System.out.print(" -- new Arduino connected: " + name + ", on: " + port.getSystemPortName());
-        SerialDevice sd = new SerialDevice(port, name);
+            SerialDevice sd = new SerialDevice(port, name);
+            String msg = "";
 
-        switch (name) {
-            case "VARIAC":
-                sd = new VariacControlDevice(sd);
-                System.out.println(" -- recognized as variac Arduino");
-                break;
-            case "TMP":
-                sd = new TMPControlDevice(sd);
-                System.out.println(" -- recognized as TMP Arduino");
-                break;
-            case "SOLENOID":
-                sd = new SolenoidControlDevice(sd);
-                System.out.println(" -- recognized as solenoid Arduino");
-                break;
-            case "GENERICTEST":
-                System.out.println(" -- recognized as generic test Arduino");
-                break;
-            default:
-                System.out.println("");
-                break;
+            switch (name) {
+                case "VARIAC":
+                    sd = new VariacControlDevice(sd);
+                    msg = " -- recognized as variac Arduino";
+                    break;
+                case "TMP":
+                    sd = new TMPControlDevice(sd);
+                    msg =  " -- recognized as TMP Arduino";
+                    break;
+                case "SOLENOID":
+                    sd = new SolenoidControlDevice(sd);
+                    msg= " -- recognized as solenoid Arduino";
+                    break;
+                case "GENERICTEST":
+                    msg = " -- recognized as generic test Arduino";
+                    break;
+                default:
+                    break;
+            }
+            register(sd);
+            System.out.println(" -- new Arduino connected: " + sd.name + " ("+ sd.originalName+"), on: " + port.getSystemPortName() + msg);
         }
-        register(sd);
 
     }
 
     public SerialDevice get(String name) {
         return arduinoMap.get(name);
+    }
+
+    public ArrayList<String> getDeviceNames() {
+        return arduinoMap.getNames();
     }
 
 }

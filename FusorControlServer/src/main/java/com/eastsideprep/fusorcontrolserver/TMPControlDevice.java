@@ -2,17 +2,15 @@ package com.eastsideprep.fusorcontrolserver;
 
 public class TMPControlDevice extends SerialDevice {
     
-    SerialDevice sd;
-    
     TMPControlDevice(SerialDevice sd) {
-        this.sd = sd;
+        clone(sd);
     }
     
     public void setOn() {
-        this.sd.write("SETtmponEND");
+        this.write("SETtmponEND");
     }
 
     public void setOff() {
-        this.sd.write("SETtmpoffEND");
+        this.write("SETtmpoffEND");
     }
 }

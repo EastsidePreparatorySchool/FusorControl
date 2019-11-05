@@ -1,9 +1,10 @@
 package com.eastsideprep.fusorcontrolserver;
 
 import com.fazecast.jSerialComm.SerialPort;
+import java.util.ArrayList;
 import java.util.HashMap;
 
-public class PortMap {
+public class SerialDeviceMap {
 
     HashMap<String, SerialDevice> nameMap = new HashMap<>();
     HashMap<SerialPort, SerialDevice> portMap = new HashMap<>();
@@ -52,5 +53,13 @@ public class PortMap {
             portMap.remove(sd.port);
             nameMap.remove(sd.name);
         }
+    }
+    
+    public ArrayList<String> getNames() {
+        ArrayList<String> names;
+        synchronized (this) {
+            names = new ArrayList(nameMap.keySet());
+        }
+        return names;
     }
 }

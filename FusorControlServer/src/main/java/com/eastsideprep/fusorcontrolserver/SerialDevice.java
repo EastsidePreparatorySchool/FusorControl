@@ -9,6 +9,7 @@ public class SerialDevice {
 
 
     String name;
+    String originalName;
     OutputStream os;
     SerialPort port;
     ArrayList<String> variables;
@@ -18,6 +19,7 @@ public class SerialDevice {
 
     SerialDevice(SerialPort p, String name) {
         this.name = name;
+        this.originalName = name;
         this.port = p;
         this.os = (p != null? p.getOutputStream():null);
         this.variables = new ArrayList<>();
@@ -25,6 +27,7 @@ public class SerialDevice {
 
     final protected void clone(SerialDevice sd) {
         this.name = sd.name;
+        this.originalName = sd.name;
         this.port = sd.port;
         this.os = sd.os;
         this.variables = sd.variables;
