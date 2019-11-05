@@ -5,11 +5,21 @@ package com.eastsideprep.fusorcontrolserver;
 //
 public class CoreDevices {
 
+    DeviceManager dm;
+
     public VariacControlDevice variac;
     public TMPControlDevice tmp;
     public SolenoidControlDevice solenoid;
 
-    public static boolean isCoreDevice(String name) {
+    public CoreDevices(DeviceManager dm) {
+        this.dm = dm;
+
+        this.variac = (VariacControlDevice) dm.get("VARIAC");
+        this.solenoid = (SolenoidControlDevice) dm.get("SOLENOID");
+        this.tmp = (TMPControlDevice) dm.get("TMP");
+    }
+
+    public boolean isCoreDevice(String name) {
         switch (name) {
             case "VARIAC":
             case "TMP":
@@ -19,28 +29,19 @@ public class CoreDevices {
         return false;
     }
 
-    public static CoreDevices getCoreDevices(DeviceManager dm) {
-        CoreDevices cd = new CoreDevices();
-
-        cd.variac = (VariacControlDevice) dm.get("VARIAC");
-        cd.solenoid = (SolenoidControlDevice) dm.get("SOLENOID");
-        cd.tmp = (TMPControlDevice) dm.get("TMP");
-
  
 
+    public boolean complete() {
         // we need all of these. if any of them aren't there, return null
-        if (cd.variac == null || cd.solenoid == null || cd.tmp == null) {
-            return null;
-        }
 
-        return cd;
+        return !(variac == null || solenoid == null || tmp == null);
     }
 
-    public static void fakeMissingCoreDevices(DeviceManager dm) {
+    public void fakeMissingCoreDevices() {
         if (dm.get("VARIAC") == null) {
             dm.register(new VariacControlDevice(new NullSerialDevice("VARIAC")));
         }
-        if (dm.get("SOLENOID")  == null) {
+        if (dm.get("SOLENOID") == null) {
             dm.register(new SolenoidControlDevice(new NullSerialDevice("SOLENOID")));
         }
         if (dm.get("TMP") == null) {

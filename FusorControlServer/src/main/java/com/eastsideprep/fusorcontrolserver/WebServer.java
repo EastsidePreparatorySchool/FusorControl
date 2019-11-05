@@ -26,11 +26,10 @@ public class WebServer {
         dm = new DeviceManager();
 
         // initialize the connections to all serial devices
-        dm.init();
+        cd = dm.init();
 
         // get the most important devices for our UI. If not present, halt. 
-        cd = CoreDevices.getCoreDevices(dm);
-        if (cd == null) {
+        if (!cd.complete()) {
             throw new IllegalArgumentException("missing core devices after dm.init()");
         }
 

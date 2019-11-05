@@ -27,6 +27,7 @@ public class DeviceManager {
     private Thread queryThread;
     // keep track of partial messages
     private HashMap<SerialPort, String> bufferState = new HashMap<>();
+    private CoreDevices cd;
 
     private final SerialPortDataListener connectionListener = new SerialPortDataListener() {
         @Override
@@ -94,7 +95,7 @@ public class DeviceManager {
         }
     }
 
-    public void init() {
+    public CoreDevices init() {
         ports = SerialPort.getCommPorts();
 
         //
@@ -122,11 +123,15 @@ public class DeviceManager {
             }
         }
 
+        this.cd = new CoreDevices(this);
+
         // need to be able to fakeCoreDevices this thing away from the Arduinos
         // so make dummy ports if necessary
         if (FusorControlServer.fakeCoreDevices) {
-            CoreDevices.fakeMissingCoreDevices(this);
+            cd.fakeMissingCoreDevices();
         }
+
+        return cd;
     }
 
     public void shutdown() {
@@ -234,27 +239,10 @@ public class DeviceManager {
             SerialDevice sd = new SerialDevice(port, name);
             String msg = "";
 
-            switch (name) {
-                case "VARIAC":
-                    sd = new VariacControlDevice(sd);
-                    msg = " -- recognized as variac Arduino";
-                    break;
-                case "TMP":
-                    sd = new TMPControlDevice(sd);
-                    msg = " -- recognized as TMP Arduino";
-                    break;
-                case "SOLENOID":
-                    sd = new SolenoidControlDevice(sd);
-                    msg = " -- recognized as solenoid Arduino";
-                    break;
-                case "GENERICTEST":
-                    msg = " -- recognized as generic test Arduino";
-                    break;
-                default:
-                    break;
-            }
+            sd = specificDevice(sd);
+
             register(sd);
-            System.out.println(" -- new Arduino connected: " + sd.name + " (" + sd.originalName + "), on: " + port.getSystemPortName() + msg);
+            System.out.println(" -- new Arduino connected: " + sd.name + " (" + sd.originalName + ", function: "+sd.function+"), on: " + port.getSystemPortName() + msg);
         }
 
     }
@@ -265,6 +253,39 @@ public class DeviceManager {
 
     public ArrayList<String> getDeviceNames() {
         return arduinoMap.getNames();
+    }
+
+    public static SerialDevice specificDevice(SerialDevice sd) {
+        switch (sd.name) {
+            //
+            // core: web server will not start without these
+            //
+            case "VARIAC":
+                sd = new VariacControlDevice(sd);
+                sd.function = "Variac control";
+                break;
+            case "TMP":
+                sd = new TMPControlDevice(sd);
+                sd.function = "TMP control";
+                break;
+            case "SOLENOID":
+                sd = new SolenoidControlDevice(sd);
+                sd.function = "Solenoid control";
+                break;
+
+            //
+            // non-core: web server may start without them
+            //
+            case "HVHIGHSIDE":
+                sd = new HVHighsideSensor(sd);
+                sd.function = "BT HV highside current sensor";
+                break;
+
+            default:
+                break;
+        }
+
+        return sd;
     }
 
 }
