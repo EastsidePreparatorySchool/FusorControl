@@ -38,14 +38,17 @@ public class CoreDevices {
     }
 
     public void fakeMissingCoreDevices() {
-        if (dm.get("VARIAC") == null) {
-            dm.register(new VariacControlDevice(new NullSerialDevice("VARIAC")));
+        if (variac == null) {
+            variac = new VariacControlDevice(new NullSerialDevice("VARIAC"));
+            dm.register(variac);
         }
-        if (dm.get("SOLENOID") == null) {
-            dm.register(new SolenoidControlDevice(new NullSerialDevice("SOLENOID")));
+        if (solenoid == null) {
+            solenoid = new SolenoidControlDevice(new NullSerialDevice("SOLENOID"));
+            dm.register(solenoid);
         }
-        if (dm.get("TMP") == null) {
-            dm.register(new TMPControlDevice(new NullSerialDevice("TMP")));
+        if (tmp == null) {
+            tmp = new TMPControlDevice(new NullSerialDevice("TMP"));
+            dm.register(tmp);
         }
     }
 }
