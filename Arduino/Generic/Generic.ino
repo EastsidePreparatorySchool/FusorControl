@@ -177,10 +177,28 @@ void fusorCmdExecute(char *sCmd, char* sVar, char *sVal) {
   if (strcmp(sCmd, "IDENTIFY") == 0) fusorResponse("IDENTIFY:GENERIC");
   if (strcmp(sCmd, "SET") == 0) fusorCmdSetVariable(sVar,sVal);
   if (strcmp(sCmd, "GET") == 0) fusorCmdGetVariable(sVar);
+  if (strcmp(sCmd, "GETALL") == 0) fusorCmdGetAll();
     
   FUSOR_LED_ON();
   delay(50);
   FUSOR_LED_OFF();
+}
+
+void fusorCmdGetAll() {
+  fusorStartResponse("{");
+  for (int i =0; i<fusorNumVars; i++) {
+    fusorAddResponse("\"");
+    FusorVariable *pfv = &fusorVariables[i];
+    fusorAddResponse(pfv->name);
+    fusorAddResponse("\":");
+    fusorAddResponse(pfv->value);
+    fusorAddResponse("\"");
+    if (i< fusorNumVars-1) {
+      fusorAddResponse(",");
+    }
+  }
+  fusorAddResponse("}");
+  fusorResponse(fusorGetResponse());
 }
 
 struct FusorVariable *fusorGetVariableEntry(char *name) {
@@ -282,6 +300,7 @@ void setup(){
 void loop() {
   fusorLoop();
   updateAll();
+  delay(5);
 }
 
 void updateAll() {

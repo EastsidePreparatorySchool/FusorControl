@@ -33,6 +33,8 @@ public class WebServer {
             dm.shutdown();
             throw new IllegalArgumentException("missing core devices after dm.init()");
         }
+        
+        dm.getAll();
 
         port(80); //switch to 80 for regular use
         //sets default public location

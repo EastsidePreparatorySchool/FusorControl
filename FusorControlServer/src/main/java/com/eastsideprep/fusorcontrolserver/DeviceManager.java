@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DeviceManager {
 
@@ -86,6 +88,8 @@ public class DeviceManager {
         //System.out.println("Received message: " + response + " from port: " + port.getSystemPortName());
         if (response.startsWith(SerialDevice.FUSOR_IDENTIFY+":")) {
             identify(response.substring(SerialDevice.FUSOR_IDENTIFY.length()+1), port);
+        } else {
+            System.out.println("Response from "+this.arduinoMap.get(port).name+":"+response);
         }
     }
 
@@ -123,6 +127,11 @@ public class DeviceManager {
         // so make dummy ports if necessary
         if (FusorControlServer.fakeCoreDevices) {
             cd.fakeMissingCoreDevices();
+        }
+        
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException ex) {
         }
 
         return cd;
@@ -172,8 +181,8 @@ public class DeviceManager {
             System.out.println("listener added.");
         }
 
-        System.out.println("=================== done opening new ports. waiting 6s");
-        Thread.sleep(6000);
+        System.out.println("=================== done opening new ports. waiting ..");
+        Thread.sleep(3000);
 
         for (SerialPort port : portList) {
             try {
@@ -183,8 +192,8 @@ public class DeviceManager {
                 System.out.println(ex.getCause());
             }
         }
-        System.out.println("=================== done querying new ports. waiting 5s for new devices to identify");
-        Thread.sleep(5000);
+        System.out.println("=================== done querying new ports. waiting for new devices to identify ...");
+        Thread.sleep(1000);
 
         System.out.println("=================== closing unrecognized ports");
         for (SerialPort port : portList) {
@@ -280,6 +289,16 @@ public class DeviceManager {
         }
 
         return sd;
+    }
+    
+    void getAll() {
+        ArrayList<String> deviceNames = arduinoMap.getNames();
+        for (String name:deviceNames) {
+            SerialDevice sd = this.arduinoMap.get(name);
+            System.out.println("Sending GETALL to "+name);
+            sd.command("GETALL");
+        }
+            
     }
 
 }

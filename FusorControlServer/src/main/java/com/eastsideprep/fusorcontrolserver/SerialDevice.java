@@ -57,7 +57,8 @@ public class SerialDevice {
         if (this.os == null) {
             return;
         }
-
+        System.out.println("writing to device "+name+": "+s);
+        
         byte[] bytes = s.getBytes();
         synchronized (port) {
             try {
@@ -66,6 +67,10 @@ public class SerialDevice {
                 // todo: deal with write failure to serial devices
             }
         }
+    }
+    
+    public void command(String s) {
+        write(SerialDevice.makeCommand(s));
     }
 
 }
