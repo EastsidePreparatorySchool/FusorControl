@@ -44,7 +44,7 @@ void setup(){
 
   fusorInit("VARIAC", fvs, 2);
 
-  zeroVoltage();
+  //zeroVoltage();
   FUSOR_LED_ON();
   delay(300);
   FUSOR_LED_OFF();

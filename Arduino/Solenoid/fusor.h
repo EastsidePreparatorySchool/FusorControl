@@ -317,13 +317,22 @@ int fusorGetIntVariable(char* var) {
   FusorVariable *pfv;
   
   pfv = fusorGetVariableEntry(var);
-//   fusorStartResponse("READ VAL:");
-//   fusorAddResponse(pfv->value);
-//   fusorSendResponse(NULL);
-
   return atoi(pfv->value);
 }
 
+char * fusorGetStrVariable(char* var) {
+  FusorVariable *pfv;
+  
+  pfv = fusorGetVariableEntry(var);
+  return pfv->value;
+}
+
+bool fusorStrVariableEquals(char* var, char*test) {
+  FusorVariable *pfv;
+  
+  pfv = fusorGetVariableEntry(var);
+  return strcmp(pfv->value,test) == 0;
+}
 
 
 
