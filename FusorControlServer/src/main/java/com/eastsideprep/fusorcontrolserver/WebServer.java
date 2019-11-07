@@ -43,14 +43,14 @@ public class WebServer {
         } catch (InterruptedException ex) {
         }
 
-        dm.get("GENERIC").set("bar", "Let's see whether this works");
         
         try {
             Thread.sleep(100);
         } catch (InterruptedException ex) {
         }
 
-        dm.get("GENERIC").get("bar");
+        dm.get("GENERIC").get("foo");
+        dm.get("GENERIC").set("bar",5);
         dm.getAll();
         
         
