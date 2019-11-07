@@ -186,9 +186,9 @@ void fusorCmdExecute(char *sCmd, char* sVar, char *sVal) {
     //SERIAL.write('*');
     fusorSendResponse("IDENTIFY:GENERIC");
   }
-  fusorStartResponse("handling cmd:");
-  fusorAddResponse(sCmd);
-  fusorSendResponse(NULL);
+  //fusorStartResponse("handling cmd:");
+  //fusorAddResponse(sCmd);
+  //fusorSendResponse(NULL);
   if (strcmp(sCmd, "SET") == 0) fusorCmdSetVariable(sVar,sVal);
   if (strcmp(sCmd, "GET") == 0) fusorCmdGetVariable(sVar);
   if (strcmp(sCmd, "GETALL") == 0) fusorCmdGetAll();
