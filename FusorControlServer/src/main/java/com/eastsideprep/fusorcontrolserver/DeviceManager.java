@@ -158,13 +158,15 @@ public class DeviceManager {
     }
 
     private void queryThreadLoop(Object semaphore) {
-        while (!Thread.interrupted()) {
-
-            try {
+        // thread priority below web server and also below logger thread
+        // discovering new devices is not that important, after all
+        Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 2);
+        try {
+            while (!Thread.interrupted()) {
                 queryIdentifyAll(semaphore);
                 Thread.sleep(5000);
-            } catch (InterruptedException e) {
             }
+        } catch (InterruptedException e) {
         }
 
     }
@@ -186,14 +188,14 @@ public class DeviceManager {
         }
 
         for (SerialPort port : portList) {
-            System.out.print("opening port: " + port.getSystemPortName() + "...");
+            System.out.println("opening port: " + port.getSystemPortName());
             port.openPort();
-            System.out.print("port opened. adding listener ...");
+            //System.out.print("port opened. adding listener ...");
             port.addDataListener(connectionListener);
-            System.out.println("listener added.");
+            //System.out.println("listener added.");
         }
 
-        System.out.println("=================== done opening new ports. waiting ..");
+        System.out.println("=================== done opening new ports. waiting for resets ..");
         Thread.sleep(3000);
 
         for (SerialPort port : portList) {
@@ -222,6 +224,7 @@ public class DeviceManager {
         synchronized (semaphore) {
             semaphore.notify();
         }
+        System.out.println("=================== done querying new ports");
     }
 
     public void register(SerialDevice sd) {

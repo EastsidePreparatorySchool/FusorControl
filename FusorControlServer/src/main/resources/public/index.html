@@ -18,8 +18,8 @@ and open the template in the editor.
             body {
                 font-size: 1.1em;
                 width: 100%;
-                background-color: #ff9faf;
-                color: #f5e0d9;
+                background-color: #717af7;
+                color: #2e260581;
                 font-family: 'Lato', sans-serif;
             }
 
@@ -65,12 +65,10 @@ and open the template in the editor.
 
             </div>
             <h2>Initialization</h2>
-            <button id="isWorking" class="button" onclick="isWorking()">Test Connection</button>
-            <button id="inita" class="button">Initiate Arduino Serial Comm</button>
-            <button id="status" class="button" onclick="getStatus()">Get Status</button>
+            <button id="startLog" class="button" onclick="startLog()">Start logging</button>
+            <button id="stopLog" class="button" onclick="stopLog()">Stop logging</button>
             <button class="button" style="background-color: #f64072; font-family: 'Bungee', cursive;"
-                    onclick="kill()"><b>KILL
-                    SERVER</b></button>
+                    onclick="kill()"><b>Stop Server</b></button>
 
             <div class="line"></div>
 
@@ -83,24 +81,19 @@ and open the template in the editor.
                                                     id="variacButton">Set</button>
                     <h3>Turbo Pump: </h3>
                     <div>
-                        <button class="button" style="width: 10%; background-color: #39a82a;" onclick="tmpOn()">ON</button>
-                        <button class="button" style="width: 10%; background-color: #f64072;font-family: 'Bungee', cursive;" onclick="tmpOff()">OFF</button>
+                        <button class="button" style="width: 15%; background-color: #39a82a;" onclick="tmpOn()">On</button>
+                        <button class="button" style="width: 15%; background-color: #f64072;font-family: 'Bungee', cursive;" onclick="tmpOff()">Off</button>
                     </div>
-                    <!--<h3>Solenoid Valve: <button onclick="solenoid('on')">OPEN</button><button onclick="solenoid('off')"
-                            style="color: lightcoral;">CLOSE</button> </h3> -->
-                    <!-- <div class="custom-control custom-switch">
-                        <input type="checkbox" class="custom-control-input" id="customSwitch1"
-                            onchange="solenoid(this.checked ? 'on':'off')">
-                        <h3><label class="custom-control-label" for="customSwitch1"></label></h3>
-                    </div> -->
-                    <h3>Solenoid Valve:</h3>
-                    <button class="button" style="width: 10%; background-color: #39a82a;" onclick="SolenoidOn()">ON</button>
-                    <button class="button" style="width: 10%; background-color: #f64072;font-family: 'Bungee', cursive;" onclick="SolenoidOff()">OFF</button>
 
+                    <h3>Solenoid Valve:</h3>
+                    <div>
+                        <button class="button" style="width: 15%; background-color: #39a82a;" onclick="SolenoidOn()">Open</button>
+                        <button class="button" style="width: 15%; background-color: #f64072;font-family: 'Bungee', cursive;" onclick="SolenoidOff()">Closed</button>
+                    </div>
                 </div>
 
                 <div style="width:500px; height:450px; float:left">
-                    <img width="500" height="400" src="http://10.20.30.98:4567/mjpg">
+                    <img width="500" height="400" src=":4567/mjpg">
                 </div>
             </div>
             <div style="clear:both" class="line"></div>
@@ -116,7 +109,7 @@ and open the template in the editor.
             <div class="line"></div>
 
             <p id="error">returns: </p>
-            <img src="https://howimetyourotaku.files.wordpress.com/2011/02/kore-wa-zombie-desu-ka-07-mkv_snapshot_02-18_2011-02-23_01-35-29.jpg"
+            <img src="kore-wa-zombie-desu-ka-07-mkv_snapshot_02-18_2011-02-23_01-35-29.jpg"
                  style="width: 100%; text-align: center; border-radius: 5%; margin-bottom: 5%;">
         </div>
 
@@ -187,6 +180,30 @@ and open the template in the editor.
             //this kills the server (needs testing)
             function kill() {
                 request({url: "/kill", method: "GET"})
+                        .then(data => {
+                            console.log(data);
+                        })
+                        .catch(error => {
+                            console.log("error: " + error);
+                        });
+            }
+
+             //start a new log
+             function startLog() {
+                console.log("startlog");
+                request({url: "/startlog", method: "GET"})
+                        .then(data => {
+                            console.log(data);
+                        })
+                        .catch(error => {
+                            console.log("error: " + error);
+                        });
+            }
+
+             //stop logging
+             function stopLog() {
+                console.log("stoplog");
+                request({url: "/stoplog", method: "GET"})
                         .then(data => {
                             console.log(data);
                         })
