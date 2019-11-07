@@ -23,8 +23,8 @@
 
 FusorVariable fvs[] = {
   //name,           value,  updated
-  {"volts",         "",     false},
-  {"potentiometer", "",     false} 
+  {"volts",         "-1",   false},
+  {"potentiometer", "-1",   false} 
 };
 
 
@@ -120,11 +120,15 @@ void loop() {
 void updateAll() {
   // put our current potentiometer reading into "potentiometer"
   int pot = analogRead(POT);
+  int volts = potToVolts(pot);
+
   fusorSetVariable("potentiometer", NULL, &pot, NULL);
 
   // if "volts" was updated, set variac to that voltage
   if (fusorVariableUpdated("volts")) {
-    int volts = fusorGetIntVariable("volts");
+    volts = fusorGetIntVariable("volts");
     setVoltage(volts);
   }
+  
+  fusorSetVariable("volts", NULL, &volts, NULL);
 }

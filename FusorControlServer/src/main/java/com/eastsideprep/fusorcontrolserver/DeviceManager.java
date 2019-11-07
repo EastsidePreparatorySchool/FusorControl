@@ -303,7 +303,7 @@ public class DeviceManager {
         ArrayList<String> deviceNames = arduinoMap.getNames();
         for (String name:deviceNames) {
             SerialDevice sd = this.arduinoMap.get(name);
-            System.out.println("Sending GETALL to "+name);
+            //System.out.println("Sending GETALL to "+name);
             sd.getAll();
         }
             

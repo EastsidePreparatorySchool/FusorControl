@@ -13,10 +13,10 @@
 
 FusorVariable fvs[] = {
   //name,   value,  updated
-  {"TMP",   "off",  false},
-  {"SPEED", "high", false},
-  {"FREQ",  "",     false},
-  {"AMPS",  "",     false}
+  {"tmp",   "off",  false},
+  {"speed", "high", false},
+  {"freq",  "",     false},
+  {"amps",  "",     false}
 };
 
 
@@ -47,24 +47,24 @@ void updateAll() {
   // put our current amps and freq out
   int amps = analogRead(TMP_AMPS);
   int freq = analogRead(TMP_FREQ);
-  fusorSetVariable("AMPS", NULL, &amps, NULL);
-  fusorSetVariable("FREQ", NULL, &freq, NULL);
+  fusorSetVariable("amps", NULL, &amps, NULL);
+  fusorSetVariable("freq", NULL, &freq, NULL);
 
 
-  // if "TMP" was updated, read it switch the pump on/off accordingly
-  if (fusorVariableUpdated("TMP")) {
-    if (fusorStrVariableEquals("TMP", "ON")) {
+  // if "tmp" was updated, read it switch the pump on/off accordingly
+  if (fusorVariableUpdated("tmp")) {
+    if (fusorStrVariableEquals("tmp", "ON")) {
       tmpOn();
-    } else if (fusorStrVariableEquals("TMP", "OFF")) {
+    } else if (fusorStrVariableEquals("tmp", "OFF")) {
       tmpOff();
     }
   }
 
-  // if "SPEED" was updated, read it switch the pump to high speed / low speed accordingly
-  if (fusorVariableUpdated("SPEED")) {
-    if (fusorStrVariableEquals("SPEED", "LOW")) {
+  // if "speed" was updated, read it switch the pump to high speed / low speed accordingly
+  if (fusorVariableUpdated("speed")) {
+    if (fusorStrVariableEquals("speed", "low")) {
       tmpLow();
-    } else if (fusorStrVariableEquals("SPEED", "HIGH")) {
+    } else if (fusorStrVariableEquals("speed", "high")) {
       tmpHigh();
     }
   }
