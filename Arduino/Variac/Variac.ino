@@ -1,25 +1,31 @@
-
 //
 // Fusor project code for control Arduino
+// "VARIAC"
+// Arduino Uno
 //
 
-#define CMDLENGTH  50
+#include "fusor.h"
+
 
 #define MINVOLTS 5
 #define MAXVOLTS 120
 
-#define PUL 35
-#define ENA 37
-#define DIR 36
+#define PUL 35 // stepper motor controller PULSE
+#define ENA 37 // stepper motor controller ENABLE
+#define DIR 36 // stepper motor controller DIRECTION
 
-#define REL 9
-
-#define POT A2
+#define REL 9  // relay to cut power to controller
+#define POT A2 // potentiometer feedback
 
 #define delayMicros 1000
 
-#define LED_ON()  digitalWrite(LED_BUILTIN, HIGH);
-#define LED_OFF() digitalWrite(LED_BUILTIN, LOW);
+
+
+FusorVariable fvs[] = {
+  //name,           value,  updated
+  {"volts",         "",     false},
+  {"potentiometer", "",     false} 
+};
 
 
 void setup(){
@@ -36,116 +42,13 @@ void setup(){
   // feedback from variac
   pinMode(POT, INPUT);
 
-  pinMode(30, INPUT);
+  fusorInit("VARIAC", fvs, 2);
 
   zeroVoltage();
-  LED_ON();
+  FUSOR_LED_ON();
   delay(300);
-  LED_OFF();
+  FUSOR_LED_OFF();
 
-  Serial.begin(9600);
-  //Serial.println("Fusor control Arduino initialized!");
-}
-
-
-void loop() {
-  static char buffer[CMDLENGTH + 1];
-  static char outbuffer[10];
-
-  //collects serial messages from the hardware buffer
-  int num = 0;
-  do 
-  {
-    while (Serial.available() > 0)
-    {
-      buffer[num++] = Serial.read();
-      buffer[num] = 0;
-    }
-
-    //    if (num > 0) {
-    //      Serial.print("got ");
-    //      Serial.print(itoa(num, outbuffer, 10));
-    //      Serial.println(" bytesEND");
-    //    }
-  } while (strstr(buffer, "]END") == NULL);
-
-  // got message, let's parse
-  char *sCommand = buffer;
-  char *sEnd = strstr(sCommand, "]END");
-
-  while (sEnd != NULL)
-  {
-    // found at least one more command
-    // terminate command string at "]END"
-    *sEnd = 0;
-
-    // echo command
-    if (strlen(sCommand) > 0)
-    {
-      if (strncmp(sCommand, "FusorCommand[", 13) == 0)
-      {
-        Serial.print(sCommand);
-        Serial.println("]END");
-      
-        // execute command
-        handleBuffer(sCommand+13);
-      }
-    }
-    
-    // advance both pointers to next possible command
-    sCommand = sEnd + 4;
-    sEnd = strstr(sCommand, "]END");
-  }
-  
-  delay(5);
-}
-
-void handleBuffer(char *command)
-{
-  // handle special case of identify first
-  if (strcmp(command, "IDENTIFY") == 0) Serial.println("FusorResponse[IDENTIFY:VARIAC]END");
-  
-  //parses GET and SET commands and does things with them
-  if (strncmp(command, "SET:",4) == 0) 
-  {
-    char *var = command + 4; // find variable name
-    char *val = strstr(var, "=");  // look for "=" and value
-    if (val != NULL) {
-      *val++ = 0; // terminate variable name, advance value pointer past "="
-    }
-    setVariable(var,val);
-  }
-
-  if (strncmp(command, "GET:",4) == 0) 
-  {
-     char *var = command + 4; // find variable name
-     getVariable(var);
-  }
-    
-  LED_ON();
-  delay(200);
-  LED_OFF();
-}
-
-void setVariable(char *var, char *val) 
-{
-  // this is a generic example
-  int num = atoi(val);
-  Serial.print("FusorResponse[SET:");
-  Serial.print(var);
-  Serial.print("=");
-  Serial.print(val);
-  Serial.println("]END"); 
-}
-
-void getVariable(char *var) 
-{
-  // this is a generic example
-  Serial.print("FusorResponse[GET:");
-  Serial.print(var);
-  Serial.print("=");
-  Serial.print("IDKLOL");
-  Serial.println("]END"); 
 }
 
 
@@ -164,7 +67,7 @@ void setVoltage(int volts) {
   if (volts > 90) return;
   int dif;
 
-  LED_ON();
+  FUSOR_LED_ON();
   digitalWrite(ENA, LOW);
   digitalWrite(REL, HIGH);
 
@@ -181,18 +84,15 @@ void setVoltage(int volts) {
 
   digitalWrite(ENA, HIGH);
   digitalWrite(REL, LOW);
-  LED_OFF();
+  FUSOR_LED_OFF();
 }
-
-
-
 
 void zeroVoltage() {
   //set the variac as low as we can
   setVoltage(MINVOLTS);
 
   //drive down some bonus steps, so we get to actual zero
-  LED_ON();
+  FUSOR_LED_ON();
   digitalWrite(ENA, LOW);
   digitalWrite(REL, HIGH);
 
@@ -205,5 +105,26 @@ void zeroVoltage() {
   }
   digitalWrite(ENA, HIGH);
   digitalWrite(REL, LOW);
-  LED_OFF();
+  FUSOR_LED_OFF();
+}
+
+
+void loop() {
+  // must do this in loop, the rest is optional
+  fusorLoop();
+  
+  updateAll();
+  delay(5);
+}
+
+void updateAll() {
+  // put our current potentiometer reading into "potentiometer"
+  int pot = analogRead(POT);
+  fusorSetVariable("potentiometer", NULL, &pot, NULL);
+
+  // if "volts" was updated, set variac to that voltage
+  if (fusorVariableUpdated("volts")) {
+    int volts = fusorGetIntVariable("volts");
+    setVoltage(volts);
+  }
 }
