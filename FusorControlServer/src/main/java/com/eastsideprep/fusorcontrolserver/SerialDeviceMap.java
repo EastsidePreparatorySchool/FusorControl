@@ -72,4 +72,12 @@ public class SerialDeviceMap {
         }
         return names;
     }
+    
+    public ArrayList<SerialDevice> getAllDevices() {
+        ArrayList<SerialDevice> devices;
+        synchronized (this) {
+            devices = new ArrayList(nameMap.values());
+        }
+        return devices;
+    }
 }

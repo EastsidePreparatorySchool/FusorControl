@@ -3,27 +3,27 @@ package com.eastsideprep.fusorcontrolserver;
 import com.fazecast.jSerialComm.*;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 
 public class SerialDevice {
 
     String name;
     String originalName;
     String function;
-    OutputStream os;
+    private OutputStream os;
     SerialPort port;
-    ArrayList<String> variables;
+    private String lastStatus;
+    private String currentStatus;
 
     public final static String FUSOR_COMMAND_PREFIX = "FusorCommand[";
     public final static String FUSOR_RESPONSE_PREFIX = "FusorResponse[";
     public final static String FUSOR_POSTFIX = "]END";
 
     public final static String FUSOR_IDENTIFY = "IDENTIFY";
-    
+
     public static String makeCommand(String s) {
-        return FUSOR_COMMAND_PREFIX+s+FUSOR_POSTFIX;
+        return FUSOR_COMMAND_PREFIX + s + FUSOR_POSTFIX;
     }
-    
+
     public static String extractResponse(String s) {
         return "";
     }
@@ -37,7 +37,8 @@ public class SerialDevice {
         this.function = "generic";
         this.port = p;
         this.os = (p != null ? p.getOutputStream() : null);
-        this.variables = new ArrayList<>();
+        this.lastStatus = null;
+        this.currentStatus = null;
     }
 
     SerialDevice(SerialDevice sd) {
@@ -50,15 +51,14 @@ public class SerialDevice {
         this.function = "generic";
         this.port = sd.port;
         this.os = sd.os;
-        this.variables = sd.variables;
     }
 
     public void write(String s) {
         if (this.os == null) {
             return;
         }
-        System.out.println("writing to device "+name+": "+s);
-        
+        //System.out.println("writing to device " + name + ": " + s);
+
         byte[] bytes = s.getBytes();
         synchronized (port) {
             try {
@@ -68,20 +68,37 @@ public class SerialDevice {
             }
         }
     }
-    
+
     public void command(String s) {
         write(SerialDevice.makeCommand(s));
     }
-    
+
     public void set(String var, Object val) {
-        command("SET:"+var+":"+val); 
+        command("SET:" + var + ":" + val);
     }
 
     public void get(String var) {
-        command("GET:"+var); 
+        command("GET:" + var);
     }
-    
+
     public void getAll() {
         command("GETALL");
+    }
+
+    public void setStatus(String s) {
+        synchronized (this) {
+            this.lastStatus = this.currentStatus;
+            this.currentStatus = s;
+        }
+    }
+    
+    public String getCurrentStatus() {
+        String status = this.currentStatus;
+        this.currentStatus = null;
+        return status;
+    }
+    
+    public String getLastStatus() {
+        return this.lastStatus;
     }
 }

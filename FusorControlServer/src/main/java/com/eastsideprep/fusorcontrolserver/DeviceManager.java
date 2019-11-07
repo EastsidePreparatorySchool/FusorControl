@@ -17,7 +17,6 @@ public class DeviceManager {
     //
     // the static part of this class acts as the manager for serial devices
     //
-
     private SerialPort[] ports;
     private SerialDeviceMap arduinoMap = new SerialDeviceMap();
     private Thread queryThread;
@@ -46,15 +45,14 @@ public class DeviceManager {
         if (e.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE) {
             return;
         }
-        
-        
+
         //System.out.println("Serial data available");
         SerialPort port = e.getSerialPort();
         int bytes = port.bytesAvailable();
         if (bytes == 0) {
             return;
         }
-        
+
         byte[] data = new byte[bytes];
         port.readBytes(data, bytes);
 
@@ -93,11 +91,17 @@ public class DeviceManager {
     }
 
     private void processMessage(String response, SerialPort port) {
-        //System.out.println("Received message: " + response + " from port: " + port.getSystemPortName());
-        if (response.startsWith(SerialDevice.FUSOR_IDENTIFY+":")) {
-            identify(response.substring(SerialDevice.FUSOR_IDENTIFY.length()+1), port);
+        long time = System.currentTimeMillis();
+        if (response.startsWith(SerialDevice.FUSOR_IDENTIFY + ":")) {
+            //System.out.println("  Received identification message: " + response + " from port: " + port.getSystemPortName());
+            identify(response.substring(SerialDevice.FUSOR_IDENTIFY.length() + 1), port);
         } else {
-            System.out.println("  Response from "+this.arduinoMap.get(port).name+":"+response);
+            SerialDevice sd = this.arduinoMap.get(port);
+            if (sd != null) {
+                response = DataLogger.makeLogResponse(sd, time, response);
+                sd.setStatus(response);
+                //System.out.println("  Response from " + sd.name + ":" + response);
+            }
         }
     }
 
@@ -136,7 +140,7 @@ public class DeviceManager {
         if (FusorControlServer.fakeCoreDevices) {
             cd.fakeMissingCoreDevices();
         }
-        
+
         try {
             Thread.sleep(2000);
         } catch (InterruptedException ex) {
@@ -253,13 +257,17 @@ public class DeviceManager {
             sd = specificDevice(sd);
 
             register(sd);
-            System.out.println(" -- new Arduino connected: " + sd.name + " (" + sd.originalName + ", function: "+sd.function+"), on: " + port.getSystemPortName() + msg);
+            System.out.println("  -- new Arduino connected: " + sd.name + " (" + sd.originalName + ", function: " + sd.function + "), on: " + port.getSystemPortName() + msg);
         }
 
     }
 
     public SerialDevice get(String name) {
         return arduinoMap.get(name);
+    }
+
+    public ArrayList<SerialDevice> getAllDevices() {
+        return arduinoMap.getAllDevices();
     }
 
     public ArrayList<String> getDeviceNames() {
@@ -298,15 +306,15 @@ public class DeviceManager {
 
         return sd;
     }
-    
-    void getAll() {
+
+    void getAllStatus() {
         ArrayList<String> deviceNames = arduinoMap.getNames();
-        for (String name:deviceNames) {
+        for (String name : deviceNames) {
             SerialDevice sd = this.arduinoMap.get(name);
             //System.out.println("Sending GETALL to "+name);
             sd.getAll();
         }
-            
+
     }
 
 }

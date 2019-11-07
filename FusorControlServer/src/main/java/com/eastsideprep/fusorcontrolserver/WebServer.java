@@ -1,5 +1,6 @@
 package com.eastsideprep.fusorcontrolserver;
 
+import java.io.IOException;
 import static spark.Spark.*;
 import java.util.ArrayList;
 
@@ -14,6 +15,7 @@ public class WebServer {
     CamStreamer cs;
     DeviceManager dm;
     CoreDevices cd;
+    DataLogger dl;
 
     String msgBuffer = "";
     Queue msgqueue;
@@ -26,6 +28,7 @@ public class WebServer {
     public void init() {
         cs = new CamStreamer();
         dm = new DeviceManager();
+        dl = new DataLogger();
 
         // initialize the connections to all serial devices
         cd = dm.init();
@@ -36,16 +39,16 @@ public class WebServer {
             throw new IllegalArgumentException("missing core devices after dm.init()");
         }
         
-        dm.getAll();
         
-     
         try {
-            Thread.sleep(100);
-        } catch (InterruptedException ex) {
+            dl.init(dm);
+        } catch (IOException ex) {
+            System.out.println("DataLogger:Exception on init:"+ex);
         }
-
         
         
+        
+         
 
         port(80); //switch to 80 for regular use
         //sets default public location
@@ -66,6 +69,9 @@ public class WebServer {
         //ones like getstatus will have functions that communicate with the arduino
         get("/", (req, res) -> "<h1><a href='index.html'>Go to index.html</a></h1>");
         get("/kill", (req, res) -> {
+            dl.shutdown();
+            dm.shutdown();
+            
             stop();
             System.out.println("Server ended with /kill");
             return "server ended";
@@ -113,7 +119,7 @@ public class WebServer {
 
     //nonfunctional
     public Object getStatus(spark.Request req, spark.Response res) {
-        dm.getAll();
+        dm.getAllStatus();
         return null;
     }
 
