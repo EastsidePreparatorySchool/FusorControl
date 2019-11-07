@@ -46,19 +46,27 @@ public class DeviceManager {
         if (e.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE) {
             return;
         }
+        
+        
         //System.out.println("Serial data available");
         SerialPort port = e.getSerialPort();
-        byte[] data = new byte[port.bytesAvailable()];
-        port.readBytes(data, data.length);
+        int bytes = port.bytesAvailable();
+        if (bytes == 0) {
+            return;
+        }
+        
+        byte[] data = new byte[bytes];
+        port.readBytes(data, bytes);
 
         //System.out.println("Read " + data.length + " bytes from " + e.getSerialPort().getSystemPortName());
         String buffer = new String(data);
+        //System.out.println("  string:"+buffer);
 
         // partial message from last time? put at beginning of buffer
         if (bufferState.containsKey(port)) {
             buffer = bufferState.get(port) + buffer;
         }
-        //System.out.println("Serial buffer:" + buffer);
+        //System.out.println("  serial buffer:" + buffer);
 
         // now look for specific messages from our components
         int start;
@@ -89,7 +97,7 @@ public class DeviceManager {
         if (response.startsWith(SerialDevice.FUSOR_IDENTIFY+":")) {
             identify(response.substring(SerialDevice.FUSOR_IDENTIFY.length()+1), port);
         } else {
-            System.out.println("Response from "+this.arduinoMap.get(port).name+":"+response);
+            System.out.println("  Response from "+this.arduinoMap.get(port).name+":"+response);
         }
     }
 

@@ -26,12 +26,17 @@ static char fusorResponseBuffer[FUSOR_RESPONSE_MAX+1];
 
 void fusorReadCommands() {
   do{
+    int start = fusorCmdBufpos;
     while (SERIAL.available() > 0 && fusorCmdBufpos < FUSOR_CMDLENGTH)
     {
-      fusorCmdBuffer[fusorCmdBufpos++] = SERIAL.read();
-      fusorCmdBuffer[fusorCmdBufpos] = 0;
+      fusorCmdBuffer[fusorCmdBufpos] = SERIAL.read();
+      //SERIAL.write(fusorCmdBuffer[fusorCmdBufpos]);
+      fusorCmdBufpos++;
     }
+    fusorCmdBuffer[fusorCmdBufpos] = 0;
+      
   } while(strstr(fusorCmdBuffer, "]END") == NULL);
+  //SERIAL.write('+');
 }
 
 char *fusorGetCommand(char*sCommand) {
@@ -40,53 +45,52 @@ char *fusorGetCommand(char*sCommand) {
   }
   
   // got message, let's parse
-  char *sEnd = strstr(sCommand, "]END");
-
-  if (sEnd != NULL) {
-    // found at least one more command
-    // terminate command string at "]END"
-    *sEnd = 0;
-
-    // echo command
-    if (strlen(sCommand) > 0)
-    {
-      if (strncmp(sCommand, "FusorCommand[", 13) == 0)
-      {
-        SERIAL.print(sCommand);
-        SERIAL.println("]END");
-        return(sCommand+13);
-      }
+  sCommand = strstr(sCommand, "FusorCommand[");
+  if (sCommand != NULL) {
+    sCommand += 13;
+    char *sEnd = strstr(sCommand, "]END");
+  
+    if (sEnd != NULL) {
+      // found at least one more command
+      // terminate command string at "]END"
+      *sEnd = 0;
     }
+ 
+    // compact buffer
+    memmove(fusorCmdBuffer, sCommand, strlen(sCommand)+1);
+    sCommand = fusorCmdBuffer;
   }
-  // compact buffer
-  memmove(fusorCmdBuffer, sCommand, strlen(sCommand)+1);
   fusorCmdBufpos = 0;
-  return NULL;
+  return sCommand;
 }
 
 char *fusorSkipCommand(char *current) {
   return current+strlen(current)+4; // 4 = strlen("]END")  
 }
 
-void fusorResponse(char* response) {
-  SERIAL.print("FusorResponse[");
-  SERIAL.print(response);
-  SERIAL.println("]END");
+void fusorSendResponse(char *msg) {
+  if(msg != NULL) {
+    fusorStartResponse(msg);
+  }
+  fusorAddResponse("]END");
+  SERIAL.write(fusorResponseBuffer, strlen(fusorResponseBuffer));
 }
 
 void fusorStartResponse(char *response) {
-  strncpy(fusorResponseBuffer, response, FUSOR_RESPONSE_MAX);
-  fusorResponseBuffer[FUSOR_RESPONSE_MAX] = 0;
+  strcpy(fusorResponseBuffer,"FusorResponse[");
+  if (response != NULL) {
+    fusorAddResponse(response);
+  }
 }
 
 void fusorAddResponse(char *response) {
-  strncat(fusorResponseBuffer, response, FUSOR_RESPONSE_MAX);
+  strncat(fusorResponseBuffer, response, FUSOR_RESPONSE_MAX-strlen(fusorResponseBuffer));
   fusorResponseBuffer[FUSOR_RESPONSE_MAX] = 0;
 }
 
-char *fusorGetResponse() {
-  return fusorResponseBuffer;
-}
+//char *fusorGetResponse() {
+//  return fusorResponseBuffer;
+//}
 
 bool fusorParseCommand(char *full, char **command, char ** var, char **val) {
   char * next;
@@ -174,7 +178,10 @@ void fusorLoop() {
 
 void fusorCmdExecute(char *sCmd, char* sVar, char *sVal) {
   // handle special case of identify first
-  if (strcmp(sCmd, "IDENTIFY") == 0) fusorResponse("IDENTIFY:GENERIC");
+  if (strcmp(sCmd, "IDENTIFY") == 0) {
+    //SERIAL.write('*');
+    fusorSendResponse("IDENTIFY:GENERIC");
+  }
   if (strcmp(sCmd, "SET") == 0) fusorCmdSetVariable(sVar,sVal);
   if (strcmp(sCmd, "GET") == 0) fusorCmdGetVariable(sVar);
   if (strcmp(sCmd, "GETALL") == 0) fusorCmdGetAll();
@@ -190,7 +197,7 @@ void fusorCmdGetAll() {
     fusorAddResponse("\"");
     FusorVariable *pfv = &fusorVariables[i];
     fusorAddResponse(pfv->name);
-    fusorAddResponse("\":");
+    fusorAddResponse("\":\"");
     fusorAddResponse(pfv->value);
     fusorAddResponse("\"");
     if (i< fusorNumVars-1) {
@@ -198,7 +205,7 @@ void fusorCmdGetAll() {
     }
   }
   fusorAddResponse("}");
-  fusorResponse(fusorGetResponse());
+  fusorSendResponse(NULL);
 }
 
 struct FusorVariable *fusorGetVariableEntry(char *name) {
@@ -221,11 +228,11 @@ void fusorCmdSetVariable(char *var, char *val) {
     fusorStartResponse(var);
     fusorAddResponse(":");
     fusorAddResponse(val);
-    fusorResponse(fusorGetResponse());
+    fusorSendResponse(NULL);
   } else {
     fusorStartResponse("unknown variable:");
     fusorAddResponse(var);
-    fusorResponse(fusorGetResponse());
+    fusorSendResponse(NULL);
   }
 }
 
@@ -236,11 +243,11 @@ void fusorCmdGetVariable(char *var) {
     fusorStartResponse(var);
     fusorAddResponse(":");
     fusorAddResponse(pfv->value);
-    fusorResponse(fusorGetResponse());
+    fusorSendResponse(NULL);
   } else {
     fusorStartResponse("unknown variable:");
     fusorAddResponse(var);
-    fusorResponse(fusorGetResponse());
+    fusorSendResponse(NULL);
   }
 }
 
@@ -258,12 +265,12 @@ void fusorSetVariable(char * var, char *sVal, int *iVal, float *fVal) {
     }
     if (iVal != NULL) {
       itoa(*iVal, buffer, 10);
-      strncat(pfv->value, buffer, FUSOR_VAR_LENGTH-1);
+      strncat(pfv->value, buffer, FUSOR_VAR_LENGTH-1-strlen(buffer));
       pfv->value[FUSOR_VAR_LENGTH-1] = 0;
     }
     if (fVal != NULL) {
       sprintf(buffer, "%f", *fVal);
-      strncat(pfv->value, buffer, FUSOR_VAR_LENGTH-1);
+      strncat(pfv->value, buffer, FUSOR_VAR_LENGTH-1-strlen(buffer));
       pfv->value[FUSOR_VAR_LENGTH-1] = 0;
     }
   }

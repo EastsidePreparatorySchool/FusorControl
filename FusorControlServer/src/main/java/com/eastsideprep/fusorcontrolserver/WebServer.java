@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class WebServer {
 
@@ -35,6 +37,15 @@ public class WebServer {
         }
         
         dm.getAll();
+        
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(WebServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
+        
 
         port(80); //switch to 80 for regular use
         //sets default public location
