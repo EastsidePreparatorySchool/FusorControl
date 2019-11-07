@@ -72,5 +72,16 @@ public class SerialDevice {
     public void command(String s) {
         write(SerialDevice.makeCommand(s));
     }
+    
+    public void set(String var, Object val) {
+        command("SET:"+var+":"+val); 
+    }
 
+    public void get(String var) {
+        command("GET:"+var); 
+    }
+    
+    public void getAll() {
+        command("GETALL");
+    }
 }

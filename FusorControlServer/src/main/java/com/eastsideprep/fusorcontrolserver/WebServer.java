@@ -41,9 +41,17 @@ public class WebServer {
         try {
             Thread.sleep(100);
         } catch (InterruptedException ex) {
-            Logger.getLogger(WebServer.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+        dm.get("GENERIC").set("bar", "Let's see whether this works");
         
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException ex) {
+        }
+
+        dm.get("GENERIC").get("bar");
+        dm.getAll();
         
         
 

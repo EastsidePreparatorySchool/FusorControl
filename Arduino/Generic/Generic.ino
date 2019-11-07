@@ -104,6 +104,8 @@ bool fusorParseCommand(char *full, char **command, char ** var, char **val) {
   if (next == NULL) {
     return true;
   }
+  *next = 0;
+  
   // mark if requested
   if (var != NULL) {
     *var = next+1;
@@ -114,6 +116,8 @@ bool fusorParseCommand(char *full, char **command, char ** var, char **val) {
   if (next == NULL) {
     return true;
   }
+  *next = 0;
+  
   // mark if requested
   if (val != NULL) {
     *val = next+1;
@@ -132,7 +136,7 @@ bool fusorParseCommand(char *full, char **command, char ** var, char **val) {
 #define FUSOR_VAR_LENGTH 28
 
 typedef struct FusorVariable {
-  char  name[FUSOR_VAR_LENGTH];
+  char  *name;
   char  value[FUSOR_VAR_LENGTH];
   bool  updated;
 };
@@ -182,6 +186,9 @@ void fusorCmdExecute(char *sCmd, char* sVar, char *sVal) {
     //SERIAL.write('*');
     fusorSendResponse("IDENTIFY:GENERIC");
   }
+  fusorStartResponse("handling cmd:");
+  fusorAddResponse(sCmd);
+  fusorSendResponse(NULL);
   if (strcmp(sCmd, "SET") == 0) fusorCmdSetVariable(sVar,sVal);
   if (strcmp(sCmd, "GET") == 0) fusorCmdGetVariable(sVar);
   if (strcmp(sCmd, "GETALL") == 0) fusorCmdGetAll();
@@ -214,6 +221,7 @@ struct FusorVariable *fusorGetVariableEntry(char *name) {
     if (strcmp(pfv->name, name) == 0) {
       return pfv;
     }
+    pfv++;
   }
   return NULL;
 }
@@ -223,7 +231,7 @@ void fusorCmdSetVariable(char *var, char *val) {
   pfv = fusorGetVariableEntry(var);
   if (pfv != NULL) {
     strncpy (pfv->value, val, FUSOR_VAR_LENGTH-1);
-    pfv->name[FUSOR_VAR_LENGTH-1] = 0;
+    pfv->value[FUSOR_VAR_LENGTH-1] = 0;
     pfv->updated = true;
     fusorStartResponse(var);
     fusorAddResponse(":");
