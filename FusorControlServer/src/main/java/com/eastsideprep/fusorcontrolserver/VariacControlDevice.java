@@ -7,6 +7,6 @@ public class VariacControlDevice extends SerialDevice {
     }
     
     public void setVoltage(int v) {
-        this.write("volt" + String.format("%03d", v) + "END");
+        this.set("volts", Integer.toString(v));
     }
 }

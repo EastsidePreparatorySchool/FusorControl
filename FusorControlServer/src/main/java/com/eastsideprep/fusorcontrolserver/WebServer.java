@@ -113,27 +113,8 @@ public class WebServer {
 
     //nonfunctional
     public Object getStatus(spark.Request req, spark.Response res) {
-        boolean arcon = false;
-        long start = System.currentTimeMillis();
-        String tmpv = "";
-        String tmps = "";
-        //dm.updateAllStatus(); // todo redesign and reimplement
-        String message = "hold";
-        List<Status> status = new ArrayList<>();
-
-        //I plan on having a colon for between the key and number,
-        //this takes all messages coming in on the buffer until 'statusend' and sends the correct values back to the client
-        do {
-            int coli = message.indexOf(":");
-            if (message.startsWith("tmpv")) {
-                tmpv = message.substring(coli + 1);
-            }
-            if (message.startsWith("tmps")) {
-                tmps = message.substring(coli + 1);
-            }
-        } while (!message.equals("statusend") && System.currentTimeMillis() - start <= serialTimeout);
-        status.add(new Status((arcon ? 1 : 0), tmpv, tmps));
-        return status;
+        dm.getAll();
+        return null;
     }
 
  
