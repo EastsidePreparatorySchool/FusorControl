@@ -23,11 +23,11 @@ FusorVariable fvs[] = {
 
 
 void setup(){
-  // light for hope
-  pinMode(LED_BUILTIN, OUTPUT);  // pin 13
-
   fusorInit("HV_HIGHSIDE", fvs, 3); //Fusor device name, variables, num variables
-  
+
+  if (Serial) {
+    Serial.begin(9600);
+  }
   FUSOR_LED_ON();
   delay(1000);
   FUSOR_LED_OFF();
@@ -35,6 +35,9 @@ void setup(){
 
 
 void loop() {
+  while (Serial.available()) {
+    Serial.read();
+  }
   fusorLoop();
   updateAll();
   

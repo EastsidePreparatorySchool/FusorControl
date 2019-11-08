@@ -6,7 +6,7 @@ public class FusorControlServer {
     public static boolean fakeCoreDevices = true;
     public static boolean noLog = false;
     public static boolean includeCoreStatus = true;
-    public static boolean verbose = false;
+    public static boolean verbose = true;
 
     private static WebServer serv;
 

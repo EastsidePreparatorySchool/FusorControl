@@ -34,7 +34,9 @@ public class DeviceManager {
 
         @Override
         public void serialEvent(SerialPortEvent e) {
-            //System.out.println("  Serial event on port "+e.getSerialPort().getSystemPortName());
+            if (FusorControlServer.verbose) {
+                System.out.println("  Serial event on port " + e.getSerialPort().getSystemPortName());
+            }
             if (e.getEventType() == SerialPort.LISTENING_EVENT_DATA_AVAILABLE) {
                 processSerialData(e);
             }
@@ -230,7 +232,7 @@ public class DeviceManager {
 
             //System.out.print("port opened. adding listener ...");
             port.addDataListener(connectionListener);
-            //System.out.println("listener added.");
+            //System.out.println("listener added.");          
         }
 
         System.out.println("=================== done opening new ports. waiting for resets ..");
