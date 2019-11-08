@@ -19,6 +19,7 @@ public class SerialDevice {
     public final static String FUSOR_POSTFIX = "]END";
 
     public final static String FUSOR_IDENTIFY = "IDENTIFY";
+    public final static String FUSOR_STATUS= "STATUS";
 
     public static String makeCommand(String s) {
         return FUSOR_COMMAND_PREFIX + s + FUSOR_POSTFIX;
@@ -57,7 +58,6 @@ public class SerialDevice {
         if (this.os == null) {
             return;
         }
-        //System.out.println("writing to device " + name + ": " + s);
 
         byte[] bytes = s.getBytes();
         synchronized (port) {
@@ -70,6 +70,13 @@ public class SerialDevice {
     }
 
     public void command(String s) {
+        if (this.os == null) {
+            return;
+        }
+        
+        if (FusorControlServer.verbose) {
+            System.out.println("command to device " + name + ": " + s);
+        }
         write(SerialDevice.makeCommand(s));
     }
 
@@ -91,13 +98,13 @@ public class SerialDevice {
             this.currentStatus = s;
         }
     }
-    
+
     public String getCurrentStatus() {
         String status = this.currentStatus;
         this.currentStatus = null;
         return status;
     }
-    
+
     public String getLastStatus() {
         return this.lastStatus;
     }

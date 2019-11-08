@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DeviceManager {
 
@@ -32,7 +34,7 @@ public class DeviceManager {
 
         @Override
         public void serialEvent(SerialPortEvent e) {
-            //System.out.println("Serial event happened");
+            //System.out.println("  Serial event on port "+e.getSerialPort().getSystemPortName());
             if (e.getEventType() == SerialPort.LISTENING_EVENT_DATA_AVAILABLE) {
                 processSerialData(e);
             }
@@ -40,8 +42,6 @@ public class DeviceManager {
     };
 
     private void processSerialData(SerialPortEvent e) {
-        //System.out.println("Serial event happened");
-
         if (e.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE) {
             return;
         }
@@ -92,15 +92,18 @@ public class DeviceManager {
 
     private void processMessage(String response, SerialPort port) {
         long time = System.currentTimeMillis();
+        if (FusorControlServer.verbose) {
+            System.out.println("  Response from " + port.getSystemPortName() + ":" + response);
+        }
         if (response.startsWith(SerialDevice.FUSOR_IDENTIFY + ":")) {
             //System.out.println("  Received identification message: " + response + " from port: " + port.getSystemPortName());
             identify(response.substring(SerialDevice.FUSOR_IDENTIFY.length() + 1), port);
-        } else {
+        } else if (response.startsWith(SerialDevice.FUSOR_STATUS + ":")) {
             SerialDevice sd = this.arduinoMap.get(port);
             if (sd != null) {
+                String status = response.substring(SerialDevice.FUSOR_STATUS.length() + 1);
                 response = DataLogger.makeLogResponse(sd, time, response);
                 sd.setStatus(response);
-                //System.out.println("  Response from " + sd.name + ":" + response);
             }
         }
     }
@@ -187,9 +190,44 @@ public class DeviceManager {
             return;
         }
 
+        //
+        // detect and deal with bluetooth port pairs
+        //
+        System.out.println("searching for bluetooth port pairs ...");
+
+        for (int i = 0; i < portList.size() - 1; i++) {
+            SerialPort port = portList.get(i);
+            //System.out.println(port.getDescriptivePortName());
+
+            String name = port.getDescriptivePortName().toLowerCase();
+            Pattern p = Pattern.compile("bluetooth.*\\(com([0-9]+)");
+            Matcher m = p.matcher(name);
+            if (m.find()) {
+                // found bluetooth port. try to find the matching port with higher number
+
+                int portNumber = Integer.parseInt(m.group(1));
+                name = name.replaceFirst("\\(com" + portNumber + "\\)", "(com" + (portNumber + 1) + ")");
+                SerialPort port2 = portList.get(i + 1);
+
+                if (port2 != null && port2.getDescriptivePortName().toLowerCase().equals(name)) {
+                    System.out.println("  found bluetooth pair on COM ports: " + portNumber + ", " + (portNumber + 1));
+                    System.out.println("  removing read-only bluetooth port " + port.getSystemPortName());
+                    // found it. we will take the first port out of the list.
+                    // add NullSerialDevice to system, to prevent further querying
+                    arduinoMap.put(new NullSerialDevice(port, "<read-only bluetooth port>"));
+                    portList.remove(port);
+                    --i;
+                }
+            }
+        }
+
+        //
+        // now open ports
+        //
         for (SerialPort port : portList) {
             System.out.println("opening port: " + port.getSystemPortName());
             port.openPort();
+
             //System.out.print("port opened. adding listener ...");
             port.addDataListener(connectionListener);
             //System.out.println("listener added.");
@@ -202,7 +240,7 @@ public class DeviceManager {
             try {
                 System.out.println("sending identify command to port " + port.getSystemPortName());
                 writeToPort(port.getOutputStream(), SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 System.out.println(ex.getCause());
             }
         }
@@ -320,16 +358,15 @@ public class DeviceManager {
 
     }
 
-    
-    String getNonCoreStatus () {
+    String readStatusResults(boolean includeCore) {
         ArrayList<SerialDevice> devices = this.getAllDevices();
         String status = "";
-        
-        for (SerialDevice sd: devices) {
-            if (!cd.isCoreDevice(sd.name) && sd.port != null) {
+
+        for (SerialDevice sd : devices) {
+            if ((includeCore || !cd.isCoreDevice(sd.name)) && sd.port != null) {
                 String s = sd.getLastStatus();
                 if (s != null) {
-                    status += s;
+                    status += s + "\n";
                 }
             }
         }

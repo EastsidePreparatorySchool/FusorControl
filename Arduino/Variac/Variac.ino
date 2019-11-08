@@ -29,8 +29,8 @@ FusorVariable fvs[] = {
 
 
 void setup(){
-  // light for hope
-  pinMode(LED_BUILTIN, OUTPUT);  // pin 13
+  fusorInit("VARIAC", fvs, 2);
+
   // stepper control for varaic
   pinMode(PUL, OUTPUT);
   pinMode(ENA, OUTPUT);
@@ -42,13 +42,10 @@ void setup(){
   // feedback from variac
   pinMode(POT, INPUT);
 
-  fusorInit("VARIAC", fvs, 2);
-
   //zeroVoltage();
   FUSOR_LED_ON();
   delay(300);
   FUSOR_LED_OFF();
-
 }
 
 
@@ -71,7 +68,12 @@ void setVoltage(int volts) {
   digitalWrite(ENA, LOW);
   digitalWrite(REL, HIGH);
 
+  long start = millis();
   do {
+    // make sure do not spend forever in here
+    if (millis - start > 3000) {
+      break;
+    }
     pot = analogRead(POT);
     dif = targetPot - pot;
     digitalWrite(DIR, (dif < 0) ? LOW : HIGH);

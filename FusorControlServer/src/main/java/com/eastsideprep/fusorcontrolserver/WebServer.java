@@ -16,8 +16,6 @@ public class WebServer {
     public void init() {
         cs = new CamStreamer();
         dm = new DeviceManager();
-        dl = new DataLogger();
-
         // initialize the connections to all serial devices
         cd = dm.init();
 
@@ -26,7 +24,9 @@ public class WebServer {
             dm.shutdown();
             throw new IllegalArgumentException("missing core devices after dm.init()");
         }
+        cd.variac.setVoltage(0);
 
+//        dl = new DataLogger();
 //        try {
 //            dl.init(dm);
 //        } catch (IOException ex) {
@@ -117,13 +117,26 @@ public class WebServer {
             return "set solenoid to closed";
         });
 
+        //chatter control
+        get("/verbose", (req, res) -> {
+            FusorControlServer.verbose = true;
+            return "verbose";
+        });
+
+        get("/quiet", (req, res) -> {
+            FusorControlServer.verbose = false;
+            return "quiet";
+        });
+
         get("/getstatus", (req, res) -> {
+            System.out.println("/getstatus");
             if (dl == null) {
+                System.out.println("  logging inactive, poking bears ...");
                 dm.getAllStatus();
                 Thread.sleep(1000);
             }
-            String s = dm.getNonCoreStatus();
-            System.out.println("Status:" + s);
+            String s = dm.readStatusResults(FusorControlServer.includeCoreStatus);
+            System.out.println("  Status:" + s);
             return s;
         });
 

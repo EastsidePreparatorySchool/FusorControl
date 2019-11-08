@@ -19,14 +19,11 @@ FusorVariable fvs[] = {
 
 
 void setup(){
-  // light for hope
-  pinMode(LED_BUILTIN, OUTPUT);  // pin 13
-  
+  fusorInit("SOLENOID", fvs, 1);
+
   // relay control for solenoid valve
   pinMode(SOL, OUTPUT);
   digitalWrite(SOL, LOW);
-
-  fusorInit("SOLENOID", fvs, 1);
 
   //zeroVoltage();
   FUSOR_LED_ON();

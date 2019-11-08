@@ -27,6 +27,7 @@ static int fusorNumVars = 0;
 
 
 #ifdef BLUETOOTH
+  BluetoothSerial SerialBT;
   #define SERIAL SerialBT
 #else
   #define SERIAL Serial
@@ -58,16 +59,14 @@ int fusorGetIntVariable(char* var);
 void fusorReadCommands() {
   do{
     int start = fusorCmdBufpos;
-    while (SERIAL.available() > 0 && fusorCmdBufpos < FUSOR_CMDLENGTH)
-    {
-      fusorCmdBuffer[fusorCmdBufpos] = SERIAL.read();
+    while (SERIAL.available() > 0 && fusorCmdBufpos < FUSOR_CMDLENGTH) {
+       fusorCmdBuffer[fusorCmdBufpos] = SERIAL.read();
       //SERIAL.write(fusorCmdBuffer[fusorCmdBufpos]);
       fusorCmdBufpos++;
     }
     fusorCmdBuffer[fusorCmdBufpos] = 0;
       
   } while(strstr(fusorCmdBuffer, "]END") == NULL);
-  //SERIAL.write('+');
 }
 
 char *fusorGetCommand(char*sCommand) {
@@ -104,7 +103,7 @@ void fusorSendResponse(char *msg) {
     fusorStartResponse(msg);
   }
   fusorAddResponse("]END");
-  SERIAL.write(fusorResponseBuffer, strlen(fusorResponseBuffer));
+  SERIAL.write((const uint8_t *)fusorResponseBuffer, strlen(fusorResponseBuffer));
 }
 
 void fusorStartResponse(char *response) {
@@ -163,10 +162,14 @@ bool fusorParseCommand(char *full, char **command, char ** var, char **val) {
 
 void fusorInit(char * name, struct FusorVariable *fvs, int numVars) {
     #ifdef BLUETOOTH
-      SerialBT.begin("FusorGenericArduino");
+      SerialBT.begin(name);
     #else
       Serial.begin(9600);
     #endif
+
+    // light for hope
+    pinMode(LED_BUILTIN, OUTPUT);  // pin 13
+
 
     strncpy(fusorName, name, FUSOR_NAME_LENGTH);
     fusorName[FUSOR_NAME_LENGTH-1] = 0;
@@ -220,7 +223,7 @@ void fusorCmdExecute(char *sCmd, char* sVar, char *sVal) {
 }
 
 void fusorCmdGetAll() {
-  fusorStartResponse("{");
+  fusorStartResponse("STATUS:{");
   for (int i =0; i<fusorNumVars; i++) {
     fusorAddResponse("\"");
     FusorVariable *pfv = &fusorVariables[i];
@@ -254,12 +257,13 @@ void fusorCmdSetVariable(char *var, char *val) {
     strncpy (pfv->value, val, FUSOR_VAR_LENGTH-1);
     pfv->value[FUSOR_VAR_LENGTH-1] = 0;
     pfv->updated = true;
-    fusorStartResponse(var);
+    fusorStartResponse("SET:");
+    fusorAddResponse(var);
     fusorAddResponse(":");
     fusorAddResponse(val);
     fusorSendResponse(NULL);
   } else {
-    fusorStartResponse("unknown variable:");
+    fusorStartResponse("ERROR: unknown variable:");
     fusorAddResponse(var);
     fusorSendResponse(NULL);
   }
@@ -269,12 +273,13 @@ void fusorCmdGetVariable(char *var) {
   FusorVariable *pfv;
   pfv = fusorGetVariableEntry(var);
   if (pfv != NULL) {
-    fusorStartResponse(var);
+    fusorStartResponse("GET:");
+    fusorAddResponse(var);
     fusorAddResponse(":");
     fusorAddResponse(pfv->value);
     fusorSendResponse(NULL);
   } else {
-    fusorStartResponse("unknown variable:");
+    fusorStartResponse("ERROR: unknown variable:");
     fusorAddResponse(var);
     fusorSendResponse(NULL);
   }

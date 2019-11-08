@@ -19,9 +19,6 @@ FusorVariable fvs[] = {
 
 
 void setup(){
-  // light for hope
-  pinMode(LED_BUILTIN, OUTPUT);  // pin 13
-
   // must do this in init, the rest is optional
   fusorInit("GENERIC", fvs, 2);
   
