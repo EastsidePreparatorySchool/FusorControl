@@ -87,7 +87,7 @@ public class SerialDevice {
 
     public void setStatus(String s) {
         synchronized (this) {
-            this.lastStatus = this.currentStatus;
+            this.lastStatus = s;
             this.currentStatus = s;
         }
     }

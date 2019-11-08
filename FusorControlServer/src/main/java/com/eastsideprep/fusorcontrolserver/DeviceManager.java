@@ -320,4 +320,19 @@ public class DeviceManager {
 
     }
 
+    
+    String getNonCoreStatus () {
+        ArrayList<SerialDevice> devices = this.getAllDevices();
+        String status = "";
+        
+        for (SerialDevice sd: devices) {
+            if (!cd.isCoreDevice(sd.name) && sd.port != null) {
+                String s = sd.getLastStatus();
+                if (s != null) {
+                    status += s;
+                }
+            }
+        }
+        return status;
+    }
 }

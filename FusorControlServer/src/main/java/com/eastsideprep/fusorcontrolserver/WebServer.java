@@ -50,7 +50,9 @@ public class WebServer {
         //these set all the commands that are going to be sent from the client
         get("/", (req, res) -> "<h1><a href='index.html'>Go to index.html</a></h1>");
         get("/kill", (req, res) -> {
-            dl.shutdown();
+            if (dl != null) {
+                dl.shutdown();
+            }
             dm.shutdown();
 
             stop();
@@ -91,33 +93,40 @@ public class WebServer {
             System.out.println("Received Variac Set " + variacValue);
             cd.variac.setVoltage(variacValue);
             return "set value as " + req.queryParams("value");
-        }
-        );
+        });
 
         //tmp control
         get("/tmpOn", (req, res) -> {
             cd.tmp.setOn();
             return "turned on TMP";
-        }
-        );
+        });
 
         get("/tmpOff", (req, res) -> {
             cd.tmp.setOff();
             return "turned off TMP";
-        }
-        );
+        });
 
         //solenoid control
         get("/solenoidOn", (req, res) -> {
             cd.solenoid.setOpen();
             return "set solenoid to open";
-        }
-        );
+        });
+
         get("/solenoidOff", (req, res) -> {
             cd.solenoid.setClosed();
             return "set solenoid to closed";
-        }
-        );
+        });
+
+        get("/getstatus", (req, res) -> {
+            if (dl == null) {
+                dm.getAllStatus();
+                Thread.sleep(1000);
+            }
+            String s = dm.getNonCoreStatus();
+            System.out.println("Status:" + s);
+            return s;
+        });
+
         System.out.println("Initialized Web Server");
     }
 }

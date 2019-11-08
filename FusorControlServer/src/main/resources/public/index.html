@@ -32,7 +32,8 @@ and open the template in the editor.
             }
 
             .container {
-                margin: 2em, 7em;
+                margin: 25px 25px 25px 25px;
+                max-width:100%;
             }
 
             .button {
@@ -40,11 +41,16 @@ and open the template in the editor.
                 width: 24.5%;
                 border: none;
                 border-radius: 8px;
+                opacity:0.9;
                 background-color: #fc8e60;
                 color: #f5e0d9;
                 font-size: 16px;
                 display: inline-block;
                 font-family: 'Lato', sans-serif;
+            }
+
+            .button:hover {
+                opacity:1.0;
             }
 
             .line {
@@ -58,63 +64,59 @@ and open the template in the editor.
 
     <body>
         <div class="container">
-            <h1 style="text-align: center; font-family: 'Bungee', cursive; font-size: 500%; margin-top: 3%;">Fusor Control
+            <h1 style="text-align: center; font-family: 'Bungee', cursive; font-size: 200%; margin-top: 3%;">Fusor Control
             </h1>
 
-            <div class="line">
+            <div class="line"> </div>
 
-            </div>
             <h2>Initialization</h2>
             <button id="startLog" class="button" onclick="startLog()">Start logging</button>
             <button id="stopLog" class="button" onclick="stopLog()">Stop logging</button>
-            <button class="button" style="background-color: #f64072; font-family: 'Bungee', cursive;"
-                    onclick="kill()"><b>Stop Server</b></button>
+            <button class="button" style="background-color: #f64072; font-family: 'Bungee', cursive;" onclick="kill()"><b>Stop Server</b></button>
+            <button class="button" onclick="getStatus()">Get status</button>
+          
 
             <div class="line"></div>
 
             <div>
 
-                <div style="width:500px; height:450px; float:left">
+                <div style="width:400px; height:450px; padding:25px; float:left">
                     <h2>Control</h2>
                     <h3>Variac Input Voltage: </h3>
-                    <input id="variacValue" value="0"><button onclick="variac(document.getElementById('variacValue').value)"
-                                                    id="variacButton">Set</button>
+                    <input id="variacValue" value="0">
+                    <button onclick="variac(document.getElementById('variacValue').value)" id="variacButton">Set</button>
                     <h3>Turbo Pump: </h3>
                     <div>
-                        <button class="button" style="width: 15%; background-color: #39a82a;" onclick="tmpOn()">On</button>
-                        <button class="button" style="width: 15%; background-color: #f64072;font-family: 'Bungee', cursive;" onclick="tmpOff()">Off</button>
+                        <button id="tmpon" class="button" style="width: 20%; background-color: #39a82a;" onclick="tmpOn()">On</button>
+                        <button id="tmpoff" class="button" style="width: 20%; border:1px solid black; background-color: #f64072;font-family: 'Bungee', cursive;" onclick="tmpOff()">Off</button>
                     </div>
 
                     <h3>Solenoid Valve:</h3>
                     <div>
-                        <button class="button" style="width: 15%; background-color: #39a82a;" onclick="SolenoidOn()">Open</button>
-                        <button class="button" style="width: 15%; background-color: #f64072;font-family: 'Bungee', cursive;" onclick="SolenoidOff()">Closed</button>
+                        <button id="solon" class="button" style="width: 20%; background-color: #39a82a;" onclick="SolenoidOn()">Open</button>
+                        <button id="soloff" class="button" style="width: 20%; background-color: #f64072;font-family: 'Bungee', cursive;" onclick="SolenoidOff()">Closed</button>
                     </div>
                 </div>
 
-                <div style="width:500px; height:450px; float:left">
-                    <img width="500" height="400" src=":4567/mjpg">
+                <div style="width:1000px; height:450px;  padding:25px; float:left">
+                    <textarea id="data" style="width:1000px;height:200px; white-space: nowrap; overflow: auto;">
+                    </textarea>
+                    <img id="cam1" style="width:250px;height:200px;display:none" src="">
                 </div>
             </div>
             <div style="clear:both" class="line"></div>
 
-            <h2>get status (work in progress)</h2>
-            <button class="button" onclick="initStatus()">start recieving status reports</button>
-            <div style="color: #f64072; margin-top: 2%;">
-                <h2>Arduino Status: <span id="astatus" style="color: black;"> </span></h2>
-                <h2>Variac Status: <span id="vstatus" style="color: black;"> </span></h2>
-                <h2>TMP Status: <span id="pstatus" style="color: black;"> </span></h2>
-            </div>
-
-            <div class="line"></div>
-
-            <p id="error">returns: </p>
+           <p id="error">returns: </p>
             <img src="kore-wa-zombie-desu-ka-07-mkv_snapshot_02-18_2011-02-23_01-35-29.jpg"
                  style="width: 100%; text-align: center; border-radius: 5%; margin-bottom: 5%;">
         </div>
 
         <script type="text/javascript">
             var endTest = false;
+            
+            var cam1 = document.getElementById("cam1");
+            cam1.style.display="inline";
+            cam1.src = window.location.origin+":4567/mjpg";
 
             document.getElementById("variacValue").addEventListener("keyup", function (event) {
                 if (event.keyCode === 13) { //enter key: 13
@@ -147,8 +149,8 @@ and open the template in the editor.
                     xhr.send(obj.body);
                 });
             }
-            ;
 
+    
             function xmlRequest(verb, url) {
                 var xhr = new XMLHttpRequest();
                 xhr.open(verb || "GET", url, true);
@@ -160,17 +162,11 @@ and open the template in the editor.
                 };
                 xhr.send();
             }
-            //gets status of TMP
+            //gets status of all non-core devices
             function getStatus() {
                 request({url: "/getstatus", method: "GET"})
                         .then(data => {
-                            let status = JSON.parse(data);
-                            console.log(status);
-                            for (var i = 0; i < status.length; i++) {
-                                document.getElementById("astatus").innerHTML = status[i].arconValue;
-                                document.getElementById("pstatus").innerHTML = "tmpv = " + status[i].tmpv + "; tmps = " + status[i].tmps;
-                                document.getElementById("vstatus").innerHTML = "waiting for variac values...";
-                            }
+                            document.getElementById("data").value=data;
                         })
                         .catch(error => {
                             console.log("error: " + error);
