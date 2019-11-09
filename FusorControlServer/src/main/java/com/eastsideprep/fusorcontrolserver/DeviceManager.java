@@ -35,7 +35,7 @@ public class DeviceManager {
         @Override
         public void serialEvent(SerialPortEvent e) {
             if (FusorControlServer.verbose) {
-                System.out.println("  Serial event on port " + e.getSerialPort().getSystemPortName());
+                //System.out.println("  Serial event on port " + e.getSerialPort().getSystemPortName());
             }
             if (e.getEventType() == SerialPort.LISTENING_EVENT_DATA_AVAILABLE) {
                 processSerialData(e);
@@ -60,13 +60,15 @@ public class DeviceManager {
 
         //System.out.println("Read " + data.length + " bytes from " + e.getSerialPort().getSystemPortName());
         String buffer = new String(data);
-        //System.out.println("  string:"+buffer);
+        //System.out.println("  string:" + buffer);
 
         // partial message from last time? put at beginning of buffer
         if (bufferState.containsKey(port)) {
             buffer = bufferState.get(port) + buffer;
         }
-        //System.out.println("  serial buffer:" + buffer);
+        if (FusorControlServer.verbose) {
+            //System.out.println("  serial buffer:" + buffer);
+        }
 
         // now look for specific messages from our components
         int start;
