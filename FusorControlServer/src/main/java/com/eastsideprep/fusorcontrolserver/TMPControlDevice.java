@@ -7,10 +7,10 @@ public class TMPControlDevice extends SerialDevice {
     }
 
     public void setOn() {
-        this.set("tmp", "on");
+        this.set("tmp", true);
     }
 
     public void setOff() {
-        this.set("tmp", "off");
+        this.set("tmp", false);
     }
 }

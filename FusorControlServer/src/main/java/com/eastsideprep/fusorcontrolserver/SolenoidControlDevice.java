@@ -7,10 +7,10 @@ public class SolenoidControlDevice extends SerialDevice {
     }
 
     public void setOpen() {
-        this.set("solenoid", "true");
+        this.set("solenoid", true);
     }
 
     public void setClosed() {
-        this.set("solenoid", "false");
+        this.set("solenoid", false);
     }
 }

@@ -11,20 +11,23 @@
 #define TMP_AMPS  A0 // pin for pump amps 0-10V = 0 - 2.5A
 #define TMP_FREQ  A1 // pin for pump freq 0-10V = 0 - 1250Hz
 
-FusorVariable fvs[] = {
-  //name,   value,  updated
-  {"tmp",   "off",  false},
-  {"speed", "high", false},
-  {"freq",  "",     false},
-  {"amps",  "",     false}
-};
-
-
-
-
 void setup(){
-  // must do this in init, the rest is optional
-  fusorInit("TMP", fvs, 4);
+  fusorInit("TMP");
+  fusorAddVariable("tmp", FUSOR_VARTYPE_BOOL);
+  fusorAddVariable("lowspeed", FUSOR_VARTYPE_BOOL);
+  fusorAddVariable("freq", FUSOR_VARTYPE_INT);
+  fusorAddVariable("amps", FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("amps_adc", FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("freq_adc", FUSOR_VARTYPE_FLOAT);
+
+  fusorSetBoolVariable("tmp", false);
+  fusorSetBoolVariable("lowspeed", false);
+  fusorSetIntVariable("freq", 0);
+  fusorSetIntVariable("amps_adc", 0);
+  fusorSetFloatVariable("amps", 0.0);
+
+  tmpOff();
+  tmpLow();
   
   FUSOR_LED_ON();
   delay(200);
@@ -41,30 +44,43 @@ void loop() {
 
 
 void updateAll() {
+  fusorSendResponse("updating ...");
   // put our current amps and freq out
   int amps = analogRead(TMP_AMPS);
   int freq = analogRead(TMP_FREQ);
-  fusorSetVariable("amps", NULL, &amps, NULL);
-  fusorSetVariable("freq", NULL, &freq, NULL);
+  fusorSetIntVariable("amps_adc", amps);
+  fusorSetIntVariable("freq_adc", freq);
+  fusorSetFloatVariable("amps", (float)amps); // TODO: convert
+  fusorSetFloatVariable("freq", (float)freq); // TODO: convert
 
+  fusorSendResponse("done setting reads ...");
 
   // if "tmp" was updated, read it switch the pump on/off accordingly
   if (fusorVariableUpdated("tmp")) {
-    if (fusorStrVariableEquals("tmp", "ON")) {
+    if (fusorGetBoolVariable("tmp")) {
       tmpOn();
-    } else if (fusorStrVariableEquals("tmp", "OFF")) {
+      fusorSetBoolVariable("tmp", true);
+    } else {
       tmpOff();
+      fusorSetBoolVariable("tmp", false);
     }
   }
 
-  // if "speed" was updated, read it switch the pump to high speed / low speed accordingly
+  fusorSendResponse("done processing tmp sets ...");
+
+
+  // if "lowspeed" was updated, read it switch the pump to high speed / low speed accordingly
   if (fusorVariableUpdated("speed")) {
-    if (fusorStrVariableEquals("speed", "low")) {
+    if (fusorGetBoolVariable("lowspeed")) {
       tmpLow();
-    } else if (fusorStrVariableEquals("speed", "high")) {
+      fusorSetBoolVariable("lowspeed", true);
+    } else {
       tmpHigh();
+      fusorSetBoolVariable("lowspeed", false);
     }
   }
+  fusorSendResponse("done updating");
+
 }
 
 void tmpOn() {
