@@ -251,7 +251,7 @@ void _fusorCmdGetAll() {
         fusorAddResponse(buffer+skip);
         break;
       case FUSOR_VARTYPE_BOOL:
-        fusorAddResponse(pfv->boolValue?"true":"false");
+        fusorAddResponse((char *)(pfv->boolValue?"true":"false"));
         break;
       default:
         fusorAddResponse("<unknown type>");
@@ -284,17 +284,34 @@ void _fusorCmdSetVariable(char *var, char *val) {
     strncpy (pfv->value, val, FUSOR_VAR_LENGTH-1);
     pfv->value[FUSOR_VAR_LENGTH-1] = 0;
     pfv->updated = true;
+    pfv->timestamp = millis();
     fusorStartResponse("SET:");
     fusorAddResponse(var);
     fusorAddResponse(":");
     fusorAddResponse(val);
     fusorSendResponse(NULL);
+    switch(pfv->type) {
+      case FUSOR_VARTYPE_STR:
+        break;
+      case FUSOR_VARTYPE_INT:
+        pfv->intValue = atoi(val);
+        break;
+      case FUSOR_VARTYPE_FLOAT:
+        pfv->floatValue = atof(val);
+        break;
+      case FUSOR_VARTYPE_BOOL:
+        pfv->boolValue = (strcmp(val, "true")==0);
+        break;
+      default:
+        break;
+    }
   } else {
     fusorStartResponse("ERROR: unknown variable:");
     fusorAddResponse(var);
     fusorSendResponse(NULL);
   }
 }
+
 
 void _fusorCmdGetVariable(char *var) {
   FusorVariable *pfv;

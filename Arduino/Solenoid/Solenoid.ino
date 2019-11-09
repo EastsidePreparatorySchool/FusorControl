@@ -12,14 +12,12 @@
 #define SOL 2 // digital out pin for solenoid
 
 
-FusorVariable fvs[] = {
-  //name,           value,   updated
-  {"solenoid",      "closed",false},
-};
-
 
 void setup(){
-  fusorInit("SOLENOID", fvs, 1);
+  fusorInit("SOLENOID");
+  fusorAddVariable("solenoid", FUSOR_VARTYPE_BOOL);
+
+  fusorSetBoolVariable("solenoid", false);
 
   // relay control for solenoid valve
   pinMode(SOL, OUTPUT);
@@ -44,10 +42,6 @@ void loop() {
 void updateAll() {
   // if "solenoid" was updated, open or close it
   if (fusorVariableUpdated("solenoid")) {
-    if (fusorStrVariableEquals("solenoid", "open")) {
-      digitalWrite(SOL, HIGH);
-    } else if(fusorStrVariableEquals("solenoid", "closed")){
-      digitalWrite(SOL, LOW);
-    }
+    digitalWrite(SOL, fusorGetBoolVariable("solenoid")?HIGH:LOW);
   }
 }
