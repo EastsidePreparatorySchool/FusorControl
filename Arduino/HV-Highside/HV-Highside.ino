@@ -1,7 +1,7 @@
 //
 // Fusor project code for HV-highside Arduino
 // 
-// Adafruit HUZZAH32-ESP32 Feather
+// Adafruit -ESP32 Feather (HUZZAH32)
 // www.adafruit.com
 // Board support URL https://dl.espressif.com/dl/package_esp32_index.json
 // Bluetooth tutorial: https://randomnerdtutorials.com/esp32-bluetooth-classic-arduino-ide/
@@ -14,16 +14,11 @@
 #include "fusor.h"
 
 
-FusorVariable fvs[] = {
-  //name,    value,  updated
-  {"adc",    "",     false},
-  {"volts",  "",     false},
-  {"amps",   "",     false} 
-};
-
-
 void setup(){
-  fusorInit("HV_HIGHSIDE", fvs, 3); //Fusor device name, variables, num variables
+  fusorInit("HV_HIGHSIDE"); //Fusor device name, variables, num variables
+  fusorAddVariable("adc", FUSOR_VARTYPE_INT);
+  fusorAddVariable("volts", FUSOR_VARTYPE_INT);
+  fusorAddVariable("amps", FUSOR_VARTYPE_FLOAT);
 
   if (Serial) {
     Serial.begin(9600);
@@ -52,7 +47,7 @@ void updateAll() {
   #define OHMS 100
   float amps = (int)(((float)adc) * 3.3 / OHMS / 1024);
   
-  fusorSetVariable("adc", NULL, &adc, NULL);
-  fusorSetVariable("volts", NULL, NULL, &volts);
-  fusorSetVariable("amps", NULL, NULL, &amps);
+  fusorSetIntVariable("adc",adc);
+  fusorSetIntVariable("volts", volts);
+  fusorSetFloatVariable("amps", amps);
 }
