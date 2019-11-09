@@ -6,17 +6,6 @@
 
 
 
-FusorVariable fvs[] = {
-  //name,   value,  updated
-  {"foo",   "",     false},
-  {"bar",   "",     false} 
-};
-
-
-
-#define delayMicros 1000
-
-
 void setup(){
   // must do this in init, the rest is optional
   fusorInit("GENERIC");
