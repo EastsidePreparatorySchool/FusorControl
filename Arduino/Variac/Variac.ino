@@ -17,19 +17,11 @@
 #define REL 9  // relay to cut power to controller
 #define POT A2 // potentiometer feedback
 
-#define delayMicros 1000
-
-
-
-FusorVariable fvs[] = {
-  //name,           value,  updated
-  {"volts",         "-1",   false},
-  {"potentiometer", "-1",   false} 
-};
-
-
 void setup(){
-  fusorInit("VARIAC", fvs, 2);
+  fusorInit("VARIAC");
+  fusorAddVariable("volts", FUSOR_VARTYPE_INT);
+  fusorAddVariable("potentiometer", FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("pot_adc", FUSOR_VARTYPE_INT);
 
   // stepper control for varaic
   pinMode(PUL, OUTPUT);
@@ -79,9 +71,9 @@ void setVoltage(int volts) {
     digitalWrite(DIR, (dif < 0) ? LOW : HIGH);
 
     digitalWrite(PUL, HIGH);
-    delayMicroseconds(delayMicros);
+    delayMicroseconds(200);
     digitalWrite(PUL, LOW);
-    delayMicroseconds(delayMicros);
+    delayMicroseconds(200);
   } while ( abs(dif) > 10 );
 
   digitalWrite(ENA, HIGH);
@@ -101,9 +93,9 @@ void zeroVoltage() {
   digitalWrite(DIR, LOW);
   for (int i = 0; i < 20; i++) {
     digitalWrite(PUL, HIGH);
-    delayMicroseconds(delayMicros * 2);
+    delayMicroseconds(400);
     digitalWrite(PUL, LOW);
-    delayMicroseconds(delayMicros * 2);
+    delayMicroseconds(400);
   }
   digitalWrite(ENA, HIGH);
   digitalWrite(REL, LOW);
@@ -120,11 +112,10 @@ void loop() {
 }
 
 void updateAll() {
+  int pot;
+  int volts; 
+  
   // put our current potentiometer reading into "potentiometer"
-  int pot = analogRead(POT);
-  int volts = potToVolts(pot);
-
-  fusorSetVariable("potentiometer", NULL, &pot, NULL);
 
   // if "volts" was updated, set variac to that voltage
   if (fusorVariableUpdated("volts")) {
@@ -132,5 +123,10 @@ void updateAll() {
     setVoltage(volts);
   }
   
-  fusorSetVariable("volts", NULL, &volts, NULL);
+  pot = analogRead(POT);
+  volts = potToVolts(pot);
+
+  fusorSetIntVariable("pot_adc", pot);
+  fusorSetFloatVariable("potentiometer", ((float)pot)*5.0f/1024);
+  fusorSetIntVariable("volts", volts);
 }
