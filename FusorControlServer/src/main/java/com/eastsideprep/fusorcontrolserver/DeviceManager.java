@@ -104,8 +104,8 @@ public class DeviceManager {
             SerialDevice sd = this.arduinoMap.get(port);
             if (sd != null) {
                 String status = response.substring(SerialDevice.FUSOR_STATUS.length() + 1);
-                response = DataLogger.makeLogResponse(sd, time, response);
-                sd.setStatus(response);
+                status = DataLogger.makeLogResponse(sd, time, status);
+                sd.setStatus(status);
             }
         }
     }
