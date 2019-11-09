@@ -218,15 +218,17 @@ void _fusorCmdExecute(char *sCmd, char* sVar, char *sVal) {
 void _fusorCmdGetAll() {
   char buffer[16];
   fusorStartResponse("STATUS:{");
-  long time = millis();
-
+  fusorAddResponse("\"devicetime\":");
+  ltoa(millis(), buffer, 10);
+  fusorAddResponse(buffer);
+   
   
   for (int i =0; i<fusorNumVars; i++) {
-    fusorAddResponse("\"");
+    fusorAddResponse(",\"");
     FusorVariable *pfv = &fusorVariables[i];
     fusorAddResponse(pfv->name);
-    fusorAddResponse("\":{\"timeoffset\":");
-    itoa(int(time-pfv->timestamp), buffer, 10);
+    fusorAddResponse("\":{\"vartime\":");
+    ltoa(pfv->timestamp, buffer, 10);
     fusorAddResponse(buffer);
     fusorAddResponse(",\"value\":");
     switch(pfv->type) {
