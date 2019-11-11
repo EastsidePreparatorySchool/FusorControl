@@ -245,7 +245,7 @@ public class DeviceManager {
                 System.out.println("sending identify command to port " + port.getSystemPortName());
                 writeToPort(port.getOutputStream(), SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));
             } catch (Exception ex) {
-                System.out.println(ex.getCause());
+                //System.out.println("Exception cause: "+ex.getCause());
             }
         }
         System.out.println("=================== done querying new ports. waiting for new devices to identify ...");

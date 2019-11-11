@@ -1,6 +1,8 @@
 package com.eastsideprep.fusorcontrolserver;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.util.Date;
 import static spark.Spark.*;
 
 public class WebServer {
@@ -37,7 +39,8 @@ public class WebServer {
         staticFiles.location("/public");
 
         before("*", (req, res) -> {
-            System.out.print("incoming from " + req.ip());
+            
+            System.out.print("incoming from " + req.ip()+": "+req.url());
             // do not change this list without explicit approval from Mr. Mein!!!!
             if (!(req.ip().equals("10.20.84.127") // GMEIN's LAPTOP
                     || req.ip().equals("0:0:0:0:0:0:0:1"))) {   // LOCALHOST
@@ -95,6 +98,11 @@ public class WebServer {
             return "set value as " + req.queryParams("value");
         });
 
+        //number of cameras streaming
+        get("/cameras", (req, res) -> {
+            return Integer.toString(cs.numCameras);
+        });
+
         //tmp control
         get("/tmpOn", (req, res) -> {
             cd.tmp.setOn();
@@ -136,6 +144,7 @@ public class WebServer {
                 Thread.sleep(1000);
             }
             String s = dm.readStatusResults(FusorControlServer.includeCoreStatus);
+            s += "<status complete: " + ((new Date()).toInstant().toString())+">";
             System.out.println("  Status:" + s);
             return s;
         });

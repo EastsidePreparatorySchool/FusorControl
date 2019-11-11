@@ -18,12 +18,14 @@ import java.util.List;
 
 public class CamStreamer {
 
-    WebcamStreamer ws;
+    private WebcamStreamer ws;
+    public int numCameras = 0;
 
     CamStreamer() {
         // old code Webcam webcam = Webcam.getDefault();
         List<Webcam> cams = Webcam.getWebcams();
         int count = 0;
+        
 
         for (Webcam cam : cams) {
             if (cam == null) {
@@ -41,6 +43,8 @@ public class CamStreamer {
             System.out.println("  WebStreamer started on port " + (4567 + count));
             count++;
         }
+        
+        numCameras = cams.size();
     }
 
 //    void encode() {
