@@ -25,14 +25,14 @@ public class DataLogger {
 
         loggerThread = new Thread(() -> loggerThreadLoop());
         if (!FusorControlServer.noLog) {
-        loggerThread.start();
+            loggerThread.start();
         }
     }
 
     void shutdown() {
         try {
             loggerThread.interrupt();
-            loggerThread.join(5000);
+            loggerThread.join(500);
             close();
         } catch (Exception ex) {
         }
@@ -40,12 +40,12 @@ public class DataLogger {
 
     void loggerThreadLoop() {
         // priority a little below normal, so that web requests come first
-        Thread.currentThread().setPriority(Thread.NORM_PRIORITY-1);
+        Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 1);
         try {
             while (!Thread.interrupted()) {
                 dm.getAllStatus();
+                Thread.sleep(1000/FusorControlServer.logFreq);
                 logAll();
-                Thread.sleep(100);
             }
         } catch (InterruptedException e) {
         }

@@ -19,7 +19,7 @@ public class SerialDevice {
     public final static String FUSOR_POSTFIX = "]END";
 
     public final static String FUSOR_IDENTIFY = "IDENTIFY";
-    public final static String FUSOR_STATUS= "STATUS";
+    public final static String FUSOR_STATUS = "STATUS";
 
     public static String makeCommand(String s) {
         return FUSOR_COMMAND_PREFIX + s + FUSOR_POSTFIX;
@@ -64,7 +64,7 @@ public class SerialDevice {
             try {
                 os.write(bytes);
             } catch (IOException ex) {
-                // todo: deal with write failure to serial devices
+                System.out.println("SD write exception: " + this.name + ", " + ex.getLocalizedMessage());
             }
         }
     }
@@ -73,8 +73,7 @@ public class SerialDevice {
         if (this.os == null) {
             return;
         }
-        
-        if (FusorControlServer.verbose) {
+        if (FusorControlServer.superVerbose || (!s.equals("GETALL"))) {
             System.out.println("command to device " + name + ": " + s);
         }
         write(SerialDevice.makeCommand(s));
@@ -100,8 +99,11 @@ public class SerialDevice {
     }
 
     public String getCurrentStatus() {
-        String status = this.currentStatus;
-        this.currentStatus = null;
+        String status;
+        synchronized (this) {
+            status = this.currentStatus;
+            this.currentStatus = null;
+        }
         return status;
     }
 

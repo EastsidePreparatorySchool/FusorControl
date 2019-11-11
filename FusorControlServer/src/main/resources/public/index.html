@@ -1,9 +1,4 @@
 <!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
 <html>
 
 <head>
@@ -315,11 +310,10 @@ and open the template in the editor.
             }
         }
 
-        //could be achieved with less latency if using WebSocket (what a b.s. comment that is. GM.)
         function initStatus() {
             console.log("receiving status...")
             if (statusTimer === null) {
-                statusTimer = setInterval(getStatus, 500); //per every 0.5 seconds
+                statusTimer = setInterval(getStatus, 1000); //per every 1 second
             }
         }
 
@@ -327,7 +321,7 @@ and open the template in the editor.
             console.log("no longer receiving status")
             if (statusTimer !== null) {
                 clearInterval(statusTimer);
-                statustimer = null;
+                statusTimer = null;
             }
         }
 

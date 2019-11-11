@@ -39,15 +39,15 @@ public class WebServer {
         staticFiles.location("/public");
 
         before("*", (req, res) -> {
-            
-            System.out.print("incoming from " + req.ip()+": "+req.url());
             // do not change this list without explicit approval from Mr. Mein!!!!
             if (!(req.ip().equals("10.20.84.127") // GMEIN's LAPTOP
                     || req.ip().equals("0:0:0:0:0:0:0:1"))) {   // LOCALHOST
+                System.out.print("incoming from " + req.ip() + ": " + req.url());
                 System.out.println(" ... denied.");
                 throw halt(401, "Not authorized");
             }
-            System.out.println(" ... allowed.");
+            //System.out.print("incoming from " + req.ip()+": "+req.url());
+            //System.out.println(" ... allowed.");
         });
 
         //these set all the commands that are going to be sent from the client
@@ -137,15 +137,16 @@ public class WebServer {
         });
 
         get("/getstatus", (req, res) -> {
-            System.out.println("/getstatus");
+            //System.out.println("/getstatus");
             if (dl == null) {
                 System.out.println("  logging inactive, poking bears ...");
                 dm.getAllStatus();
                 Thread.sleep(1000);
             }
             String s = dm.readStatusResults(FusorControlServer.includeCoreStatus);
-            s += "<status complete: " + ((new Date()).toInstant().toString())+">";
-            System.out.println("  Status:" + s);
+            if (FusorControlServer.superVerbose) {
+                System.out.println("  Status:" + s);
+            }
             return s;
         });
 

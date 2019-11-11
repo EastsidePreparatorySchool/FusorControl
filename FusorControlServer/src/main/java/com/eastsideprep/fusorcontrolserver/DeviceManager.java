@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -96,7 +97,7 @@ public class DeviceManager {
 
     private void processMessage(String response, SerialPort port) {
         long time = System.currentTimeMillis();
-        if (FusorControlServer.verbose) {
+        if (FusorControlServer.superVerbose) {
             System.out.println("  Response from " + port.getSystemPortName() + ":" + response);
         }
         if (response.startsWith(SerialDevice.FUSOR_IDENTIFY + ":")) {
@@ -230,6 +231,7 @@ public class DeviceManager {
         //
         for (SerialPort port : portList) {
             System.out.println("opening port: " + port.getSystemPortName());
+            port.setComPortParameters(115200, 8, 1, SerialPort.NO_PARITY);
             port.openPort();
 
             //System.out.print("port opened. adding listener ...");
@@ -353,9 +355,8 @@ public class DeviceManager {
     }
 
     void getAllStatus() {
-        ArrayList<String> deviceNames = arduinoMap.getNames();
-        for (String name : deviceNames) {
-            SerialDevice sd = this.arduinoMap.get(name);
+        ArrayList<SerialDevice> devices = arduinoMap.getAllDevices();
+        for (SerialDevice sd : devices) {
             //System.out.println("Sending GETALL to "+name);
             sd.getAll();
         }
@@ -365,15 +366,17 @@ public class DeviceManager {
     String readStatusResults(boolean includeCore) {
         ArrayList<SerialDevice> devices = this.getAllDevices();
         String status = "";
-
+        devices.sort((a,b)->((cd.isCoreDevice(b.name)?1:0)-(cd.isCoreDevice(a.name)?1:0)));
         for (SerialDevice sd : devices) {
             if ((includeCore || !cd.isCoreDevice(sd.name)) && sd.port != null) {
                 String s = sd.getLastStatus();
                 if (s != null) {
-                    status += s + "\n";
+                    status += s+",\n";
                 }
             }
         }
+        
+        status = "["+status+"{\"status\":\"complete: " + ((new Date()).toInstant().toString()) + "\"}]";
         return status;
     }
 }

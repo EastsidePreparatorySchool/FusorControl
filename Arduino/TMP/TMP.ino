@@ -59,24 +59,24 @@ void updateAll() {
   if (fusorVariableUpdated("tmp")) {
     if (fusorGetBoolVariable("tmp")) {
       tmpOn();
-      fusorSetBoolVariable("tmp", true);
+      //fusorSetBoolVariable("tmp", true);
     } else {
       tmpOff();
-      fusorSetBoolVariable("tmp", false);
+      //fusorSetBoolVariable("tmp", false);
     }
   }
 
   fusorSendResponse("done processing tmp sets ...");
 
 
-  // if "lowspeed" was updated, read it switch the pump to high speed / low speed accordingly
+  // if "lowspeed" was updated, read it, switch the pump to high speed / low speed accordingly
   if (fusorVariableUpdated("speed")) {
     if (fusorGetBoolVariable("lowspeed")) {
       tmpLow();
-      fusorSetBoolVariable("lowspeed", true);
+      //fusorSetBoolVariable("lowspeed", true);
     } else {
       tmpHigh();
-      fusorSetBoolVariable("lowspeed", false);
+      //fusorSetBoolVariable("lowspeed", false);
     }
   }
   fusorSendResponse("done updating");

@@ -453,7 +453,7 @@ void fusorInit(char * name) {
     #ifdef BLUETOOTH
       SerialBT.begin(name);
     #else
-      Serial.begin(9600);
+      Serial.begin(115200);
     #endif
 
     // light for hope
