@@ -4,7 +4,6 @@
 //
 
 #include "fusor.h"
-
 static int cps = 0;
 
 void setup(){
@@ -15,7 +14,10 @@ void setup(){
 
   cps = 0;
 
-  Serial3.begin(9600, SERIAL_8N1);
+  pinMode(10, INPUT);
+  pinMode(11, OUTPUT);
+  
+  Serial3.begin(9600);//, SERIAL_8N1);
     
   FUSOR_LED_ON();
   delay(200);
@@ -40,6 +42,6 @@ void updateAll() {
     FUSOR_LED_ON();
     delay(100);
     FUSOR_LED_OFF();
-  fusorSetIntVariable("cps", (last * 256) + current);
+  fusorSetIntVariable("cps", (current * 256) + last);
   }
 }

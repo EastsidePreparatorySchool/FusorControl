@@ -5,7 +5,7 @@ public class FusorControlServer {
     // debug section
     public static boolean fakeCoreDevices = true;
     public static boolean noLog = false;
-    public static int logFreq = 5;
+    public static int logFreq = 10;
     public static boolean includeCoreStatus = true;
     public static boolean verbose = false;
     public static boolean superVerbose = false;

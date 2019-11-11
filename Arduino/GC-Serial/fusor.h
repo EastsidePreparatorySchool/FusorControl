@@ -7,8 +7,8 @@
 
 #define FUSOR_CMDLENGTH  127
 #define FUSOR_RESPONSE_MAX  511
-#define FUSOR_NAME_LENGTH 32
-#define FUSOR_VAR_LENGTH 28
+#define FUSOR_NAME_LENGTH 16
+#define FUSOR_VAR_LENGTH 16
 #define FUSOR_MAX_VARIABLES 8
 
 #define FUSOR_VARTYPE_STR 0
@@ -54,7 +54,8 @@ void fusorSendResponse(char *msg);
 void fusorStartResponse(char *response);
 void fusorAddResponse(char *response);
 
-void fusorInit(char * name, struct FusorVariable *fvs, int numVars);
+void fusorInitWithBaudRate(char * name, long baudRate);
+void fusorInit(char * name);
 void fusorLoop();
 
 bool _fusorParseCommand(char *full, char **command, char ** var, char **val);
@@ -82,7 +83,6 @@ void fusorSetBoolVariable(char* var, bool val);
 
 
 void _fusorReadCommands() {
-  do{
     int start = fusorCmdBufpos;
     while (SERIAL.available() > 0 && fusorCmdBufpos < FUSOR_CMDLENGTH) {
        fusorCmdBuffer[fusorCmdBufpos] = SERIAL.read();
@@ -90,8 +90,6 @@ void _fusorReadCommands() {
       fusorCmdBufpos++;
     }
     fusorCmdBuffer[fusorCmdBufpos] = 0;
-      
-  } while(strstr(fusorCmdBuffer, "]END") == NULL);
 }
 
 char *_fusorGetCommand(char*sCommand) {
@@ -117,10 +115,6 @@ char *_fusorGetCommand(char*sCommand) {
   }
   fusorCmdBufpos = 0;
   return sCommand;
-}
-
-char *_fusorSkipCommand(char *current) {
-  return current+strlen(current)+4; // 4 = strlen("]END")  
 }
 
 //
@@ -216,15 +210,16 @@ void _fusorCmdExecute(char *sCmd, char* sVar, char *sVal) {
 }
 
 void _fusorCmdGetAll() {
-  char buffer[16];
+  static char buffer[16];
+  int skip = 0;
   fusorStartResponse("STATUS:{");
   fusorAddResponse("\"devicetime\":");
   ltoa(millis(), buffer, 10);
   fusorAddResponse(buffer);
-   
+  fusorAddResponse(","); 
   
   for (int i =0; i<fusorNumVars; i++) {
-    fusorAddResponse(",\"");
+    fusorAddResponse("\"");
     FusorVariable *pfv = &fusorVariables[i];
     fusorAddResponse(pfv->name);
     fusorAddResponse("\":{\"vartime\":");
@@ -242,11 +237,15 @@ void _fusorCmdGetAll() {
         fusorAddResponse(buffer);
         break;
       case FUSOR_VARTYPE_FLOAT:
-        sprintf(buffer, "%f", pfv->floatValue);
-        fusorAddResponse(buffer);
+        dtostrf(pfv->floatValue,15,8,buffer);
+        skip = 0;
+        while(buffer[skip] == ' ') {
+          skip++;
+        }
+        fusorAddResponse(buffer+skip);
         break;
       case FUSOR_VARTYPE_BOOL:
-        fusorAddResponse(pfv->boolValue?"true":"false");
+        fusorAddResponse((char *)(pfv->boolValue?"true":"false"));
         break;
       default:
         fusorAddResponse("<unknown type>");
@@ -279,17 +278,34 @@ void _fusorCmdSetVariable(char *var, char *val) {
     strncpy (pfv->value, val, FUSOR_VAR_LENGTH-1);
     pfv->value[FUSOR_VAR_LENGTH-1] = 0;
     pfv->updated = true;
+    pfv->timestamp = millis();
     fusorStartResponse("SET:");
     fusorAddResponse(var);
     fusorAddResponse(":");
     fusorAddResponse(val);
     fusorSendResponse(NULL);
+    switch(pfv->type) {
+      case FUSOR_VARTYPE_STR:
+        break;
+      case FUSOR_VARTYPE_INT:
+        pfv->intValue = atoi(val);
+        break;
+      case FUSOR_VARTYPE_FLOAT:
+        pfv->floatValue = atof(val);
+        break;
+      case FUSOR_VARTYPE_BOOL:
+        pfv->boolValue = (strcmp(val, "true")==0);
+        break;
+      default:
+        break;
+    }
   } else {
     fusorStartResponse("ERROR: unknown variable:");
     fusorAddResponse(var);
     fusorSendResponse(NULL);
   }
 }
+
 
 void _fusorCmdGetVariable(char *var) {
   FusorVariable *pfv;
@@ -378,12 +394,12 @@ void fusorSetIntVariable(char *var, int val) {
 }
 
 
-void fusorSetStrVariable(char *var, int val) {
+void fusorSetStrVariable(char *var, char *val) {
   FusorVariable *pfv;
   
   pfv = _fusorGetVariableEntry(var);
-  strncpy(pfv->name, val, FUSOR_VAR_LENGTH-1);
-  pfv->name[FUSOR_VAR_LENGTH-1] = 0;
+  strncpy(pfv->value, val, FUSOR_VAR_LENGTH-1);
+  pfv->value[FUSOR_VAR_LENGTH-1] = 0;
   pfv->updated = true;
   pfv->timestamp = millis();
 }
@@ -428,10 +444,14 @@ void fusorAddVariable (char * name, int type) {
 }
 
 void fusorInit(char * name) {
+  fusorInitWithBaudRate(name, 115200);
+}
+
+void fusorInitWithBaudRate(char * name, long baudRate) {
     #ifdef BLUETOOTH
       SerialBT.begin(name);
     #else
-      Serial.begin(9600);
+      Serial.begin(baudRate);
     #endif
 
     // light for hope
@@ -450,6 +470,8 @@ void fusorInit(char * name) {
 //
 
 void fusorLoop() {
+  bool didGetAll = false;
+
   // reset all "updated" values
   for (int i =0; i<fusorNumVars; i++) {
     fusorVariables[i].updated = false;
@@ -458,6 +480,10 @@ void fusorLoop() {
   
   //collects serial messages from the hardware buffer
   _fusorReadCommands();
+  if (strstr(fusorCmdBuffer, "]END") == NULL) {
+    // nothing to see here
+    return;
+  }
 
   // got message, let's parse
   char *sCommand = NULL;
@@ -465,11 +491,21 @@ void fusorLoop() {
     char *sCmd;
     char *sVar;
     char *sVal;
-    _fusorParseCommand(sCommand, &sCmd, &sVar, &sVal);
-    _fusorCmdExecute(sCmd, sVar, sVal);
-    sCommand = _fusorSkipCommand(sCommand);
-  }
+    int len = strlen(sCommand);
 
+    _fusorParseCommand(sCommand, &sCmd, &sVar, &sVal);
+    if (strcmp(sCmd, "GETALL")==0) {
+      // make sure that GETALL only runs once this loop
+      if (didGetAll) {
+        sCommand += len;
+        continue;
+      }
+      didGetAll = true;
+    }
+
+    _fusorCmdExecute(sCmd, sVar, sVal);
+    sCommand += len;
+  }
 }
 
 

@@ -54,7 +54,8 @@ void fusorSendResponse(char *msg);
 void fusorStartResponse(char *response);
 void fusorAddResponse(char *response);
 
-void fusorInit(char * name, struct FusorVariable *fvs, int numVars);
+void fusorInitWithBaudRate(char * name, long baudRate);
+void fusorInit(char * name);
 void fusorLoop();
 
 bool _fusorParseCommand(char *full, char **command, char ** var, char **val);
@@ -82,7 +83,6 @@ void fusorSetBoolVariable(char* var, bool val);
 
 
 void _fusorReadCommands() {
-  do{
     int start = fusorCmdBufpos;
     while (SERIAL.available() > 0 && fusorCmdBufpos < FUSOR_CMDLENGTH) {
        fusorCmdBuffer[fusorCmdBufpos] = SERIAL.read();
@@ -90,8 +90,6 @@ void _fusorReadCommands() {
       fusorCmdBufpos++;
     }
     fusorCmdBuffer[fusorCmdBufpos] = 0;
-      
-  } while(strstr(fusorCmdBuffer, "]END") == NULL);
 }
 
 char *_fusorGetCommand(char*sCommand) {
@@ -117,10 +115,6 @@ char *_fusorGetCommand(char*sCommand) {
   }
   fusorCmdBufpos = 0;
   return sCommand;
-}
-
-char *_fusorSkipCommand(char *current) {
-  return current+strlen(current)+4; // 4 = strlen("]END")  
 }
 
 //
@@ -450,10 +444,14 @@ void fusorAddVariable (char * name, int type) {
 }
 
 void fusorInit(char * name) {
+  fusorInitWithBaudRate(name, 115200);
+}
+
+void fusorInitWithBaudRate(char * name, long baudRate) {
     #ifdef BLUETOOTH
       SerialBT.begin(name);
     #else
-      Serial.begin(9600);
+      Serial.begin(baudRate);
     #endif
 
     // light for hope
@@ -472,6 +470,8 @@ void fusorInit(char * name) {
 //
 
 void fusorLoop() {
+  bool didGetAll = false;
+
   // reset all "updated" values
   for (int i =0; i<fusorNumVars; i++) {
     fusorVariables[i].updated = false;
@@ -480,6 +480,10 @@ void fusorLoop() {
   
   //collects serial messages from the hardware buffer
   _fusorReadCommands();
+  if (strstr(fusorCmdBuffer, "]END") == NULL) {
+    // nothing to see here
+    return;
+  }
 
   // got message, let's parse
   char *sCommand = NULL;
@@ -487,11 +491,21 @@ void fusorLoop() {
     char *sCmd;
     char *sVar;
     char *sVal;
-    _fusorParseCommand(sCommand, &sCmd, &sVar, &sVal);
-    _fusorCmdExecute(sCmd, sVar, sVal);
-    sCommand = _fusorSkipCommand(sCommand);
-  }
+    int len = strlen(sCommand);
 
+    _fusorParseCommand(sCommand, &sCmd, &sVar, &sVal);
+    if (strcmp(sCmd, "GETALL")==0) {
+      // make sure that GETALL only runs once this loop
+      if (didGetAll) {
+        sCommand += len;
+        continue;
+      }
+      didGetAll = true;
+    }
+
+    _fusorCmdExecute(sCmd, sVar, sVal);
+    sCommand += len;
+  }
 }
 
 
