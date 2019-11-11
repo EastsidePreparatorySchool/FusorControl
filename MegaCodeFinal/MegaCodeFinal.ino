@@ -6,18 +6,18 @@
 #define CMDLENGTH  50
 
 #define MINVOLTS 5
-#define MAXVOLTS 120
+#define MAXVOLTS 70
 
-#define PUL 35
-#define ENA 37
-#define DIR 36
+#define PUL 4
+#define ENA 3
+#define DIR 2
 
 #define TMP 43
 #define SOL 10
 
 #define REL 9
 
-#define POT A2
+#define POT A1
 
 #define delayMicros 1000
 
@@ -50,7 +50,7 @@ void setup()
 
   // turn everything off
   tmpOff();
-  //zeroVoltage();
+  zeroVoltage();
   solOff();
 
   Serial.begin(9600);
@@ -211,7 +211,7 @@ int voltsToPot(int volts) {
 void setVoltage(int volts) {
   int pot;
   int targetPot = voltsToPot(volts);
-  if (volts > 90) return;
+  if (volts > MAXVOLTS) return;
   int dif;
 
   LED_ON();

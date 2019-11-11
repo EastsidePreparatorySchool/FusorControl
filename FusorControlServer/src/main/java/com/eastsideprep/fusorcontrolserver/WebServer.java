@@ -158,7 +158,7 @@ public class WebServer {
             System.out.println("Port: " + arduino);
             if (!arduino.toString().equals("USBSER000")) {
                 System.out.println("USBSER000 port not found in array slot 0");
-                return false;
+               
             }
             arduino.openPort();
             System.out.println("past openPort()");
