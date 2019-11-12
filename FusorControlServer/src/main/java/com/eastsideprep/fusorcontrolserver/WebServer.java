@@ -1,8 +1,5 @@
 package com.eastsideprep.fusorcontrolserver;
 
-import java.io.IOException;
-import java.time.Instant;
-import java.util.Date;
 import static spark.Spark.*;
 
 public class WebServer {

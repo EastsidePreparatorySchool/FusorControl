@@ -59,6 +59,9 @@ public class SerialDevice {
             return;
         }
 
+        if(FusorControlServer.superVerbose) {
+            System.out.println("writing to port "+port.getSystemPortName()+":"+s);
+        }
         byte[] bytes = s.getBytes();
         synchronized (port) {
             try {

@@ -44,7 +44,7 @@ void loop() {
 
 
 void updateAll() {
-  fusorSendResponse("updating ...");
+  //fusorSendResponse("updating ...");
   // put our current amps and freq out
   int amps = analogRead(TMP_AMPS);
   int freq = analogRead(TMP_FREQ);
@@ -53,7 +53,7 @@ void updateAll() {
   fusorSetFloatVariable("amps", (float)amps); // TODO: convert
   fusorSetFloatVariable("freq", (float)freq); // TODO: convert
 
-  fusorSendResponse("done setting reads ...");
+  //fusorSendResponse("done setting reads ...");
 
   // if "tmp" was updated, read it switch the pump on/off accordingly
   if (fusorVariableUpdated("tmp")) {
@@ -66,7 +66,7 @@ void updateAll() {
     }
   }
 
-  fusorSendResponse("done processing tmp sets ...");
+  //fusorSendResponse("done processing tmp sets ...");
 
 
   // if "lowspeed" was updated, read it, switch the pump to high speed / low speed accordingly
@@ -79,34 +79,33 @@ void updateAll() {
       //fusorSetBoolVariable("lowspeed", false);
     }
   }
-  fusorSendResponse("done updating");
-
+  //fusorSendResponse("done updating");
 }
 
 void tmpOn() {
   FUSOR_LED_ON();
   digitalWrite(TMP_ON, LOW);
-  delay(100);
+  //delay(100);
   FUSOR_LED_OFF();
 }
 
 void tmpOff() {
   FUSOR_LED_ON();
   digitalWrite(TMP_ON, HIGH);
-  delay(100);
+  //delay(100);
   FUSOR_LED_OFF();
 }
 
 void tmpLow() {
   FUSOR_LED_ON();
   digitalWrite(TMP_SPEED, LOW);
-  delay(100);
+  //delay(100);
   FUSOR_LED_OFF();
 }
 
 void tmpHigh() {
   FUSOR_LED_ON();
   digitalWrite(TMP_SPEED, HIGH);
-  delay(100);
+  //delay(100);
   FUSOR_LED_OFF();
 }

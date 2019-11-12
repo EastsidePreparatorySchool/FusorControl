@@ -59,9 +59,13 @@ public class DeviceManager {
         byte[] data = new byte[bytes];
         port.readBytes(data, bytes);
 
-        //System.out.println("Read " + data.length + " bytes from " + e.getSerialPort().getSystemPortName());
+        if (FusorControlServer.superVerbose) {
+            //System.out.println("Read " + data.length + " bytes from " + e.getSerialPort().getSystemPortName());
+        }
         String buffer = new String(data);
-        //System.out.println("  string:" + buffer);
+        if (FusorControlServer.superVerbose) {
+            //System.out.println("  string:" + buffer);
+        }
 
         // partial message from last time? put at beginning of buffer
         if (bufferState.containsKey(port)) {
@@ -245,7 +249,7 @@ public class DeviceManager {
         for (SerialPort port : portList) {
             try {
                 System.out.println("sending identify command to port " + port.getSystemPortName());
-                writeToPort(port.getOutputStream(), SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));
+                writeToPort(port, SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));
             } catch (Exception ex) {
                 //System.out.println("Exception cause: "+ex.getCause());
             }
@@ -289,10 +293,12 @@ public class DeviceManager {
         arduinoMap.remove(sd);
     }
 
-    static void writeToPort(OutputStream os, String arg) throws IOException {
-        byte[] bytes = (arg + "END").getBytes();
-        os.write(bytes);
-        //System.out.println("Wrote '" + arg + "' to an arduino");
+    static void writeToPort(SerialPort port, String arg) throws IOException {
+        byte[] bytes = arg.getBytes();
+        port.getOutputStream().write(bytes);
+        if (FusorControlServer.superVerbose) {
+            System.out.println("Wrote '" + arg + "' to port "+port.getSystemPortName());
+        }
     }
 
     private void identify(String name, SerialPort port) {
@@ -366,17 +372,17 @@ public class DeviceManager {
     String readStatusResults(boolean includeCore) {
         ArrayList<SerialDevice> devices = this.getAllDevices();
         String status = "";
-        devices.sort((a,b)->((cd.isCoreDevice(b.name)?1:0)-(cd.isCoreDevice(a.name)?1:0)));
+        devices.sort((a, b) -> ((cd.isCoreDevice(b.name) ? 1 : 0) - (cd.isCoreDevice(a.name) ? 1 : 0)));
         for (SerialDevice sd : devices) {
             if ((includeCore || !cd.isCoreDevice(sd.name)) && sd.port != null) {
                 String s = sd.getLastStatus();
                 if (s != null) {
-                    status += s+",\n";
+                    status += s + ",\n";
                 }
             }
         }
-        
-        status = "["+status+"{\"status\":\"complete: " + ((new Date()).toInstant().toString()) + "\"}]";
+
+        status = "[" + status + "{\"status\":\"complete: " + ((new Date()).toInstant().toString()) + "\"}]";
         return status;
     }
 }
