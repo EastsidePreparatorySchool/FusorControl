@@ -234,9 +234,9 @@ void _fusorCmdExecute(char *sCmd, char *sVar, char *sVal)
   if (strcmp(sCmd, "GETALL") == 0)
     _fusorCmdGetAll();
 
-  FUSOR_LED_ON();
-  delay(50);
-  FUSOR_LED_OFF();
+  // FUSOR_LED_ON();
+  // delay(10);
+  // FUSOR_LED_OFF();
 
   sCmd[0] = 0;
 }
@@ -246,20 +246,15 @@ void _fusorCmdGetAll()
   static char buffer[16];
   int skip = 0;
   fusorStartResponse("STATUS:{");
-  fusorAddResponse("\"devicetime\":");
-  ltoa(millis(), buffer, 10);
-  fusorAddResponse(buffer);
-  fusorAddResponse(",");
 
   for (int i = 0; i < fusorNumVars; i++)
   {
     fusorAddResponse("\"");
     FusorVariable *pfv = &fusorVariables[i];
     fusorAddResponse(pfv->name);
-    fusorAddResponse("\":{\"vartime\":");
-    ltoa(pfv->timestamp, buffer, 10);
-    fusorAddResponse(buffer);
-    fusorAddResponse(",\"value\":");
+    fusorAddResponse("\":{");
+    
+    fusorAddResponse("\"value\":");
     switch (pfv->type)
     {
     case FUSOR_VARTYPE_STR:
@@ -287,12 +282,17 @@ void _fusorCmdGetAll()
       fusorAddResponse("<unknown type>");
       break;
     }
+    fusorAddResponse(",\"vartime\":");
+    ltoa(pfv->timestamp, buffer, 10);
+    fusorAddResponse(buffer);
+
     fusorAddResponse("}");
-    if (i < fusorNumVars - 1)
-    {
-      fusorAddResponse(",");
-    }
+    fusorAddResponse(",");
   }
+  fusorAddResponse("\"devicetime\":");
+  ltoa(millis(), buffer, 10);
+  fusorAddResponse(buffer);
+
   fusorAddResponse("}");
   fusorSendResponse(NULL);
 }

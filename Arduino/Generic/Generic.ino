@@ -1,5 +1,8 @@
 //
-// Fusor project - Generic template code for Arduino
+// Fusor project - Generic input arduino code for Arduino
+// A0,A1,A2,A3 analog inputs
+// D2,D3 digital input/outputs
+// D2 digital count/frequency input
 //
 
 #include "fusor.h"
@@ -9,7 +12,6 @@ volatile static long d2_timestamp;
 
 
 void setup(){
-  // must do this in init, the rest is optional
   fusorInit("GENERIC");
   
   // fixed analog input
