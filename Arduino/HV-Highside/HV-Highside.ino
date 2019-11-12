@@ -8,11 +8,11 @@
 // Connect to Windows: https://www.techcoil.com/blog/how-to-connect-to-an-esp32-development-board-via-bluetooth-on-windows-10/
 //
 
+#include <BluetoothSerial.h>
 #define BLUETOOTH
-#include "BluetoothSerial.h"
-
 #include "fusor.h"
 
+#define OHMS 100  // highside current measurement resistor size
 
 void setup(){
   fusorInit("HV_HIGHSIDE"); //Fusor device name, variables, num variables
@@ -20,19 +20,22 @@ void setup(){
   fusorAddVariable("volts", FUSOR_VARTYPE_INT);
   fusorAddVariable("amps", FUSOR_VARTYPE_FLOAT);
 
+  // service the serial port in a vain attempt to get this working when it is connected both ways
   if (Serial) {
     Serial.begin(9600);
   }
   FUSOR_LED_ON();
-  delay(1000);
+  delay(200);
   FUSOR_LED_OFF();
 }
 
 
 void loop() {
+  // drain the serial port
   while (Serial.available()) {
     Serial.read();
   }
+  
   fusorLoop();
   updateAll();
   
@@ -44,7 +47,6 @@ void updateAll() {
 
   int adc = analogRead(A0); 
   float volts = ((float)adc) * 3.3 / 1024;
-  #define OHMS 100
   float amps = (int)(((float)adc) * 3.3 / OHMS / 1024);
   
   fusorSetIntVariable("adc",adc);
