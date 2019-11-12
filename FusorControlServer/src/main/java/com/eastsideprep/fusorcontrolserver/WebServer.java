@@ -41,7 +41,7 @@ public class WebServer {
                     || req.ip().equals("0:0:0:0:0:0:0:1"))) {   // LOCALHOST
                 System.out.print("incoming from " + req.ip() + ": " + req.url());
                 System.out.println(" ... denied.");
-                throw halt(401, "Not authorized");
+                throw halt(401, "Not authorized.");
             }
             //System.out.print("incoming from " + req.ip()+": "+req.url());
             //System.out.println(" ... allowed.");
