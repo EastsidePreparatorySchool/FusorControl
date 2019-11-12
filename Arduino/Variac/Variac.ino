@@ -53,7 +53,7 @@ int voltsToPot(int volts) {
 void setVoltage(int volts) {
   int pot;
   int targetPot = voltsToPot(volts);
-  if (volts > 90) return;
+  if (volts > MAXVOLTS) return;
   int dif;
 
   FUSOR_LED_ON();
@@ -66,6 +66,7 @@ void setVoltage(int volts) {
     if (millis - start > 3000) {
       break;
     }
+    
     pot = analogRead(POT);
     dif = targetPot - pot;
     digitalWrite(DIR, (dif < 0) ? LOW : HIGH);
@@ -101,7 +102,6 @@ void zeroVoltage() {
   digitalWrite(REL, LOW);
   FUSOR_LED_OFF();
 }
-
 
 void loop() {
   // must do this in loop, the rest is optional
