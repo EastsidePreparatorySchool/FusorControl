@@ -59,19 +59,20 @@
 
 <body>
     <div class="container">
-        <h1 style="text-align: center; font-family: 'Bungee', cursive; font-size: 200%; margin-top: 3%;">Fusor Control
-        </h1>
-
-        <div class="line"> </div>
+            <h1 style="font-family: 'Bungee', cursive; font-size: 150%; margin-top: 3%;">Fusor Control
+            </h1>
+        <!-- 
+            <div class="line"> </div> 
+        -->
 
         <button id="startLog" class="button" onclick="startLog()">Start logging</button>
-        <button id="stopLog" class="button" onclick="stopLog()">Stop logging</button>
+        <button id="stopLog" class="button" style="border:2px solid black" onclick="stopLog()">Stop logging</button>
         <button class="button" onclick="getStatus()">Get status</button>
         <button class="button" style="background-color: #f64072; font-family: 'Bungee', cursive;"
             onclick="kill()"><b>Stop Server</b></button>
 
 
-        <div class="line"></div>
+        <!-- <div class="line"></div> -->
 
         <div>
 
@@ -100,7 +101,7 @@
             </div>
 
             <div style="width:1000px; height:450px;  padding:25px; float:left">
-                <textarea id="data" style="width:1000px;height:200px; white-space: nowrap; overflow: auto;">
+                <textarea id="data" style="width:1150px;height:400px; white-space: nowrap; overflow: auto;">
                     </textarea>
                 <img id="cam1" style="width:250px;height:200px;display:none" src="">
                 <img id="cam2" style="width:250px;height:200px;display:none" src="">
@@ -108,9 +109,8 @@
                 <img id="cam4" style="width:250px;height:200px;display:none" src="">
             </div>
         </div>
-        <div style="clear:both" class="line"></div>
-
-        <p id="error">returns: </p>
+        <!-- <div style="clear:both" class="line"></div> -->
+        <!-- <p id="error">returns: </p> -->
     </div>
 
     <script type="text/javascript">
@@ -132,7 +132,7 @@
                 .then(data => {
                     // yes: make the display visible and set the url
                     var numCameras = Number(data);       // got number from server
-                    numCameras = Math.min(numCameras,4); // 4 cameras max
+                    numCameras = Math.min(numCameras, 4); // 4 cameras max
                     for (var i = 1; i <= numCameras; i++) {
                         var cam = document.getElementById("cam" + i);
                         cam.style.display = "inline";
@@ -189,7 +189,10 @@
                     document.getElementById("data").value = data;
                 })
                 .catch(error => {
-                    console.log("error: " + error);
+                    console.log("getstatus error: " + error);
+                    console.log("stopping status requests to server");
+                    stopStatus();
+                    selectButton("stopLog", "startLog");
                 });
         }
 
@@ -211,6 +214,7 @@
                 .then(data => {
                     console.log(data);
                     initStatus();
+                    selectButton("startLog", "stopLog");
                 })
                 .catch(error => {
                     console.log("error: " + error);
@@ -221,6 +225,7 @@
         function stopLog() {
             console.log("stoplog");
             stopStatus();
+            selectButton("stopLog", "startLog");
             request({ url: "/stoplog", method: "GET" })
                 .then(data => {
                     console.log(data);
@@ -311,15 +316,15 @@
         }
 
         function initStatus() {
-            console.log("receiving status...")
             if (statusTimer === null) {
+                console.log("now receiving status")
                 statusTimer = setInterval(getStatus, 1000); //per every 1 second
             }
         }
 
         function stopStatus() {
-            console.log("no longer receiving status")
             if (statusTimer !== null) {
+                console.log("now no longer receiving status")
                 clearInterval(statusTimer);
                 statusTimer = null;
             }

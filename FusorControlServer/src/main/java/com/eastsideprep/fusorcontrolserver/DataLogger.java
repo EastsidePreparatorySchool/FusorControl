@@ -13,7 +13,7 @@ public class DataLogger {
     DeviceManager dm;
 
     public static String makeLogResponse(SerialDevice sd, long time, String response) {
-        return "  {\"device\":\"" + sd.name + ",\"data\":" + response + "\",\"servertime\":" + time + "}";
+        return "  {\"device\":\"" + sd.name + "\",\"data\":" + response + ",\"servertime\":" + time + "}";
 
     }
 
