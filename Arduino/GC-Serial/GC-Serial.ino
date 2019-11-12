@@ -25,7 +25,6 @@ void setup(){
 }
 
 void loop() {
-  // must do this in loop, the rest is optional
   fusorLoop();
   
   updateAll();
@@ -39,9 +38,6 @@ void updateAll() {
       last = current;
       current = Serial3.read();
     }
-    FUSOR_LED_ON();
-    delay(100);
-    FUSOR_LED_OFF();
-  fusorSetIntVariable("cps", (current * 256) + last);
+    fusorSetIntVariable("cps", (current * 256) + last);
   }
 }
