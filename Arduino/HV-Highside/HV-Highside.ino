@@ -3,7 +3,8 @@
 // 
 // Adafruit -ESP32 Feather (HUZZAH32)
 // www.adafruit.com
-// Board support URL https://dl.espressif.com/dl/package_esp32_index.json
+// Board support URL https://dl.espressif.com/dl/package_esp32_index.json (11/12: offline)
+// OLED display tutorial for WeMos Lolin with display: https://randomnerdtutorials.com/esp32-built-in-oled-ssd1306/
 // Bluetooth tutorial: https://randomnerdtutorials.com/esp32-bluetooth-classic-arduino-ide/
 // Connect to Windows: https://www.techcoil.com/blog/how-to-connect-to-an-esp32-development-board-via-bluetooth-on-windows-10/
 //
