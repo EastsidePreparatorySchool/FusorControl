@@ -2,3 +2,4 @@ node_modules/
 /FusorControlServer/nbproject/private/
 /FusorControlServer/build/
 /FusorControlServer/target/
+/FusorControlServer/*.json

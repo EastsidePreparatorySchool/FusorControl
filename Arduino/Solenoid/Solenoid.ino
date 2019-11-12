@@ -4,37 +4,27 @@
 // Adafruit Feather Huzzah ESP8266 Wifi 
 // Board support: http://arduino.esp8266.com/stable/package_esp8266com_index.json
 //
-//
 
 #include "fusor.h"
 
-
 #define SOL 2 // digital out pin for solenoid
-
-
 
 void setup(){
   fusorInit("SOLENOID");
   fusorAddVariable("solenoid", FUSOR_VARTYPE_BOOL);
-
   fusorSetBoolVariable("solenoid", false);
 
   // relay control for solenoid valve
   pinMode(SOL, OUTPUT);
   digitalWrite(SOL, LOW);
 
-  //zeroVoltage();
   FUSOR_LED_ON();
   delay(300);
   FUSOR_LED_OFF();
 }
 
-
-
 void loop() {
-  // must do this in loop, the rest is optional
   fusorLoop();
-  
   updateAll();
   delay(5);
 }
