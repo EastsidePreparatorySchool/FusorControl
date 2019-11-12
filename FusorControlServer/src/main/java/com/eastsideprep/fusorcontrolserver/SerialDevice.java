@@ -113,4 +113,8 @@ public class SerialDevice {
     public String getLastStatus() {
         return this.lastStatus;
     }
+    
+    public boolean isValid(){
+        return os != null;
+    }
 }

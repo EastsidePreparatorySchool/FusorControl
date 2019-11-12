@@ -47,7 +47,7 @@ public class SerialDeviceMap {
             if (sd.port != null) {
                 portMap.put(sd.port.getSystemPortName(), sd);
             } else {
-                portMap.put("<fake port:"+sd.name+">", sd);
+                portMap.put("<fake port:" + sd.name + ">", sd);
             }
             nameMap.put(sd.name, sd);
         }
@@ -59,7 +59,7 @@ public class SerialDeviceMap {
             if (sd.port != null) {
                 portMap.remove(sd.port.getSystemPortName());
             } else {
-                portMap.remove("<fake port:"+sd.name+">");
+                portMap.remove("<fake port:" + sd.name + ">");
             }
             nameMap.remove(sd.name);
         }
@@ -72,12 +72,21 @@ public class SerialDeviceMap {
         }
         return names;
     }
-    
+
     public ArrayList<SerialDevice> getAllDevices() {
         ArrayList<SerialDevice> devices;
         synchronized (this) {
             devices = new ArrayList(nameMap.values());
         }
         return devices;
+    }
+
+    public int validDeviceCount() {
+        int num;
+        synchronized (this) {
+            num = (int)nameMap.values().stream().filter((v)->(v.isValid())).count();
+        }
+        return num;
+
     }
 }

@@ -60,7 +60,7 @@ public class DeviceManager {
         port.readBytes(data, bytes);
 
         if (FusorControlServer.superVerbose) {
-            //System.out.println("Read " + data.length + " bytes from " + e.getSerialPort().getSystemPortName());
+            System.out.println("Read " + data.length + " bytes from " + e.getSerialPort().getSystemPortName());
         }
         String buffer = new String(data);
         if (FusorControlServer.superVerbose) {
@@ -71,8 +71,8 @@ public class DeviceManager {
         if (bufferState.containsKey(port)) {
             buffer = bufferState.get(port) + buffer;
         }
-        if (FusorControlServer.verbose) {
-            //System.out.println("  serial buffer:" + buffer);
+        if (FusorControlServer.superVerbose) {
+            System.out.println("  serial buffer:" + buffer);
         }
 
         // now look for specific messages from our components
@@ -188,11 +188,16 @@ public class DeviceManager {
         // go trough ports, knock on the door
         //
 
+        // need to be adapted to machine this is running on
+        String[] ignorePorts = {"COM4"};
+
         // filter the list of all ports down to only COM devices,
         // and only ones that are not registered yet. 
         ports = SerialPort.getCommPorts();
-        List<SerialPort> portList = new ArrayList<SerialPort>(Arrays.asList(ports));
-        portList.removeIf((p) -> !p.getSystemPortName().contains("COM") || arduinoMap.containsPort(p));
+        List<SerialPort> portList = new ArrayList<>(Arrays.asList(ports));
+        portList.removeIf((p) -> (!p.getSystemPortName().contains("COM"))
+                || arduinoMap.containsPort(p)
+                || (Arrays.binarySearch(ignorePorts, p.getSystemPortName()) >= 0));
 
         // cut this short if there is nothing new
         if (portList.isEmpty()) {
@@ -244,18 +249,41 @@ public class DeviceManager {
         }
 
         System.out.println("=================== done opening new ports. waiting for resets ..");
-        Thread.sleep(3000);
+        Thread.sleep(5000);
 
+        //
+        // identify
+        //
+        System.out.println("=================== querying new ports ...");
         for (SerialPort port : portList) {
             try {
                 System.out.println("sending identify command to port " + port.getSystemPortName());
                 writeToPort(port, SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));
+                writeToPort(port, SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));
             } catch (Exception ex) {
-                //System.out.println("Exception cause: "+ex.getCause());
+                System.out.println("Query serial write exception cause: " + ex.getCause());
             }
         }
         System.out.println("=================== done querying new ports. waiting for new devices to identify ...");
-        Thread.sleep(1000);
+        Thread.sleep(5000);
+
+        //
+        // second round for those who did not answer
+        //
+        portList.removeIf((p) -> arduinoMap.containsPort(p));
+        if (!portList.isEmpty()) {
+            System.out.println("=================== second round of querying new ports...");
+            for (SerialPort port : portList) {
+                try {
+                    System.out.println("sending second identify command to port " + port.getSystemPortName());
+                    writeToPort(port, SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));
+                } catch (Exception ex) {
+                    //System.out.println("Exception cause: "+ex.getCause());
+                }
+            }
+            System.out.println("=================== waiting for new devices to identify ...");
+            Thread.sleep(5000);
+        }
 
         System.out.println("=================== closing unrecognized ports");
         for (SerialPort port : portList) {
@@ -272,7 +300,7 @@ public class DeviceManager {
         synchronized (semaphore) {
             semaphore.notify();
         }
-        System.out.println("=================== done querying new ports");
+        System.out.println("=================== done collecting new ports, total devices now registered: " + this.arduinoMap.validDeviceCount());
     }
 
     public void register(SerialDevice sd) {
@@ -297,22 +325,22 @@ public class DeviceManager {
         byte[] bytes = arg.getBytes();
         port.getOutputStream().write(bytes);
         if (FusorControlServer.superVerbose) {
-            System.out.println("Wrote '" + arg + "' to port "+port.getSystemPortName());
+            System.out.println("Wrote '" + arg + "' to port " + port.getSystemPortName());
         }
     }
 
     private void identify(String name, SerialPort port) {
         synchronized (this) {
+            if (!arduinoMap.containsPort(port)) {
+                SerialDevice sd = new SerialDevice(port, name);
+                String msg = "";
 
-            SerialDevice sd = new SerialDevice(port, name);
-            String msg = "";
+                sd = specificDevice(sd);
 
-            sd = specificDevice(sd);
-
-            register(sd);
-            System.out.println("  -- new Arduino connected: " + sd.name + " (" + sd.originalName + ", function: " + sd.function + "), on: " + port.getSystemPortName() + msg);
+                register(sd);
+                System.out.println("  -- new Arduino connected: " + sd.name + " (" + sd.originalName + ", function: " + sd.function + "), on: " + port.getSystemPortName() + msg);
+            }
         }
-
     }
 
     public SerialDevice get(String name) {
