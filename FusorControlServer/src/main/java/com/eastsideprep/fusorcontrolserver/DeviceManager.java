@@ -189,7 +189,7 @@ public class DeviceManager {
         //
 
         // need to be adapted to machine this is running on
-        String[] ignorePorts = {"COM4"};
+        String[] ignorePorts = {/*GM laptop:"COM4"*/};
 
         // filter the list of all ports down to only COM devices,
         // and only ones that are not registered yet. 

@@ -37,7 +37,7 @@ public class WebServer {
 
         before("*", (req, res) -> {
             // do not change this list without explicit approval from Mr. Mein!!!!
-            if (!(req.ip().equals("10.20.84.127") // GMEIN's LAPTOP
+            if (!(req.ip().equals("10.20.82.127") // GMEIN's LAPTOP
                     || req.ip().equals("0:0:0:0:0:0:0:1"))) {   // LOCALHOST
                 System.out.print("incoming from " + req.ip() + ": " + req.url());
                 System.out.println(" ... denied.");
