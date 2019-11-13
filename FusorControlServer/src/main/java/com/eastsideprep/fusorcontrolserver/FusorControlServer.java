@@ -1,24 +1,19 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.eastsideprep.fusorcontrolserver;
 
-/**
- *
- * @author Administrator
- */
 public class FusorControlServer {
 
-    //static CamStreamer cs;
-    static WebServer serv = new WebServer();
+    // debug section
+    public static boolean fakeCoreDevices = true;
+    public static boolean noLog = false;
+    public static int logFreq = 10;
+    public static boolean includeCoreStatus = true;
+    public static boolean verbose = true;
+    public static boolean superVerbose = true;
+
+    private static WebServer serv;
 
     public static void main(String[] args) {
-        //serv = new WebServer();
+        serv = new WebServer();
         serv.init();
-        //cs = new CamStreamer();
-        serv.serialInit();
-        serv.test();
     }
 }

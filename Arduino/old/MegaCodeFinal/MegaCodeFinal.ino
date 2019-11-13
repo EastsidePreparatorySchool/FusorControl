@@ -47,14 +47,16 @@ void setup()
   // solenoid gas injection valve control transistor
   pinMode(SOL, OUTPUT);
 
+  pinMode(30, INPUT);
+
 
   // turn everything off
   tmpOff();
-  zeroVoltage();
+  //zeroVoltage();
   solOff();
 
   Serial.begin(9600);
-  Serial.println("Fusor control Arduino initialized!");
+  //Serial.println("Fusor control Arduino initialized!");
 }
 
 
@@ -65,7 +67,8 @@ void loop()
 
   //collects serial messages from the hardware buffer
   int num = 0;
-  do {
+  do 
+  {
     while (Serial.available() > 0)
     {
       buffer[num++] = Serial.read();
@@ -76,6 +79,7 @@ void loop()
     {
       Serial.println("got " + String(num) + " bytesEND");
     }
+    if(digitalRead(30)) Serial.println("IDECONTROLEND");
   } while (strstr(buffer, "END") == NULL);
 
   // got message, let's parse
@@ -103,7 +107,7 @@ void loop()
     sCommand = sEnd + 3;
     sEnd = strstr(sCommand, "END");
   }
-
+  
   delay(5);
 }
 
@@ -158,7 +162,7 @@ void handleBuffer(char *command)
   }
 
   if (strcmp(cmd, "GET") == 0) Serial.println("memeEND");
-
+  if (strcmp(cmd, "IDE") == 0) Serial.println("IDECONTROLEND");
   if (strcmp(cmd, "TES") == 0) {
     Serial.print(cont);
     Serial.println("END");
@@ -167,6 +171,7 @@ void handleBuffer(char *command)
     delay(500);
     LED_OFF();
   }
+  
 }
 
 void tmpOn() {
