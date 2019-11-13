@@ -7,7 +7,7 @@
 
 #include "fusor.h"
 
-#define SOL 2 // digital out pin for solenoid
+#define SOL 15 // digital out pin for solenoid
 
 void setup(){
   fusorInit("SOLENOID");
