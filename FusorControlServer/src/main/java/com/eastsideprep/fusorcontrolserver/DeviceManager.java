@@ -189,7 +189,9 @@ public class DeviceManager {
         //
 
         // need to be adapted to machine this is running on
-        String[] ignorePorts = {/*GM laptop:"COM4"*/};
+        String[] ignorePorts = {
+            "Intel(R) Active Management Technology - SOL (COM4)" // GM laptop
+        };
 
         // filter the list of all ports down to only COM devices,
         // and only ones that are not registered yet. 
@@ -197,7 +199,8 @@ public class DeviceManager {
         List<SerialPort> portList = new ArrayList<>(Arrays.asList(ports));
         portList.removeIf((p) -> (!p.getSystemPortName().contains("COM"))
                 || arduinoMap.containsPort(p)
-                || (Arrays.binarySearch(ignorePorts, p.getSystemPortName()) >= 0));
+                || (Arrays.binarySearch(ignorePorts, p.getDescriptivePortName()) >= 0)
+                || (p.getDescriptivePortName().toLowerCase().contains("bluetooth") && FusorControlServer.noBlueTooth));
 
         // cut this short if there is nothing new
         if (portList.isEmpty()) {
@@ -207,7 +210,11 @@ public class DeviceManager {
         //
         // detect and deal with bluetooth port pairs
         //
-        System.out.println("searching for bluetooth port pairs ...");
+        if (FusorControlServer.noBlueTooth) {
+            System.out.println("DEBUG: skipping bluetooth devices");
+        } else {
+            System.out.println("searching for bluetooth port pairs ...");
+        }
 
         for (int i = 0; i < portList.size() - 1; i++) {
             SerialPort port = portList.get(i);
@@ -238,21 +245,29 @@ public class DeviceManager {
         //
         // now open ports
         //
+        Thread[] threads = new Thread[portList.size()];
+        int i = 0;
         for (SerialPort port : portList) {
             System.out.println("opening port: " + port.getSystemPortName());
             port.setComPortParameters(115200, 8, 1, SerialPort.NO_PARITY);
-            port.openPort();
-            
-            // TODO: Should I write a nonsense msg to this port right now?
-            // TODO: Do this on a a separate thread for each one
-
-            //System.out.print("port opened. adding listener ...");
-            port.addDataListener(connectionListener);
-            //System.out.println("listener added.");          
+            threads[i] = new Thread(() -> {
+                try {
+                    port.openPort();
+                    port.addDataListener(connectionListener);
+                    writeToPort(port, "");
+                } catch (Exception e) {
+                    System.out.println("open exception: " + e);
+                }
+            });
+            threads[i].start();
+            i++;
+        }
+        for (Thread t : threads) {
+            t.join();
         }
 
         System.out.println("=================== done opening new ports. waiting for resets ..");
-        Thread.sleep(5000);
+        Thread.sleep(2000);
 
         //
         // identify
@@ -268,7 +283,7 @@ public class DeviceManager {
             }
         }
         System.out.println("=================== done querying new ports. waiting for new devices to identify ...");
-        Thread.sleep(5000);
+        Thread.sleep(2000);
 
         //
         // second round for those who did not answer
