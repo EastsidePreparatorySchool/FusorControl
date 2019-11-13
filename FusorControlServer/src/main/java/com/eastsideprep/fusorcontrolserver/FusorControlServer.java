@@ -7,8 +7,8 @@ public class FusorControlServer {
     public static boolean noLog = false;
     public static int logFreq = 10;
     public static boolean includeCoreStatus = true;
-    public static boolean verbose = false;
-    public static boolean superVerbose = false;
+    public static boolean verbose = true;
+    public static boolean superVerbose = true;
 
     private static WebServer serv;
 

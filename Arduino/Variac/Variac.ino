@@ -10,12 +10,12 @@
 #define MINVOLTS 5
 #define MAXVOLTS 120
 
-#define PUL 35 // stepper motor controller PULSE
-#define ENA 37 // stepper motor controller ENABLE
-#define DIR 36 // stepper motor controller DIRECTION
+#define PUL 4 // stepper motor controller PULSE
+#define ENA 3 // stepper motor controller ENABLE
+#define DIR 2 // stepper motor controller DIRECTION
 
 #define REL 9  // relay to cut power to controller
-#define POT A2 // potentiometer feedback
+#define POT A1 // potentiometer feedback
 
 void setup(){
   fusorInit("VARIAC");
@@ -60,13 +60,14 @@ void setVoltage(int volts) {
   digitalWrite(ENA, LOW);
   digitalWrite(REL, HIGH);
 
+  fusorSendResponse("before");
   long start = millis();
   do {
     // make sure do not spend forever in here
-    if (millis - start > 3000) {
+    if (millis() - start > 3000) {
       break;
     }
-    
+    fusorSendResponse("in loop2");
     pot = analogRead(POT);
     dif = targetPot - pot;
     digitalWrite(DIR, (dif < 0) ? LOW : HIGH);
@@ -75,8 +76,10 @@ void setVoltage(int volts) {
     delayMicroseconds(200);
     digitalWrite(PUL, LOW);
     delayMicroseconds(200);
+    fusorSendResponse("at end");
   } while ( abs(dif) > 10 );
 
+  fusorSendResponse("after loop");
   digitalWrite(ENA, HIGH);
   digitalWrite(REL, LOW);
   FUSOR_LED_OFF();
