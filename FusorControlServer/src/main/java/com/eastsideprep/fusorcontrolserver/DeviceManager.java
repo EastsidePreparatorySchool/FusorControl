@@ -242,6 +242,9 @@ public class DeviceManager {
             System.out.println("opening port: " + port.getSystemPortName());
             port.setComPortParameters(115200, 8, 1, SerialPort.NO_PARITY);
             port.openPort();
+            
+            // TODO: Should I write a nonsense msg to this port right now?
+            // TODO: Do this on a a separate thread for each one
 
             //System.out.print("port opened. adding listener ...");
             port.addDataListener(connectionListener);

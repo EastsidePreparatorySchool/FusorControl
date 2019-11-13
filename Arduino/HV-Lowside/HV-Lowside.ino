@@ -6,6 +6,8 @@
 
 #include "fusor.h"
 
+
+// TODO: Wow, a stats class. I should put that into fusor.h so that every Arduino can use it
 class stat
 {
   public:
