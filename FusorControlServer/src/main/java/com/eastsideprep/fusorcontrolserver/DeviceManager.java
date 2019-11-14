@@ -191,30 +191,22 @@ public class DeviceManager {
         // need to be adapted to machine this is running on
         String[] ignorePorts = {
             "Intel(R) Active Management Technology - SOL (COM4)", // strange port on GM laptop
-            "Standard Serial over Bluetooth link (COM12)" // incoming bt port on fusor
+            "Standard Serial over Bluetooth link (COM12)", // incoming bt port on fusor
+            "Communications Port (COM1)" // actual serial port on fusor
         };
 
         // filter the list of all ports down to only COM devices,
         // and only ones that are not registered yet. 
         ports = SerialPort.getCommPorts();
         List<SerialPort> portList = new ArrayList<>(Arrays.asList(ports));
-        portList.removeIf((p) -> (!p.getSystemPortName().contains("COM"))
+        portList.removeIf((p) -> ((!p.getSystemPortName().contains("COM"))
                 || arduinoMap.containsPort(p)
                 || (Arrays.binarySearch(ignorePorts, p.getDescriptivePortName()) >= 0)
-                || (p.getDescriptivePortName().toLowerCase().contains("bluetooth") && FusorControlServer.noBlueTooth));
+                || (p.getDescriptivePortName().toLowerCase().contains("bluetooth") && FusorControlServer.noBlueTooth)));
 
         // cut this short if there is nothing new
         if (portList.isEmpty()) {
             return;
-        }
-
-        //
-        // detect and deal with bluetooth port pairs
-        //
-        if (FusorControlServer.noBlueTooth) {
-            System.out.println("DEBUG: skipping bluetooth devices");
-        } else {
-            System.out.println("searching for bluetooth port pairs ...");
         }
 
         //
@@ -229,6 +221,9 @@ public class DeviceManager {
                 try {
                     port.openPort();
                     port.addDataListener(connectionListener);
+                    Thread.sleep(2000);
+                    writeToPort(port, SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));
+                    Thread.sleep(2000);
                 } catch (Exception e) {
                     System.out.println("open exception: " + e);
                 }
@@ -240,26 +235,24 @@ public class DeviceManager {
             t.join();
         }
 
-        System.out.println("=================== done opening new ports. waiting for resets ..");
-        Thread.sleep(2000);
-
         //
         // identify
         //
-        System.out.println("=================== querying new ports ...");
         portList.removeIf((p) -> arduinoMap.containsPort(p));
-        for (SerialPort port : portList) {
-            try {
-                System.out.println("sending identify command to port " + port.getSystemPortName());
-                writeToPort(port, SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));
-                writeToPort(port, SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));
-            } catch (Exception ex) {
-                System.out.println("Query serial write exception cause: " + ex.getCause());
-            }
-        }
-        System.out.println("=================== done querying new ports. waiting for new devices to identify ...");
-        Thread.sleep(2000);
+        if (!portList.isEmpty()) {
+            System.out.println("=================== querying ports that have not reported yet...");
 
+            for (SerialPort port : portList) {
+                try {
+                    System.out.println("sending identify command to port " + port.getSystemPortName());
+                    writeToPort(port, SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));
+                } catch (Exception ex) {
+                    System.out.println("Query serial write exception cause: " + ex.getCause());
+                }
+            }
+            System.out.println("=================== done querying new ports. waiting for new devices to identify ...");
+            Thread.sleep(2000);
+        }
         //
         // second round for those who did not answer
         //
