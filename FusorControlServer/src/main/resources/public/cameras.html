@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Fusor cameras</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+              crossorigin="anonymous">
+        <style>
+            html,
+            body {
+                font-size: 1.1em;
+                width: 100%;
+                background-color: #717af7;
+                color: #130f0281;
+                font-family: 'Lato', sans-serif;
+            }
+
+            h2 {
+                font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            }
+
+            h3 {
+                margin-top: 1%;
+            }
+
+            .container {
+                margin: 1% 1% 1% 1%;
+                max-width: 100%;
+            }
+
+            .button {
+                height: 50px;
+                width: 24.5%;
+                border: none;
+                border-radius: 8px;
+                opacity: 0.9;
+                background-color: #fc8e60;
+                color: #f5e0d9;
+                font-size: 1.5em;
+                display: inline-block;
+                font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            }
+
+            .button:hover {
+                opacity: 1.0;
+            }
+
+            .line {
+                background-color: #1b0000;
+                height: 0.1em;
+                border-radius: 10%;
+                margin: 1%;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <h1 style="font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 200%;">
+                Fusor Cameras
+            </h1>
+
+            <img id="cam1" style="width:40%;height:40%;display:none;padding:0%" src="">
+            <img id="cam2" style="width:40%;height:40%;display:none;padding:0%" src=""> 
+            
+            <br>
+            
+            <img id="cam3" style="width:40%;height:40%;display:none;padding:0%" src="">
+            <img id="cam4" style="width:40%;height:40%;display:none;padding:0%" src="">
+            <!-- <div style="clear:both" class="line"></div> -->
+            <!-- <p id="error">returns: </p> -->
+        </div>
+
+        <script type="text/javascript">
+            enableCameras();
+
+            function enableCameras() {
+            request({ url: "/numcameras", method: "GET" })
+            .then(data => {
+            // yes: make the display visible and set the url
+            var numCameras = Number(data);       // got number from server
+            numCameras = Math.min(numCameras, 4); // 4 cameras max
+            for (var i = 1; i <= numCameras; i++) {
+            var cam = document.getElementById("cam" + i);
+            cam.style.display = "inline";
+            cam.src = window.location.origin + ":45" + (i + 66) + "/mjpg";
+            }
+            })
+            .catch(error => {
+            console.log("camera error: " + error);
+            });
+            }
+
+
+            //new request & xmlRequest function (spark stuff (this has nothing to do with spark. this is just http. GM.))
+            function request(obj) {
+            return new Promise((resolve, reject) => {
+            let xhr = new XMLHttpRequest();
+            xhr.open(obj.method || "GET", obj.url);
+
+            xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(xhr.response);
+            } else {
+            reject(xhr.statusText);
+            }
+            };
+            xhr.onerror = () => reject(xhr.statusText);
+
+            xhr.send(obj.body);
+            });
+            }
+
+
+            function xmlRequest(verb, url) {
+            var xhr = new XMLHttpRequest();
+            xhr.open(verb || "GET", url, true);
+            xhr.onload = () => {
+            console.log(xhr.response);
+            };
+            xhr.onerror = () => {
+            console.log("error: " + statusText);
+            };
+            xhr.send();
+            }
+        </script>
+    </body>
+
+</html>

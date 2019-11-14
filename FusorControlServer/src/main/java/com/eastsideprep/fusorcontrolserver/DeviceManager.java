@@ -191,7 +191,7 @@ public class DeviceManager {
         // need to be adapted to machine this is running on
         String[] ignorePorts = {
             "Intel(R) Active Management Technology - SOL (COM4)", // strange port on GM laptop
-            "Standard Serial over Bluetooth link (COM12)", // incoming bt port on fusor
+            "Standard Serial over Bluetooth link (COM14)", // incoming bt port on fusor
             "Communications Port (COM1)" // actual serial port on fusor
         };
 

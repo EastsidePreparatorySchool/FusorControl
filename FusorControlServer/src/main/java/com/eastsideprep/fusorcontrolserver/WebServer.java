@@ -38,7 +38,9 @@ public class WebServer {
         before("*", (req, res) -> {
             // do not change this list without explicit approval from Mr. Mein!!!!
             if (!(req.ip().equals("10.20.82.127") // GMEIN's LAPTOP
-                    || req.ip().equals("0:0:0:0:0:0:0:1"))) {   // LOCALHOST
+                    || req.ip().equals("0:0:0:0:0:0:0:1")// LOCALHOST
+                    || req.ip().equals("10.20.87.181"))) // fusor control laptop
+            {
                 System.out.print("incoming from " + req.ip() + ": " + req.url());
                 System.out.println(" ... denied.");
                 throw halt(401, "Not authorized.");
@@ -96,7 +98,7 @@ public class WebServer {
         });
 
         //number of cameras streaming
-        get("/cameras", (req, res) -> {
+        get("/numcameras", (req, res) -> {
             return Integer.toString(cs.numCameras);
         });
 
