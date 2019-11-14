@@ -9,7 +9,7 @@ public class FusorControlServer {
     public static boolean includeCoreStatus = true;
     public static boolean verbose = false;
     public static boolean superVerbose = false;
-    public static boolean noBlueTooth = true;
+    public static boolean noBlueTooth = false;
 
     private static WebServer serv;
 

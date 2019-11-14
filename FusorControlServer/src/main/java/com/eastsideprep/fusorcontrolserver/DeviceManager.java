@@ -140,7 +140,7 @@ public class DeviceManager {
         // it will notify the semaphore
         synchronized (semaphore) {
             try {
-                semaphore.wait(20000);
+                semaphore.wait(30000);
             } catch (InterruptedException ex) {
             }
         }
@@ -190,7 +190,8 @@ public class DeviceManager {
 
         // need to be adapted to machine this is running on
         String[] ignorePorts = {
-            "Intel(R) Active Management Technology - SOL (COM4)" // GM laptop
+            "Intel(R) Active Management Technology - SOL (COM4)", // strange port on GM laptop
+            "Standard Serial over Bluetooth link (COM12)" // incoming bt port on fusor
         };
 
         // filter the list of all ports down to only COM devices,
@@ -216,32 +217,6 @@ public class DeviceManager {
             System.out.println("searching for bluetooth port pairs ...");
         }
 
-        for (int i = 0; i < portList.size() - 1; i++) {
-            SerialPort port = portList.get(i);
-            //System.out.println(port.getDescriptivePortName());
-
-            String name = port.getDescriptivePortName().toLowerCase();
-            Pattern p = Pattern.compile("bluetooth.*\\(com([0-9]+)");
-            Matcher m = p.matcher(name);
-            if (m.find()) {
-                // found bluetooth port. try to find the matching port with higher number
-
-                int portNumber = Integer.parseInt(m.group(1));
-                name = name.replaceFirst("\\(com" + portNumber + "\\)", "(com" + (portNumber + 1) + ")");
-                SerialPort port2 = portList.get(i + 1);
-
-                if (port2 != null && port2.getDescriptivePortName().toLowerCase().equals(name)) {
-                    System.out.println("  found bluetooth pair on COM ports: " + portNumber + ", " + (portNumber + 1));
-                    System.out.println("  removing read-only bluetooth port " + port.getSystemPortName());
-                    // found it. we will take the first port out of the list.
-                    // add NullSerialDevice to system, to prevent further querying
-                    arduinoMap.put(new NullSerialDevice(port, "<read-only bluetooth port>"));
-                    portList.remove(port);
-                    --i;
-                }
-            }
-        }
-
         //
         // now open ports
         //
@@ -254,7 +229,6 @@ public class DeviceManager {
                 try {
                     port.openPort();
                     port.addDataListener(connectionListener);
-                    writeToPort(port, "");
                 } catch (Exception e) {
                     System.out.println("open exception: " + e);
                 }
@@ -273,6 +247,7 @@ public class DeviceManager {
         // identify
         //
         System.out.println("=================== querying new ports ...");
+        portList.removeIf((p) -> arduinoMap.containsPort(p));
         for (SerialPort port : portList) {
             try {
                 System.out.println("sending identify command to port " + port.getSystemPortName());
@@ -313,12 +288,12 @@ public class DeviceManager {
                 arduinoMap.put(new NullSerialDevice(port, "<unknown>"));
             }
         }
+        System.out.println("=================== done collecting new ports, total devices now registered: " + this.arduinoMap.validDeviceCount());
 
         // signal main thread to go ahead
         synchronized (semaphore) {
             semaphore.notify();
         }
-        System.out.println("=================== done collecting new ports, total devices now registered: " + this.arduinoMap.validDeviceCount());
     }
 
     public void register(SerialDevice sd) {
