@@ -12,7 +12,7 @@
         html,
         body {
             font-size: 1.1em;
-            width: 100%;
+            width: 98%;
             background-color: #717af7;
             color: #130f0281;
             font-family: 'Lato', sans-serif;
@@ -66,7 +66,7 @@
             <div class="line"> </div> 
         -->
 
-        <div style="width:100%; padding:0.5%; float:left;">
+        <div style="width:98%; padding:0.5%; float:left;">
             <button id="startLog" class="button" onclick="startLog()">Start logging</button>
             <button id="stopLog" class="button" style="border:2px solid black" onclick="stopLog()">Stop logging</button>
             <button class="button" onclick="getStatus()">Get status</button>
@@ -77,7 +77,7 @@
 
         <div>
 
-            <div style="width:24%; height:20%; padding:2%; float:left">
+            <div style="width:24%; padding:2%; float:left">
                 <h2>Control</h2>
                 <h3>Variac Input Voltage: </h3>
                 <input id="variacValue" value="0">
@@ -100,23 +100,22 @@
                         onclick="SolenoidOff()">Closed</button>
                 </div>
                 <br>
-                <h3>
-                    <a onclick="window.open('cameras.html', 'popup_window', 'width=1920,height=1040'); return false;"
-                        style="color: #130f0281;">
+                    <button class="button"
+                        onclick="window.open('cameras.html', 'popup_window', 'width=1920,height=1040'); return false;"
+                        style="width: 80%; background-color: #39a82a;">
                         Cameras
-                    </a>
-                </h3>
+                    </button>
             </div>
 
-            <div style="width:76%; height:50%; padding:2%; float:left">
-                <textarea id="data" rows="12" style="width:98%; height:100%; white-space: nowrap; overflow: auto;">
+            <div style="width:76%; height:90%; padding:2%; float:left">
+                <textarea id="data" rows="18" style="width:98%; height:100%; white-space: nowrap; overflow: auto;">
                 </textarea>
-                <div id="cameras" style="display:inline">
+<!--                <div id="cameras" style="display:inline">
                     <img id="cam1" style="width:24%;display:none;padding:0%" src="">
                     <img id="cam2" style="width:24%;display:none;padding:0%" src="">
                     <img id="cam3" style="width:24%;display:none;padding:0%" src="">
                     <img id="cam4" style="width:24%;display:none;padding:0%" src="">
-                </div>
+                </div>-->
             </div>
         </div>
         <!-- <div style="clear:both" class="line"></div> -->
@@ -127,7 +126,7 @@
         var endTest = false;
         var statusTimer = null;
 
-        enableCameras();
+        //enableCameras();
 
 
         function infoFromData(data) {
