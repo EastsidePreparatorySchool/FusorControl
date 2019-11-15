@@ -100,69 +100,53 @@
                         onclick="SolenoidOff()">Closed</button>
                 </div>
                 <br>
-                    <button class="button"
-                        onclick="window.open('cameras.html', 'popup_window', 'width=1920,height=1040'); return false;"
-                        style="width: 80%; background-color: #39a82a;">
-                        Cameras
-                    </button>
+                <button class="button"
+                    onclick="window.open('cameras.html', 'popup_window', 'width=1920,height=1040'); return false;"
+                    style="width: 80%; background-color: #39a82a;">
+                    Cameras
+                </button>
             </div>
 
             <div style="width:76%; height:90%; padding:2%; float:left">
                 <textarea id="data" rows="18" style="width:98%; height:100%; white-space: nowrap; overflow: auto;">
                 </textarea>
-<!--                <div id="cameras" style="display:inline">
-                    <img id="cam1" style="width:24%;display:none;padding:0%" src="">
-                    <img id="cam2" style="width:24%;display:none;padding:0%" src="">
-                    <img id="cam3" style="width:24%;display:none;padding:0%" src="">
-                    <img id="cam4" style="width:24%;display:none;padding:0%" src="">
-                </div>-->
             </div>
         </div>
-        <!-- <div style="clear:both" class="line"></div> -->
-        <!-- <p id="error">returns: </p> -->
     </div>
 
     <script type="text/javascript">
         var endTest = false;
         var statusTimer = null;
 
-        //enableCameras();
-
-
         function infoFromData(data) {
             data = JSON.parse(data);
 
-            var info = "\n\n";
-
-            if (findDevice(data, "VARIAC") !== undefined) {
-                info += "Variac setting: " + findVariable(data, "VARIAC", "volts") + " V\n";
-            }
-
-            if (findDevice(data, "HV-LOWSIDE") !== undefined) {
-                info += "Voltages: variac rms: " + findVariable(data, "HV-LOWSIDE", "variac_rms") + " V, ";
-                info += "nst rms: " + findVariable(data, "HV-LOWSIDE", "nst_rms") + " V, ";
-                info += "cw avg: " + findVariable(data, "HV-LOWSIDE", "cw_avg") + " V, ";
-                info += "n: " + findVariable(data, "HV-LOWSIDE", "n") + "\n";
-            }
-
-            if (findDevice(data, "GC-SERIAL") !== undefined) {
-                info += "GC: " + findVariable(data, "GC-SERIAL", "cps") + " cps\n";
-            }
-
-            if (findDevice(data, "PN-JUNCTION") !== undefined) {
-                info += "PN: " + findVariable(data, "PN-JUNCTION", "total") + "\n";
-            }
+            info += "Variac setting: " + findVariable(data, "VARIAC", "volts") + " V\n";
+            info += "Lowside: variac rms: " + getVariable(data, "HV-LOWSIDE", "variac_rms") + " V, ";
+            info += "nst rms: " + getVariable(data, "HV-LOWSIDE", "nst_rms") + " V, ";
+            info += "cw avg: " + getVariable(data, "HV-LOWSIDE", "cw_avg") + " V, ";
+            info += "n: " + getVariable(data, "HV-LOWSIDE", "n") + "\n";
+            info += "GC: " + getVariable(data, "GC-SERIAL", "cps") + " cps\n";
+            info += "PN: " + getVariable(data, "PN-JUNCTION", "total") + "\n";
             return info;
         }
 
 
-        function findDevice(data, device) {
-            return data.find((item) => item["device"] === device);
-        }
-
-        function findVariable(data, device, variable) {
+        function getVariable(data, device, variable) {
+            var value;
             device = data.find((item) => item["device"] === device);
-            return device["data"][variable]["value"];
+            if (device == undefined) {
+                return ("<n/c>");
+            }
+            variable = device["data"][variable];
+            if (variable == undefined) {
+                return "<n.s.v.>";
+            }
+            value = variable["value"];
+            if (value == undefined) {
+                return "<corrupt>";
+            }
+            return value;
         }
 
 
@@ -173,22 +157,6 @@
             }
         });
 
-        function enableCameras() {
-            request({ url: "/numcameras", method: "GET" })
-                .then(data => {
-                    // yes: make the display visible and set the url
-                    var numCameras = Number(data);       // got number from server
-                    numCameras = Math.min(numCameras, 4); // 4 cameras max
-                    for (var i = 1; i <= numCameras; i++) {
-                        var cam = document.getElementById("cam" + i);
-                        cam.style.display = "inline";
-                        cam.src = window.location.origin + ":45" + (i + 66) + "/mjpg";
-                    }
-                })
-                .catch(error => {
-                    console.log("camera error: " + error);
-                });
-        }
 
         function selectButton(select, unselect) {
             document.getElementById(unselect).style.border = "none";
@@ -232,8 +200,8 @@
         function getStatus() {
             request({ url: "/getstatus", method: "GET" })
                 .then(data => {
-                    document.getElementById("data").value = data;
-                    document.getElementById("data").value += infoFromData(data);
+                    document.getElementById("data").value = infoFromData(data);
+                    document.getElementById("data").value += "\n\n"+data;
 
                     //console.log(data);
                 })
