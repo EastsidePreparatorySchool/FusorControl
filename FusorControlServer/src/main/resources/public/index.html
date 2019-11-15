@@ -120,8 +120,11 @@
 
         function infoFromData(data) {
             data = JSON.parse(data);
+            info = "";
 
-            info += "Variac setting: " + findVariable(data, "VARIAC", "volts") + " V\n";
+            var volts = getVariable(data, "VARIAC", "volts");
+            
+            info += "Variac setting: " + volts + " V\n";
             info += "Lowside: variac rms: " + getVariable(data, "HV-LOWSIDE", "variac_rms") + " V, ";
             info += "nst rms: " + getVariable(data, "HV-LOWSIDE", "nst_rms") + " V, ";
             info += "cw avg: " + getVariable(data, "HV-LOWSIDE", "cw_avg") + " V, ";
@@ -138,7 +141,11 @@
             if (device == undefined) {
                 return ("<n/c>");
             }
-            variable = device["data"][variable];
+            data = device["data"];
+            if (variable == undefined) {
+                return "corrupt";
+            }
+            variable = data[variable];
             if (variable == undefined) {
                 return "<n.s.v.>";
             }
