@@ -4,23 +4,20 @@ import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class DeviceManager {
 
     //
     // the static part of this class acts as the manager for serial devices
     //
-    private SerialPort[] ports;
     private SerialDeviceMap arduinoMap = new SerialDeviceMap();
     private Thread queryThread;
     // keep track of partial messages
@@ -118,7 +115,7 @@ public class DeviceManager {
     }
 
     public CoreDevices init() {
-        ports = SerialPort.getCommPorts();
+        SerialPort[] ports = SerialPort.getCommPorts();
 
         //
         // list current ports on system
@@ -174,10 +171,10 @@ public class DeviceManager {
         // discovering new devices is not that important, after all
         Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 2);
         try {
-            while (!Thread.interrupted()) {
-                queryIdentifyAll(semaphore);
-                Thread.sleep(5000);
-            }
+            //while (!Thread.interrupted()) {
+            queryIdentifyAll(semaphore);
+            Thread.sleep(5000);
+            //}
         } catch (InterruptedException e) {
         }
 
@@ -195,12 +192,80 @@ public class DeviceManager {
 
         // filter the list of all ports down to only COM devices,
         // and only ones that are not registered yet. 
-        ports = SerialPort.getCommPorts();
+        SerialPort[] ports = SerialPort.getCommPorts();
         List<SerialPort> portList = new ArrayList<>(Arrays.asList(ports));
         portList.removeIf((p) -> ((!p.getSystemPortName().contains("COM"))
                 || arduinoMap.containsPort(p)
                 || (Arrays.binarySearch(ignorePorts, p.getDescriptivePortName()) >= 0)
                 || (p.getDescriptivePortName().toLowerCase().contains("bluetooth") && FusorControlServer.noBlueTooth)));
+
+        //
+        // sort by COM port number
+        //
+        Collections.sort(portList, (a, b) -> (getPortNumber(a) - getPortNumber(b)));
+
+        //
+        // filter out bluetooth pairs
+        //
+        if (portList.size() > 1) {
+            System.out.println("scanning for bluetooth port pairs ...");
+            for (int i = 0; i < portList.size() - 1; i++) {
+                SerialPort p = portList.get(i);
+                // This is list sorted by descriptive name, so two bluetooth ports would be next to each other, identical except for the number
+                if (p.getDescriptivePortName().toLowerCase().contains("bluetooth")) {
+                    int com = p.getDescriptivePortName().toLowerCase().indexOf("com");
+                    String name = p.getDescriptivePortName().substring(0, com);
+                    SerialPort pB = portList.get(i + 1);
+                    String nextName = pB.getDescriptivePortName().substring(0, com);
+                    if (name.equalsIgnoreCase(nextName) && ((getPortNumber(pB) - getPortNumber(p)) == 1)) {
+                        // Found bluetooth pair of COM ports. Now which is incoming, and which is outgoing?
+                        // We need the outgoing one. To find out, we will write to *both* and see who dies.
+                        SerialPort[] wrongOne = {null};
+                        Thread threadA = new Thread(() -> {
+                            try {
+                                p.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
+                                p.openPort();
+                                //System.out.println("" + p.getOutputStream());
+                                writeToPort(p, "*");
+                                wrongOne[0] = pB;
+                            } catch (Exception ex) {
+                                //System.out.println("Exception on bluetooth " + p.getSystemPortName());
+                                //System.out.println(ex);
+                            }
+                        });
+                        threadA.start();
+                        Thread threadB = new Thread(() -> {
+                            try {
+                                pB.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
+                                pB.openPort();
+                                //System.out.println("" + pB.getOutputStream());
+                                writeToPort(pB, "*");
+                                pB.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
+                                wrongOne[0] = p;
+                            } catch (Exception ex) {
+                                //System.out.println("Exception on bluetooth " + pB.getSystemPortName());
+                                //System.out.println(ex);
+                            }
+                        });
+                        threadB.start();
+                        threadA.join(1000);
+                        threadB.join(1000);
+                        // time to pick up the pieces. if the port was set, remove it from the list.
+                        if (wrongOne[0] == null) {
+                            // both are duds
+                            System.out.println("  - removing deaf ports "+p.getSystemPortName()+", "+pB.getSystemPortName());
+                            portList.remove(p);
+                            portList.remove(pB);
+                            i--;
+                        } else {
+                            // remove the one that doesn't work
+                            System.out.println("  - removing deaf port " + wrongOne[0].getSystemPortName());
+                            portList.remove(wrongOne[0]);
+                        }
+                    }
+                }
+            }
+        }
 
         // cut this short if there is nothing new
         if (portList.isEmpty()) {
@@ -217,6 +282,7 @@ public class DeviceManager {
             port.setComPortParameters(115200, 8, 1, SerialPort.NO_PARITY);
             threads[i] = new Thread(() -> {
                 try {
+                    port.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
                     port.openPort();
                     port.addDataListener(connectionListener);
                     Thread.sleep(2000);
@@ -307,9 +373,11 @@ public class DeviceManager {
 
     static void writeToPort(SerialPort port, String arg) throws IOException {
         byte[] bytes = arg.getBytes();
-        port.getOutputStream().write(bytes);
-        if (FusorControlServer.superVerbose) {
-            System.out.println("Wrote '" + arg + "' to port " + port.getSystemPortName());
+        if (port.getOutputStream() != null) {
+            port.getOutputStream().write(bytes);
+            if (FusorControlServer.superVerbose) {
+                System.out.println("Wrote '" + arg + "' to port " + port.getSystemPortName());
+            }
         }
     }
 
@@ -396,5 +464,16 @@ public class DeviceManager {
 
         status = "[" + status + "{\"status\":\"complete: " + ((new Date()).toInstant().toString()) + "\"}]";
         return status;
+    }
+
+    static private int getPortNumber(SerialPort p) {
+        int result;
+        try {
+            String name = p.getSystemPortName();
+            result = Integer.parseInt(name.substring(3));
+        } catch (Exception e) {
+            result = 0;
+        }
+        return result;
     }
 }
