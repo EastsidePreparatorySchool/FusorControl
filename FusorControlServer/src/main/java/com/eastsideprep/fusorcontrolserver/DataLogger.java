@@ -27,7 +27,7 @@ public class DataLogger {
         open();
 
         loggerThread = new Thread(() -> loggerThreadLoop());
-        if (!FusorControlServer.noLog) {
+        if (!FusorControlServer.config.noLog) {
             loggerThread.start();
         }
     }
@@ -47,7 +47,7 @@ public class DataLogger {
         try {
             while (!Thread.interrupted()) {
                 dm.getAllStatus();
-                Thread.sleep(1000 / FusorControlServer.logFreq);
+                Thread.sleep(1000 / FusorControlServer.config.logFreq);
                 logAll();
             }
         } catch (InterruptedException e) {
@@ -93,7 +93,7 @@ public class DataLogger {
 
     public void makeLogPath() {
         this.logPath = System.getProperty("user.dir") + System.getProperty("file.separator") + "logs";
-        if (FusorControlServer.config != null) {
+        if (FusorControlServer.config.logPath != null) {
             this.logPath = FusorControlServer.config.logPath;
         }
 

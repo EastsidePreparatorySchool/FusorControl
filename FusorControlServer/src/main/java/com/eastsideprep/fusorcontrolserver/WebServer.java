@@ -126,12 +126,12 @@ public class WebServer {
 
         //chatter control
         get("/verbose", (req, res) -> {
-            FusorControlServer.verbose = true;
+            FusorControlServer.config.verbose = true;
             return "verbose";
         });
 
         get("/quiet", (req, res) -> {
-            FusorControlServer.verbose = false;
+            FusorControlServer.config.verbose = false;
             return "quiet";
         });
 
@@ -142,8 +142,8 @@ public class WebServer {
                 dm.getAllStatus();
                 Thread.sleep(1000);
             }
-            String s = dm.readStatusResults(FusorControlServer.includeCoreStatus);
-            if (FusorControlServer.superVerbose) {
+            String s = dm.readStatusResults(FusorControlServer.config.includeCoreStatus);
+            if (FusorControlServer.config.superVerbose) {
                 System.out.println("  Status:" + s);
             }
             return s;

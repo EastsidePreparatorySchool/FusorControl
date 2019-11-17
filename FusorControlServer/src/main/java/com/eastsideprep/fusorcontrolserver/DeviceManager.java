@@ -5,7 +5,6 @@ import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
 import java.io.IOException;
 import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,8 +12,6 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class DeviceManager {
 
@@ -35,7 +32,7 @@ public class DeviceManager {
 
         @Override
         public void serialEvent(SerialPortEvent e) {
-            if (FusorControlServer.verbose) {
+            if (FusorControlServer.config.verbose) {
                 //System.out.println("  Serial event on port " + e.getSerialPort().getSystemPortName());
             }
             if (e.getEventType() == SerialPort.LISTENING_EVENT_DATA_AVAILABLE) {
@@ -59,11 +56,11 @@ public class DeviceManager {
         byte[] data = new byte[bytes];
         port.readBytes(data, bytes);
 
-        if (FusorControlServer.superVerbose) {
+        if (FusorControlServer.config.superVerbose) {
             System.out.println("Read " + data.length + " bytes from " + e.getSerialPort().getSystemPortName());
         }
         String buffer = new String(data);
-        if (FusorControlServer.superVerbose) {
+        if (FusorControlServer.config.superVerbose) {
             //System.out.println("  string:" + buffer);
         }
 
@@ -71,7 +68,7 @@ public class DeviceManager {
         if (bufferState.containsKey(port)) {
             buffer = bufferState.get(port) + buffer;
         }
-        if (FusorControlServer.superVerbose) {
+        if (FusorControlServer.config.superVerbose) {
             System.out.println("  serial buffer:" + buffer);
         }
 
@@ -101,7 +98,7 @@ public class DeviceManager {
 
     private void processMessage(String response, SerialPort port) {
         long time = System.currentTimeMillis();
-        if (FusorControlServer.superVerbose) {
+        if (FusorControlServer.config.superVerbose) {
             System.out.println("  Response from " + port.getSystemPortName() + ":" + response);
         }
         if (response.startsWith(SerialDevice.FUSOR_IDENTIFY + ":")) {
@@ -149,7 +146,7 @@ public class DeviceManager {
 
         // need to be able to fakeCoreDevices this thing away from the Arduinos
         // so make dummy ports if necessary
-        if (FusorControlServer.fakeCoreDevices) {
+        if (FusorControlServer.config.fakeCoreDevices) {
             cd.fakeMissingCoreDevices();
         }
 
@@ -227,7 +224,7 @@ public class DeviceManager {
         portList.removeIf((p) -> ((!p.getSystemPortName().contains("COM"))
                 || arduinoMap.containsPort(p)
                 || (Arrays.binarySearch(ignorePorts, p.getDescriptivePortName()) >= 0)
-                || (p.getDescriptivePortName().toLowerCase().contains("bluetooth") && FusorControlServer.noBlueTooth)));
+                || (p.getDescriptivePortName().toLowerCase().contains("bluetooth") && FusorControlServer.config.noBlueTooth)));
 
         //
         // sort by COM port number
@@ -414,7 +411,7 @@ public class DeviceManager {
         byte[] bytes = arg.getBytes();
         if (port.getOutputStream() != null) {
             port.getOutputStream().write(bytes);
-            if (FusorControlServer.superVerbose) {
+            if (FusorControlServer.config.superVerbose) {
                 System.out.println("Wrote '" + arg + "' to port " + port.getSystemPortName());
             }
         }

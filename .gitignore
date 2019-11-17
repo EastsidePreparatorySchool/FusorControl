@@ -2,3 +2,4 @@
 /FusorControlServer/build/
 /FusorControlServer/target/
 FusorControlServer/logs/*.json
+FusorControlServer/config.json

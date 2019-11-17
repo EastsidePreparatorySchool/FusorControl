@@ -59,7 +59,7 @@ public class SerialDevice {
             return;
         }
 
-        if(FusorControlServer.superVerbose) {
+        if(FusorControlServer.config.superVerbose) {
             System.out.println("writing to port "+port.getSystemPortName()+":"+s);
         }
         byte[] bytes = s.getBytes();
@@ -76,7 +76,7 @@ public class SerialDevice {
         if (this.os == null) {
             return;
         }
-        if (FusorControlServer.superVerbose || (!s.equals("GETALL"))) {
+        if (FusorControlServer.config.superVerbose || (!s.equals("GETALL"))) {
             System.out.println("command to device " + name + ": " + s);
         }
         write(SerialDevice.makeCommand(s));

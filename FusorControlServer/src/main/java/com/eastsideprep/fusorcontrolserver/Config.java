@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -32,10 +33,10 @@ public class Config {
             s = new String(buffer).trim();
         } catch (FileNotFoundException e) {
             try {
-                byte[] buffer = new byte[65000];
-                InputStream is = Config.class.getResourceAsStream("/resources/" + "config.json");
-                is.read(buffer);
-                s = new String(buffer).trim();
+                FileWriter out = new FileWriter("config.json");
+                s = new Config().toJson();
+                out.write(s);
+                out.close();
             } catch (Exception e2) {
             }
         } catch (IOException e3) {
