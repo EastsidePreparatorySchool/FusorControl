@@ -195,7 +195,7 @@ public class DeviceManager {
                 NetworkInterface ni = en.nextElement();
                 byte[] addr = ni.getHardwareAddress();
                 if (addr != null && addr[5] != 0) {
-                    System.out.println("MAC " + ni.getDisplayName() + ", " + Arrays.toString(ni.getHardwareAddress()));
+                    //System.out.println("MAC " + ni.getDisplayName() + ", " + Arrays.toString(ni.getHardwareAddress()));
                     macs.add(addr);
                 }
             }
@@ -209,7 +209,8 @@ public class DeviceManager {
             {84, -31, -83, 59, -109, -98}, // GM laptop main MAC
         };
         String[] ignorePorts = {
-            "Intel(R) Active Management Technology - SOL (COM4)",};
+            "Intel(R) Active Management Technology - SOL (COM4)", // Intel management port on GM's laptop
+        };
 
         // cull down the ignore list, leave only ports that are on this machine
         for (int i = 0; i < ignorePorts.length; i++) {

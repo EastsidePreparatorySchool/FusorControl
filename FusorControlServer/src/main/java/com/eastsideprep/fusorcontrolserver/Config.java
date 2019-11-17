@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class Config {
+
     public boolean fakeCoreDevices = true;
     public boolean noLog = false;
     public int logFreq = 10;
@@ -16,15 +17,15 @@ public class Config {
     public boolean superVerbose = false;
     public boolean noBlueTooth = false;
     public String logPath = null;
-    
+
     private static Gson gson = new Gson();
 
-    public  static Config configFromFile(String path, String fileName) {
-        String s= null;
+    public static Config readConfig() {
+        String s = null;
         Config config = null;
 
         try {
-            FileReader in = new FileReader(path + fileName);
+            FileReader in = new FileReader("config.json");
             char[] buffer = new char[65000];
             in.read(buffer);
             in.close();
@@ -32,7 +33,7 @@ public class Config {
         } catch (FileNotFoundException e) {
             try {
                 byte[] buffer = new byte[65000];
-                InputStream is = Config.class.getResourceAsStream("/resources/" + fileName);
+                InputStream is = Config.class.getResourceAsStream("/resources/" + "config.json");
                 is.read(buffer);
                 s = new String(buffer).trim();
             } catch (Exception e2) {
@@ -43,7 +44,7 @@ public class Config {
         if (s == null) {
             return new Config();
         }
-        
+
         try {
             //System.out.println("readConfigFile: parsing JSON string: "+config.substring(0, 100) + "...");
             config = gson.fromJson(s, Config.class);
@@ -56,7 +57,7 @@ public class Config {
         }
         return config;
     }
-    
+
     public String toJson() {
         return gson.toJson(this, Config.class);
     }
