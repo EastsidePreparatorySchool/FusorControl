@@ -15,6 +15,7 @@ public class Config {
     public boolean verbose = false;
     public boolean superVerbose = false;
     public boolean noBlueTooth = false;
+    public String logPath = null;
     
     private static Gson gson = new Gson();
 

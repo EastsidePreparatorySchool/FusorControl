@@ -4,12 +4,17 @@ import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
 import java.io.IOException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DeviceManager {
 
@@ -180,16 +185,42 @@ public class DeviceManager {
 
     private void queryIdentifyAll(Object semaphore) throws InterruptedException {
         //
-        // go trough ports, knock on the door
+        // gather hardwre MAC addresses to figure out which computer this is
         //
 
+        ArrayList<byte[]> macs = new ArrayList<>();
+        try {
+            Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
+            while (en.hasMoreElements()) {
+                NetworkInterface ni = en.nextElement();
+                byte[] addr = ni.getHardwareAddress();
+                if (addr != null && addr[5] != 0) {
+                    System.out.println("MAC " + ni.getDisplayName() + ", " + Arrays.toString(ni.getHardwareAddress()));
+                    macs.add(addr);
+                }
+            }
+        } catch (Exception ex) {
+            //System.out.println("exception trying to get MAC addr: " + ex);
+        }
+
         // need to be adapted to machine this is running on
-        String[] ignorePorts = {
-            "Standard Serial over Bluetooth link (COM11)"
+        // paired lists: knownMacs, ports to ignore. Ugly, but I am too lazy to make another class for this
+        byte[][] knownMacs = {
+            {84, -31, -83, 59, -109, -98}, // GM laptop main MAC
         };
+        String[] ignorePorts = {
+            "Intel(R) Active Management Technology - SOL (COM4)",};
+
+        // cull down the ignore list, leave only ports that are on this machine
+        for (int i = 0; i < ignorePorts.length; i++) {
+            final byte[] addr = knownMacs[i];
+            if (!macs.stream().anyMatch((e) -> Arrays.equals(e, addr))) {
+                ignorePorts[i] = "";
+            }
+        }
 
         // filter the list of all ports down to only COM devices,
-        // and only ones that are not registered yet. 
+        // and only ones that are not registered etc. 
         SerialPort[] ports = SerialPort.getCommPorts();
         List<SerialPort> portList = new ArrayList<>(Arrays.asList(ports));
         portList.removeIf((p) -> ((!p.getSystemPortName().contains("COM"))
@@ -253,7 +284,7 @@ public class DeviceManager {
                         // time to pick up the pieces. if the port was set, remove it from the list.
                         if (wrongOne[0] == null) {
                             // both are duds
-                            System.out.println("  - removing deaf port pair "+p.getSystemPortName()+", "+pB.getSystemPortName());
+                            System.out.println("  - removing deaf port pair " + p.getSystemPortName() + ", " + pB.getSystemPortName());
                             p.closePort();
                             portList.remove(p);
                             pB.closePort();
@@ -272,6 +303,10 @@ public class DeviceManager {
 
         // cut this short if there is nothing new
         if (portList.isEmpty()) {
+            // signal main thread to go ahead
+            synchronized (semaphore) {
+                semaphore.notify();
+            }
             return;
         }
 

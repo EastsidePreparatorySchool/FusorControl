@@ -1,361 +1,66 @@
 <!DOCTYPE html>
 <html>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>fusor control | sensors</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-        crossorigin="anonymous">
-    <style>
-        html,
-        body {
-            font-size: 1.1em;
-            width: 98%;
-            background-color: #717af7;
-            color: #130f0281;
-            font-family: 'Lato', sans-serif;
-        }
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Fusor control</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"  crossorigin="anonymous">
+        <link rel="stylesheet" href="client_styles.css">
+    </head>
 
-        h2 {
-            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-        }
+    <body>
+        <div class="container">
+            <h1 style="font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 200%;">
+                Fusor Control
+            </h1>
+            <div style="width:98%; padding:0.5%; float:left;">
+                <button id="startLog" class="button" onclick="startLog()">Start logging</button>
+                <button id="stopLog" class="button" style="border:2px solid black" onclick="stopLog()">Stop logging</button>
+                <button class="button" onclick="getStatus()">Get status</button>
+                <button class="button" style="background-color: #f64072;" onclick="kill()"><b>Stop Server</b></button>
+            </div>
+            <div>
+                <div style="width:24%; padding:2%; float:left">
+                    <h2>Control</h2>
+                    <h3>Variac Input Voltage: </h3>
+                    <input id="variacValue" value="0">
+                    <button onclick="variac(document.getElementById('variacValue').value)" id="variacButton">Set</button>
+                    <h3>Turbo Pump: </h3>
+                    <div>
+                        <button id="tmpon" class="button" style="width: 40%; background-color: #39a82a;"
+                                onclick="tmpOn()">On</button>
+                        <button id="tmpoff" class="button"
+                                style="width: 40%; border:2px solid black; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif"
+                                onclick="tmpOff()">Off</button>
+                    </div>
 
-        h3 {
-            margin-top: 1%;
-        }
-
-        .container {
-            margin: 1% 1% 1% 1%;
-            max-width: 100%;
-        }
-
-        .button {
-            height: 50px;
-            width: 24.5%;
-            border: none;
-            border-radius: 8px;
-            opacity: 0.9;
-            background-color: #fc8e60;
-            color: #f5e0d9;
-            font-size: 1.5em;
-            display: inline-block;
-            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-        }
-
-        .button:hover {
-            opacity: 1.0;
-        }
-
-        .line {
-            background-color: #1b0000;
-            height: 0.1em;
-            border-radius: 10%;
-            margin: 1%;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <h1 style="font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 200%;">
-            Fusor Control
-        </h1>
-        <!-- 
-            <div class="line"> </div> 
-        -->
-
-        <div style="width:98%; padding:0.5%; float:left;">
-            <button id="startLog" class="button" onclick="startLog()">Start logging</button>
-            <button id="stopLog" class="button" style="border:2px solid black" onclick="stopLog()">Stop logging</button>
-            <button class="button" onclick="getStatus()">Get status</button>
-            <button class="button" style="background-color: #f64072;" onclick="kill()"><b>Stop Server</b></button>
-        </div>
-
-        <!-- <div class="line"></div> -->
-
-        <div>
-
-            <div style="width:24%; padding:2%; float:left">
-                <h2>Control</h2>
-                <h3>Variac Input Voltage: </h3>
-                <input id="variacValue" value="0">
-                <button onclick="variac(document.getElementById('variacValue').value)" id="variacButton">Set</button>
-                <h3>Turbo Pump: </h3>
-                <div>
-                    <button id="tmpon" class="button" style="width: 40%; background-color: #39a82a;"
-                        onclick="tmpOn()">On</button>
-                    <button id="tmpoff" class="button"
-                        style="width: 40%; border:2px solid black; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif"
-                        onclick="tmpOff()">Off</button>
+                    <h3>Solenoid Valve:</h3>
+                    <div>
+                        <button id="solon" class="button" style="width: 40%; background-color: #39a82a;"
+                                onclick="SolenoidOn()">Open</button>
+                        <button id="soloff" class="button"
+                                style="border:2px solid black;width: 40%; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;"
+                                onclick="SolenoidOff()">Closed</button>
+                    </div>
+                    <br>
+                    <button class="button"
+                            onclick="window.open('cameras.html', 'popup_window', 'width=1920,height=1040'); return false;"
+                            style="width: 80%; background-color: #39a82a;">
+                        Cameras
+                    </button>
                 </div>
 
-                <h3>Solenoid Valve:</h3>
-                <div>
-                    <button id="solon" class="button" style="width: 40%; background-color: #39a82a;"
-                        onclick="SolenoidOn()">Open</button>
-                    <button id="soloff" class="button"
-                        style="border:2px solid black;width: 40%; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;"
-                        onclick="SolenoidOff()">Closed</button>
+                <div style="width:76%; height:90%; padding:2%; float:left">
+                    <textarea id="data" rows="18" style="width:98%; height:100%; white-space: nowrap; overflow: auto;">
+                    </textarea>
                 </div>
-                <br>
-                <button class="button"
-                    onclick="window.open('cameras.html', 'popup_window', 'width=1920,height=1040'); return false;"
-                    style="width: 80%; background-color: #39a82a;">
-                    Cameras
-                </button>
-            </div>
-
-            <div style="width:76%; height:90%; padding:2%; float:left">
-                <textarea id="data" rows="18" style="width:98%; height:100%; white-space: nowrap; overflow: auto;">
-                </textarea>
             </div>
         </div>
-    </div>
 
-    <script type="text/javascript">
-        var endTest = false;
-        var statusTimer = null;
-
-        function infoFromData(data) {
-            data = JSON.parse(data);
-            info = "";
-
-            var volts = getVariable(data, "VARIAC", "volts");
-            
-            info += "Variac setting: " + volts + " V\n";
-            info += "Lowside: variac rms: " + getVariable(data, "HV-LOWSIDE", "variac_rms") + " V, ";
-            info += "nst rms: " + getVariable(data, "HV-LOWSIDE", "nst_rms") + " V, ";
-            info += "cw avg: " + getVariable(data, "HV-LOWSIDE", "cw_avg") + " V, ";
-            info += "n: " + getVariable(data, "HV-LOWSIDE", "n") + "\n";
-            info += "GC: " + getVariable(data, "GC-SERIAL", "cps") + " cps\n";
-            info += "PN: " + getVariable(data, "PN-JUNCTION", "total") + "\n";
-            return info;
-        }
-
-
-        function getVariable(data, device, variable) {
-            var value;
-            device = data.find((item) => item["device"] === device);
-            if (device == undefined) {
-                return ("<n/c>");
-            }
-            data = device["data"];
-            if (variable == undefined) {
-                return "corrupt";
-            }
-            variable = data[variable];
-            if (variable == undefined) {
-                return "<n.s.v.>";
-            }
-            value = variable["value"];
-            if (value == undefined) {
-                return "<corrupt>";
-            }
-            return value;
-        }
-
-
-        document.getElementById("variacValue").addEventListener("keyup", function (event) {
-            if (event.keyCode === 13) { //enter key: 13
-                event.preventDefault();
-                document.getElementById("variacButton").click();
-            }
-        });
-
-
-        function selectButton(select, unselect) {
-            document.getElementById(unselect).style.border = "none";
-            document.getElementById(select).style.border = "2px solid black"
-        }
-
-        //new request & xmlRequest function (spark stuff (this has nothing to do with spark. this is just http. GM.))
-        function request(obj) {
-            return new Promise((resolve, reject) => {
-                let xhr = new XMLHttpRequest();
-                xhr.open(obj.method || "GET", obj.url);
-
-                xhr.onload = () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        resolve(xhr.response);
-                    } else {
-                        reject(xhr.statusText);
-                    }
-                };
-                xhr.onerror = () => reject(xhr.statusText);
-
-                xhr.send(obj.body);
-            });
-        }
-
-
-        function xmlRequest(verb, url) {
-            var xhr = new XMLHttpRequest();
-            xhr.open(verb || "GET", url, true);
-            xhr.onload = () => {
-                console.log(xhr.response);
-            };
-            xhr.onerror = () => {
-                console.log("error: " + statusText);
-            };
-            xhr.send();
-        }
-
-
-        //gets status of all non-core devices
-        function getStatus() {
-            request({ url: "/getstatus", method: "GET" })
-                .then(data => {
-                    document.getElementById("data").value = infoFromData(data);
-                    document.getElementById("data").value += "\n\n"+data;
-
-                    //console.log(data);
-                })
-                .catch(error => {
-                    console.log("getstatus error: " + error);
-                    console.log("stopping status requests to server");
-                    stopStatus();
-                    selectButton("stopLog", "startLog");
-                });
-        }
-
-        //this kills the server (needs testing)
-        function kill() {
-            request({ url: "/kill", method: "GET" })
-                .then(data => {
-                    console.log(data);
-                })
-                .catch(error => {
-                    console.log("error: " + error);
-                });
-        }
-
-        //start a new log
-        function startLog() {
-            console.log("startlog");
-            request({ url: "/startlog", method: "GET" })
-                .then(data => {
-                    console.log(data);
-                    initStatus();
-                    selectButton("startLog", "stopLog");
-                })
-                .catch(error => {
-                    console.log("error: " + error);
-                });
-        }
-
-        //stop logging
-        function stopLog() {
-            console.log("stoplog");
-            stopStatus();
-            selectButton("stopLog", "startLog");
-            request({ url: "/stoplog", method: "GET" })
-                .then(data => {
-                    console.log(data);
-                })
-                .catch(error => {
-                    console.log("error: " + error);
-                });
-        }
-
-        //control variac
-        function variac(num) {
-            var variacValue = num;
-            console.log(num);
-            try {
-                request({ url: "/variac?value=" + variacValue, method: "GET" })
-                    .then(data => {
-                        console.log(data);
-                    })
-                    .catch(error => {
-                        console.log("error: " + error);
-                    });
-            } catch (error) {
-                console.log("Error: " + error)
-            }
-        }
-
-        //control tmp
-        function tmpOn() {
-            try {
-                request({ url: "/tmpOn", method: "GET" })
-                    .then(data => {
-                        console.log(data);
-                        selectButton("tmpon", "tmpoff");
-                    })
-                    .catch(error => {
-                        console.log("error: " + error);
-                    });
-            } catch (error) {
-                console.log("Error: " + error)
-            }
-        }
-
-        function tmpOff() {
-            try {
-                request({ url: "/tmpOff", method: "GET" })
-                    .then(data => {
-                        console.log(data);
-                        selectButton("tmpoff", "tmpon");
-                    })
-                    .catch(error => {
-                        console.log("error: " + error);
-                    });
-            } catch (error) {
-                console.log("Error: " + error)
-            }
-            tmpValue.Value = "";
-        }
-
-        //control the solenoid
-        function SolenoidOn() {
-            try {
-                request({ url: "/solenoidOn", method: "GET" })
-                    .then(data => {
-                        console.log(data);
-                        selectButton("solon", "soloff");
-                    })
-                    .catch(error => {
-                        console.log("error: " + error);
-                    });
-            } catch (error) {
-                console.log("Error: " + error)
-            }
-        }
-
-        function SolenoidOff() {
-            try {
-                request({ url: "/solenoidOff", method: "GET" })
-                    .then(data => {
-                        console.log(data);
-                        selectButton("soloff", "solon");
-                    })
-                    .catch(error => {
-                        console.log("error: " + error);
-                    });
-            } catch (error) {
-                console.log("Error: " + error)
-            }
-        }
-
-        function initStatus() {
-            if (statusTimer === null) {
-                console.log("now receiving status")
-                statusTimer = setInterval(getStatus, 1000); //per every 1 second
-            }
-        }
-
-        function stopStatus() {
-            if (statusTimer !== null) {
-                console.log("now no longer receiving status")
-                clearInterval(statusTimer);
-                statusTimer = null;
-            }
-        }
-
-
-    </script>
-</body>
+        <script type="text/javascript" src="client.js">
+        </script>
+    </body>
 
 </html>

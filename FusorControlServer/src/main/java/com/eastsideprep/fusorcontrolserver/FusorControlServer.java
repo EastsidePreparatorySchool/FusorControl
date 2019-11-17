@@ -11,6 +11,8 @@ public class FusorControlServer {
     public static boolean superVerbose = false;
     public static boolean noBlueTooth = false;
 
+    public static Config config = null;
+
     private static WebServer serv;
 
     public static void main(String[] args) {
