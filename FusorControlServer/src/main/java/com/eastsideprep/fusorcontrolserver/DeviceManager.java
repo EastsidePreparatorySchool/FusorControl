@@ -220,7 +220,8 @@ public class DeviceManager {
                     if (name.equalsIgnoreCase(nextName) && ((getPortNumber(pB) - getPortNumber(p)) == 1)) {
                         // Found bluetooth pair of COM ports. Now which is incoming, and which is outgoing?
                         // We need the outgoing one. To find out, we will write to *both* and see who dies.
-                        SerialPort[] wrongOne = {null};
+                        // Get that going on two threads and wait ...
+                        SerialPort[] wrongOne = {null}; // this needs to be an array so I can change it from the lambdas. Annoying.
                         Thread threadA = new Thread(() -> {
                             try {
                                 p.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
@@ -248,18 +249,22 @@ public class DeviceManager {
                             }
                         });
                         threadB.start();
+                        // wait for threads to finish one way or another
                         threadA.join(1000);
                         threadB.join(1000);
                         // time to pick up the pieces. if the port was set, remove it from the list.
                         if (wrongOne[0] == null) {
                             // both are duds
-                            System.out.println("  - removing deaf ports "+p.getSystemPortName()+", "+pB.getSystemPortName());
+                            System.out.println("  - removing deaf port pair "+p.getSystemPortName()+", "+pB.getSystemPortName());
+                            p.closePort();
                             portList.remove(p);
+                            pB.closePort();
                             portList.remove(pB);
                             i--;
                         } else {
                             // remove the one that doesn't work
                             System.out.println("  - removing deaf port " + wrongOne[0].getSystemPortName());
+                            wrongOne[0].closePort();
                             portList.remove(wrongOne[0]);
                         }
                     }
