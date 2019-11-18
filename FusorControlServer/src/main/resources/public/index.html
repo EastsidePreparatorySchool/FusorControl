@@ -23,27 +23,35 @@
             </div>
             <div>
                 <div style="width:24%; padding:2%; float:left">
-                    <h2>Control</h2>
-                    <h3>Variac Input Voltage: </h3>
-                    <input id="variacValue" value="0">
-                    <button onclick="variac(document.getElementById('variacValue').value)" id="variacButton">Set</button>
-                    <h3>Turbo Pump: </h3>
+
                     <div>
+                        <h3>Turbo Pump: </h3>
                         <button id="tmpon" class="button" style="width: 40%; background-color: #39a82a;"
                                 onclick="tmpOn()">On</button>
                         <button id="tmpoff" class="button"
                                 style="width: 40%; border:2px solid black; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif"
                                 onclick="tmpOff()">Off</button>
                     </div>
-
-                    <h3>Solenoid Valve:</h3>
+                    <br>
                     <div>
+                        <h3>Variac Input Voltage: </h3>
+                        <input id="variacValue" value="0">
+                        <button onclick="variac(document.getElementById('variacValue').value)" id="variacButton">Set</button>
+                    </div>
+                    <br>
+                    <div>
+                        <h3>Solenoid Valve:</h3>
                         <button id="solon" class="button" style="width: 40%; background-color: #39a82a;"
                                 onclick="SolenoidOn()">Open</button>
                         <button id="soloff" class="button"
                                 style="border:2px solid black;width: 40%; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;"
                                 onclick="SolenoidOff()">Closed</button>
+                        <h3>Needle valve: </h3>
+                        <input id="needleValue" value="0">
+                        <button onclick="needleValve(document.getElementById('needleValue').value)" id="needleButton">Set</button>
                     </div>
+
+                    <br>
                     <br>
                     <button class="button"
                             onclick="window.open('cameras.html', 'popup_window', 'width=1920,height=1040'); return false;"
@@ -53,7 +61,7 @@
                 </div>
 
                 <div style="width:76%; height:90%; padding:2%; float:left">
-                    <textarea id="data" rows="18" style="width:98%; height:100%; white-space: nowrap; overflow: auto;font-family: 'Courier New', Courier, monospace;">
+                    <textarea id="data" rows="21" style="width:98%; height:100%; white-space: nowrap; overflow: auto;font-family: 'Courier New', Courier, monospace;">
                     </textarea>
                 </div>
             </div>

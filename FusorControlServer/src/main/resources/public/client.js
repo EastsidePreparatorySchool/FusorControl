@@ -27,7 +27,7 @@ function infoFromData(data) {
         var freq = getVariable(data, "TMP", "pump_freq");
         info += "frequency: " + freq + " Hz, ";
         var amps = getVariable(data, "TMP", "pump_curr_amps");
-        info += "power draw: " + amps +" A\n";
+        info += "power draw: " + amps + " A\n";
     } else {
         info += "n/c\n";
     }
@@ -69,7 +69,7 @@ function infoFromData(data) {
 
     info += "HV High side: ";
     if (isDevicePresent(data, "HV-HIGHSIDE")) {
-        info += "Highside current: " + getVariable(data, "HV-HIGHSIDE", "hs_current_adc") +" (adc)\n";
+        info += "Highside current: " + getVariable(data, "HV-HIGHSIDE", "hs_current_adc") + " (adc)\n";
     } else {
         info += "n/c\n";
     }
@@ -91,7 +91,7 @@ function infoFromData(data) {
 
     info += "P-N-JUNCTION: ";
     if (isDevicePresent(data, "PN-JUNCTION")) {
-        info += "total: "+ getVariable(data, "PN-JUNCTION", "total") + " (adc)\n";
+        info += "total: " + getVariable(data, "PN-JUNCTION", "total") + " (adc)\n";
     } else {
         info += "n/c\n";
     }
@@ -244,6 +244,18 @@ function variac(num) {
     } catch (error) {
         console.log("Error: " + error);
     }
+}
+
+//control needle valve
+function needleValve(num) {
+    console.log("needleValve set:" + um);
+    request({url: "/needlevalve?value=" + num, method: "GET"})
+            .then(data => {
+                console.log(data);
+            })
+            .catch(error => {
+                console.log("needle valve error: " + error);
+            });
 }
 
 //control tmp

@@ -14,4 +14,8 @@ public class GasControlDevice extends SerialDevice {
     public void setClosed() {
         this.set("solenoid", false);
     }
+    
+    public void setNeedleValve(int n) {
+        this.set("needlevalve", n);
+    }
 }
