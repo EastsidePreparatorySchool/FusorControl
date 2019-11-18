@@ -57,7 +57,7 @@ function infoFromData(data) {
         info += "n/c\n";
     }
 
-    info += "HV Lowside: ";
+    info += "HV Low side: ";
     if (isDevicePresent(data, "HV-LOWSIDE")) {
         info += "variac rms: " + getVariable(data, "HV-LOWSIDE", "variac_rms") + " V, ";
         info += "nst rms: " + getVariable(data, "HV-LOWSIDE", "nst_rms") + " V, ";
@@ -67,7 +67,7 @@ function infoFromData(data) {
         info += "n/c\n";
     }
 
-    info += "HV Highside: ";
+    info += "HV High side: ";
     if (isDevicePresent(data, "HV-HIGHSIDE")) {
         info += "Highside current: " + getVariable(data, "HV-HIGHSIDE", "hs_current_adc");
     } else {
@@ -89,9 +89,9 @@ function infoFromData(data) {
         info += "n/c\n";
     }
 
-    info += "PN-JUNCTION: ";
+    info += "P-N-JUNCTION: ";
     if (isDevicePresent(data, "PN-JUNCTION")) {
-        info += getVariable(data, "PN-JUNCTION", "total") + "\n";
+        info += "adc total: "+ getVariable(data, "PN-JUNCTION", "total") + "\n";
     } else {
         info += "n/c\n";
     }
