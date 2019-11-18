@@ -18,7 +18,7 @@ function infoFromData(data) {
     data = JSON.parse(data);
     info = "";
 
-    info += "Punp: ";
+    info += "Pump: ";
     if (isDevicePresent(data, "TMP")) {
         var tmp = getVariable(data, "TMP", "tmp");
         info += "Status: " + mapBoolean(tmp, " on", "off") + ", ";
