@@ -24,10 +24,10 @@ function infoFromData(data) {
         info += "Status: " + mapBoolean(tmp, " on", "off") + ", ";
         var speed = getVariable(data, "TMP", "lowspeed");
         info += "speed: " + mapBoolean(speed, "low", "high") + ", ";
-        var freq = getVariable(data, "TMP", "pump_freq_adc");
-        info += "frequency: " + freq + " (adc), ";
-        var amps = getVariable(data, "TMP", "pump_amps_adc");
-        info += "power draw: " + amps +" (adc)\n";
+        var freq = getVariable(data, "TMP", "pump_freq");
+        info += "frequency: " + freq + " Hz, ";
+        var amps = getVariable(data, "TMP", "pump_curr_amps");
+        info += "power draw: " + amps +" A\n";
     } else {
         info += "n/c\n";
     }
@@ -35,7 +35,7 @@ function infoFromData(data) {
     info += "Pressure (diaphragm gauge): ";
     if (isDevicePresent(data, "DIAPHRAGM")) {
         var dia = getVariable(data, "DIAPHRAGM", "diaphragm_adc");
-        info += "" + dia + "(adc)\n";
+        info += "" + dia + " (adc)\n";
     } else {
         info += "n/c\n";
     }
@@ -49,7 +49,7 @@ function infoFromData(data) {
     }
 
 
-    info += "Variac: ";
+    info += "Variac input setting: ";
     if (isDevicePresent(data, "VARIAC")) {
         var volts = getVariable(data, "VARIAC", "input_volts");
         info += "" + volts + " V\n";
@@ -69,7 +69,7 @@ function infoFromData(data) {
 
     info += "HV High side: ";
     if (isDevicePresent(data, "HV-HIGHSIDE")) {
-        info += "Highside current: " + getVariable(data, "HV-HIGHSIDE", "hs_current_adc");
+        info += "Highside current: " + getVariable(data, "HV-HIGHSIDE", "hs_current_adc") +" (adc)\n";
     } else {
         info += "n/c\n";
     }
@@ -91,7 +91,7 @@ function infoFromData(data) {
 
     info += "P-N-JUNCTION: ";
     if (isDevicePresent(data, "PN-JUNCTION")) {
-        info += "adc total: "+ getVariable(data, "PN-JUNCTION", "total") + "\n";
+        info += "total: "+ getVariable(data, "PN-JUNCTION", "total") + " (adc)\n";
     } else {
         info += "n/c\n";
     }

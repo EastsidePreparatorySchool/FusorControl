@@ -15,7 +15,7 @@ public class DataLogger {
     private String logPath;
 
     public static String makeLogResponse(SerialDevice sd, long time, String response) {
-        return "  {\"device\":\"" + sd.name + "\",\"data\":" + response + ",\"servertime\":" + time + "}";
+        return "{\"device\":\"" + sd.name + "\",\"data\":" + response + ",\"servertime\":" + time + "}";
 
     }
 

@@ -253,12 +253,13 @@ public class DeviceManager {
                             try {
                                 p.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
                                 p.openPort();
-                                //System.out.println("" + p.getOutputStream());
                                 writeToPort(p, "*");
                                 wrongOne[0] = pB;
                             } catch (Exception ex) {
-                                //System.out.println("Exception on bluetooth " + p.getSystemPortName());
-                                //System.out.println(ex);
+                                if (FusorControlServer.config.superVerbose) {
+                                    System.out.println("Exception on bluetooth " + p.getSystemPortName());
+                                    System.out.println(ex);
+                                }
                             }
                         });
                         threadA.start();
@@ -266,23 +267,24 @@ public class DeviceManager {
                             try {
                                 pB.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
                                 pB.openPort();
-                                //System.out.println("" + pB.getOutputStream());
                                 writeToPort(pB, "*");
                                 pB.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
                                 wrongOne[0] = p;
                             } catch (Exception ex) {
-                                //System.out.println("Exception on bluetooth " + pB.getSystemPortName());
-                                //System.out.println(ex);
+                                if (FusorControlServer.config.superVerbose) {
+                                    System.out.println("Exception on bluetooth " + pB.getSystemPortName());
+                                    System.out.println(ex);
+                                }
                             }
                         });
                         threadB.start();
                         // wait for threads to finish one way or another
-                        threadA.join(1000);
-                        threadB.join(1000);
+                        threadA.join(2000);
+                        threadB.join(2000);
                         // time to pick up the pieces. if the port was set, remove it from the list.
                         if (wrongOne[0] == null) {
                             // both are duds
-                            System.out.println("  - removing deaf port pair " + p.getSystemPortName() + ", " + pB.getSystemPortName());
+                            System.out.println("  - removing n/c port pair " + p.getSystemPortName() + ", " + pB.getSystemPortName());
                             p.closePort();
                             portList.remove(p);
                             pB.closePort();
@@ -290,7 +292,7 @@ public class DeviceManager {
                             i--;
                         } else {
                             // remove the one that doesn't work
-                            System.out.println("  - removing deaf port " + wrongOne[0].getSystemPortName());
+                            System.out.println("  - removing bt input port " + wrongOne[0].getSystemPortName());
                             wrongOne[0].closePort();
                             portList.remove(wrongOne[0]);
                         }
@@ -456,9 +458,9 @@ public class DeviceManager {
                 sd = new TMPControlDevice(sd);
                 sd.function = "TMP control";
                 break;
-            case "SOLENOID":
+            case "GAS":
                 sd = new GasControlDevice(sd);
-                sd.function = "Solenoid control";
+                sd.function = "Gas control";
                 break;
 
             //
