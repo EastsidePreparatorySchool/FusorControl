@@ -248,8 +248,8 @@ function variac(num) {
 
 //control needle valve
 function needleValve(num) {
-    console.log("needleValve set:" + um);
-    request({url: "/needlevalve?value=" + num, method: "GET"})
+    console.log("needleValve set:" + num);
+    request({url: "/needleValve?value=" + num, method: "GET"})
             .then(data => {
                 console.log(data);
             })

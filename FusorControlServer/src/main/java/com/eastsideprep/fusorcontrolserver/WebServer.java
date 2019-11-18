@@ -113,7 +113,7 @@ public class WebServer {
             return "turned off TMP";
         });
 
-        get("/needlevalve", (req, res) -> {
+        get("/needleValve", (req, res) -> {
             int value = Integer.parseInt(req.queryParams("value"));
             System.out.println("Received needle valve Set " + value);
             cd.gas.setNeedleValve(value);
