@@ -16,10 +16,9 @@
 #define OHMS 100  // highside current measurement resistor size
 
 void setup(){
-  fusorInit("HV_HIGHSIDE"); //Fusor device name, variables, num variables
-  fusorAddVariable("adc", FUSOR_VARTYPE_INT);
-  fusorAddVariable("volts", FUSOR_VARTYPE_INT);
-  fusorAddVariable("amps", FUSOR_VARTYPE_FLOAT);
+  fusorInit("HV-HIGHSIDE"); //Fusor device name, variables, num variables
+  fusorAddVariable("hs_current_adc", FUSOR_VARTYPE_INT);
+  fusorAddVariable("hs_current_amps", FUSOR_VARTYPE_FLOAT);
 
   // service the serial port in a vain attempt to get this working when it is connected both ways
   if (Serial) {
@@ -50,7 +49,6 @@ void updateAll() {
   float volts = ((float)adc) * 3.3 / 1024;
   float amps = (int)(((float)adc) * 3.3 / OHMS / 1024);
   
-  fusorSetIntVariable("adc",adc);
-  fusorSetIntVariable("volts", volts);
-  fusorSetFloatVariable("amps", amps);
+  fusorSetIntVariable("hs_current_adc",adc);
+  fusorSetFloatVariable("hs_current_amps", amps);
 }

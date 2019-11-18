@@ -115,12 +115,12 @@ public class WebServer {
 
         //solenoid control
         get("/solenoidOn", (req, res) -> {
-            cd.solenoid.setOpen();
+            cd.gas.setOpen();
             return "set solenoid to open";
         });
 
         get("/solenoidOff", (req, res) -> {
-            cd.solenoid.setClosed();
+            cd.gas.setClosed();
             return "set solenoid to closed";
         });
 

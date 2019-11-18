@@ -9,13 +9,13 @@ public class CoreDevices {
 
     public VariacControlDevice variac;
     public TMPControlDevice tmp;
-    public SolenoidControlDevice solenoid;
+    public GasControlDevice gas;
 
     public CoreDevices(DeviceManager dm) {
         this.dm = dm;
 
         this.variac = (VariacControlDevice) dm.get("VARIAC");
-        this.solenoid = (SolenoidControlDevice) dm.get("SOLENOID");
+        this.gas = (GasControlDevice) dm.get("GAS");
         this.tmp = (TMPControlDevice) dm.get("TMP");
     }
 
@@ -23,7 +23,7 @@ public class CoreDevices {
         switch (name) {
             case "VARIAC":
             case "TMP":
-            case "SOLENOID":
+            case "GAS":
                 return true;
         }
         return false;
@@ -34,7 +34,7 @@ public class CoreDevices {
     public boolean complete() {
         // we need all of these. if any of them aren't there, return null
 
-        return !(variac == null || solenoid == null || tmp == null);
+        return !(variac == null || gas == null || tmp == null);
     }
 
     public void fakeMissingCoreDevices() {
@@ -42,9 +42,9 @@ public class CoreDevices {
             variac = new VariacControlDevice(new NullSerialDevice("VARIAC"));
             dm.register(variac);
         }
-        if (solenoid == null) {
-            solenoid = new SolenoidControlDevice(new NullSerialDevice("SOLENOID"));
-            dm.register(solenoid);
+        if (gas == null) {
+            gas = new GasControlDevice(new NullSerialDevice("GAS"));
+            dm.register(gas);
         }
         if (tmp == null) {
             tmp = new TMPControlDevice(new NullSerialDevice("TMP"));

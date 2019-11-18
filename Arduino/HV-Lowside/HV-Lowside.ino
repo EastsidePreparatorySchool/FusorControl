@@ -74,7 +74,7 @@ const float adcToVolts = 1.067 / 1023; // This device is not 1.1v. Depends on a 
 
 
 void setup(){
-  fusorInit("HV_LOWSIDE"); //Fusor device name, variables, num variables
+  fusorInit("HV-LOWSIDE"); //Fusor device name, variables, num variables
   fusorAddVariable("variac_rms", FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("nst_rms", FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("cw_avg", FUSOR_VARTYPE_FLOAT);

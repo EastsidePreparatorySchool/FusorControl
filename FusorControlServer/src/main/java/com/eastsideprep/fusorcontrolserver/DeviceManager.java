@@ -457,7 +457,7 @@ public class DeviceManager {
                 sd.function = "TMP control";
                 break;
             case "SOLENOID":
-                sd = new SolenoidControlDevice(sd);
+                sd = new GasControlDevice(sd);
                 sd.function = "Solenoid control";
                 break;
 
@@ -490,7 +490,7 @@ public class DeviceManager {
         String status = "";
         devices.sort((a, b) -> ((cd.isCoreDevice(b.name) ? 1 : 0) - (cd.isCoreDevice(a.name) ? 1 : 0)));
         for (SerialDevice sd : devices) {
-            if ((includeCore || !cd.isCoreDevice(sd.name)) && sd.port != null) {
+            if ((includeCore || !cd.isCoreDevice(sd.name))) {
                 String s = sd.getLastStatus();
                 if (s != null) {
                     status += s + ",\n";

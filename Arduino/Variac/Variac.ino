@@ -19,7 +19,7 @@
 
 void setup(){
   fusorInit("VARIAC");
-  fusorAddVariable("volts", FUSOR_VARTYPE_INT);
+  fusorAddVariable("input_volts", FUSOR_VARTYPE_INT);
   fusorAddVariable("potentiometer", FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("pot_adc", FUSOR_VARTYPE_INT);
 

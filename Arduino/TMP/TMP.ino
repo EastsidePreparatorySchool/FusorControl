@@ -15,16 +15,17 @@ void setup(){
   fusorInit("TMP");
   fusorAddVariable("tmp", FUSOR_VARTYPE_BOOL);
   fusorAddVariable("lowspeed", FUSOR_VARTYPE_BOOL);
-  fusorAddVariable("freq", FUSOR_VARTYPE_INT);
-  fusorAddVariable("amps", FUSOR_VARTYPE_FLOAT);
-  fusorAddVariable("amps_adc", FUSOR_VARTYPE_FLOAT);
-  fusorAddVariable("freq_adc", FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("pump_freq_adc", FUSOR_VARTYPE_INT);
+  fusorAddVariable("pump_current_amps", FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("pump_current_adc", FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("pump_freq", FUSOR_VARTYPE_FLOAT);
 
   fusorSetBoolVariable("tmp", false);
   fusorSetBoolVariable("lowspeed", false);
-  fusorSetIntVariable("freq", 0);
-  fusorSetIntVariable("amps_adc", 0);
-  fusorSetFloatVariable("amps", 0.0);
+  fusorSetIntVariable("pump_freq_adc", 0);
+  fusorSetIntVariable("pump_current_adc", 0);
+  fusorSetFloatVariable("pump_current_amps", 0.0);
+  fusorSetFloatVariable("pump_freq", 0.0);
 
   tmpOff();
   tmpLow();
@@ -48,10 +49,10 @@ void updateAll() {
   // put our current amps and freq out
   int amps = analogRead(TMP_AMPS);
   int freq = analogRead(TMP_FREQ);
-  fusorSetIntVariable("amps_adc", amps);
-  fusorSetIntVariable("freq_adc", freq);
-  fusorSetFloatVariable("amps", (float)amps); // TODO: convert
-  fusorSetFloatVariable("freq", (float)freq); // TODO: convert
+  fusorSetIntVariable("pump_current_adc", amps);
+  fusorSetIntVariable("pump_freq_adc", freq);
+  fusorSetFloatVariable("pump_current_amps", (float)amps); // TODO: convert
+  fusorSetFloatVariable("pump_freq", (float)freq); // TODO: convert
 
   //fusorSendResponse("done setting reads ...");
 

@@ -1,9 +1,10 @@
 package com.eastsideprep.fusorcontrolserver;
 
-public class SolenoidControlDevice extends SerialDevice {
+public class GasControlDevice extends SerialDevice {
 
-    SolenoidControlDevice(SerialDevice sd) {
+    GasControlDevice(SerialDevice sd) {
         super(sd);
+        this.setStatus("{\"device\":\"GAS\"}");
     }
 
     public void setOpen() {

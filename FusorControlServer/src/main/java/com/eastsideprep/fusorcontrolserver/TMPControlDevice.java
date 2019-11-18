@@ -4,6 +4,7 @@ public class TMPControlDevice extends SerialDevice {
 
     public TMPControlDevice(SerialDevice sd) {
         super(sd);
+        this.setStatus("{\"device\":\"TMP\"}");
     }
 
     public void setOn() {

@@ -7,10 +7,10 @@
 
 
 void setup(){
-  fusorInit("PRESSURE-DIAPHRAGM");
+  fusorInit("PIRANI");
   
   // fixed analog input
-  fusorAddVariable("pressure", FUSOR_VARTYPE_INT);
+  fusorAddVariable("pirani_adc", FUSOR_VARTYPE_INT);
 
   FUSOR_LED_ON();
   delay(200);
@@ -26,7 +26,7 @@ void loop() {
 }
 
 void updateAll() {
-  fusorSetIntVariable("pressure", analogRead(A0));
+  fusorSetIntVariable("pirani_adc", analogRead(A0));
 }
   
   

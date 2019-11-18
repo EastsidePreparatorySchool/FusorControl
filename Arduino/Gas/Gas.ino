@@ -1,6 +1,6 @@
 //
 // Fusor project code for control Arduino
-// "SOLENOID" - solonoid valve relay controller
+// "GAS" - gas controller
 // Adafruit Feather Huzzah ESP8266 Wifi 
 // Board support: http://arduino.esp8266.com/stable/package_esp8266com_index.json
 //
@@ -10,7 +10,7 @@
 #define SOL 15 // digital out pin for solenoid
 
 void setup(){
-  fusorInit("SOLENOID");
+  fusorInit("GAS");
   fusorAddVariable("solenoid", FUSOR_VARTYPE_BOOL);
   fusorSetBoolVariable("solenoid", false);
 

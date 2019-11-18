@@ -5,40 +5,123 @@
 var endTest = false;
 var statusTimer = null;
 
+function mapBoolean(b, trueval, falseval) {
+    if (b === true) {
+        return trueval;
+    } else if (b === false) {
+        return falseval;
+    }
+    return "<n/c>";
+}
+
 function infoFromData(data) {
     data = JSON.parse(data);
     info = "";
 
-    var volts = getVariable(data, "VARIAC", "volts");
+    info += "Punp: ";
+    if (isDevicePresent(data, "TMP")) {
+        var tmp = getVariable(data, "TMP", "tmp");
+        info += "Status: " + mapBoolean(tmp, " on", "off") + ", ";
+        var speed = getVariable(data, "TMP", "lowspeed");
+        info += "speed: " + mapBoolean(speed, "low", "high") + ", ";
+        var freq = getVariable(data, "TMP", "pump_freq_adc");
+        info += "frequency: " + freq + " (adc), ";
+        var amps = getVariable(data, "TMP", "pump_amps_adc");
+        info += "power draw: " + amps +" (adc)\n";
+    } else {
+        info += "n/c\n";
+    }
 
-    info += "Variac setting: " + volts + " V\n";
-    info += "Lowside: variac rms: " + getVariable(data, "HV-LOWSIDE", "variac_rms") + " V, ";
-    info += "nst rms: " + getVariable(data, "HV-LOWSIDE", "nst_rms") + " V, ";
-    info += "cw avg: " + getVariable(data, "HV-LOWSIDE", "cw_avg") + " V, ";
-    info += "n: " + getVariable(data, "HV-LOWSIDE", "n") + "\n";
-    info += "GC: " + getVariable(data, "GC-SERIAL", "cps") + " cps\n";
-    info += "PN: " + getVariable(data, "PN-JUNCTION", "total") + "\n";
+    info += "Pressure (diaphragm gauge): ";
+    if (isDevicePresent(data, "DIAPHRAGM")) {
+        var dia = getVariable(data, "DIAPHRAGM", "diaphragm_adc");
+        info += "" + dia + "(adc)\n";
+    } else {
+        info += "n/c\n";
+    }
+
+    info += "Pressure (Pirani gauge): ";
+    if (isDevicePresent(data, "PIRANI")) {
+        var pirani = getVariable(data, "PIRANI", "pirani_adc");
+        info += "" + pirani + " (adc)\n";
+    } else {
+        info += "n/c\n";
+    }
+
+
+    info += "Variac: ";
+    if (isDevicePresent(data, "VARIAC")) {
+        var volts = getVariable(data, "VARIAC", "input_volts");
+        info += "" + volts + " V\n";
+    } else {
+        info += "n/c\n";
+    }
+
+    info += "HV Lowside: ";
+    if (isDevicePresent(data, "HV-LOWSIDE")) {
+        info += "variac rms: " + getVariable(data, "HV-LOWSIDE", "variac_rms") + " V, ";
+        info += "nst rms: " + getVariable(data, "HV-LOWSIDE", "nst_rms") + " V, ";
+        info += "cw avg: " + getVariable(data, "HV-LOWSIDE", "cw_avg") + " V, ";
+        info += "n: " + getVariable(data, "HV-LOWSIDE", "n") + "\n";
+    } else {
+        info += "n/c\n";
+    }
+
+    info += "HV Highside: ";
+    if (isDevicePresent(data, "HV-HIGHSIDE")) {
+        info += "Highside current: " + getVariable(data, "HV-HIGHSIDE", "hs_current_adc");
+    } else {
+        info += "n/c\n";
+    }
+
+    info += "Gas injection: ";
+    if (isDevicePresent(data, "GAS")) {
+        var solenoid = getVariable(data, "GAS", "solenoid");
+        info += "Solenoid " + mapBoolean(solenoid, " open", "closed") + "\n";
+    } else {
+        info += "n/c\n";
+    }
+
+    info += "GC-SERIAL: ";
+    if (isDevicePresent(data, "GC-SERIAL")) {
+        info += getVariable(data, "GC-SERIAL", "cps") + " cps\n";
+    } else {
+        info += "n/c\n";
+    }
+
+    info += "PN-JUNCTION: ";
+    if (isDevicePresent(data, "PN-JUNCTION")) {
+        info += getVariable(data, "PN-JUNCTION", "total") + "\n";
+    } else {
+        info += "n/c\n";
+    }
     return info;
+}
+
+function isDevicePresent(data, device) {
+    var value;
+    device = data.find((item) => item["device"] === device);
+    return (device !== undefined);
 }
 
 
 function getVariable(data, device, variable) {
     var value;
     device = data.find((item) => item["device"] === device);
-    if (device == undefined) {
+    if (device === undefined) {
         return ("<n/c>");
     }
     data = device["data"];
-    if (variable == undefined) {
-        return "corrupt";
+    if (data === undefined) {
+        return "<n/a>";
     }
     variable = data[variable];
-    if (variable == undefined) {
-        return "<n.s.v.>";
+    if (variable === undefined) {
+        return "<n/a>";
     }
     value = variable["value"];
-    if (value == undefined) {
-        return "<corrupt>";
+    if (value === undefined) {
+        return "<n/a>";
     }
     return value;
 }
@@ -54,7 +137,7 @@ document.getElementById("variacValue").addEventListener("keyup", function (event
 
 function selectButton(select, unselect) {
     document.getElementById(unselect).style.border = "none";
-    document.getElementById(select).style.border = "2px solid black"
+    document.getElementById(select).style.border = "2px solid black";
 }
 
 //new request & xmlRequest function (spark stuff (this has nothing to do with spark. this is just http. GM.))
@@ -84,7 +167,7 @@ function xmlRequest(verb, url) {
         console.log(xhr.response);
     };
     xhr.onerror = () => {
-        console.log("error: " + statusText);
+        console.log("error: " + xhr.statusText);
     };
     xhr.send();
 }
@@ -159,7 +242,7 @@ function variac(num) {
                     console.log("error: " + error);
                 });
     } catch (error) {
-        console.log("Error: " + error)
+        console.log("Error: " + error);
     }
 }
 
@@ -175,7 +258,7 @@ function tmpOn() {
                     console.log("error: " + error);
                 });
     } catch (error) {
-        console.log("Error: " + error)
+        console.log("Error: " + error);
     }
 }
 
@@ -190,9 +273,8 @@ function tmpOff() {
                     console.log("error: " + error);
                 });
     } catch (error) {
-        console.log("Error: " + error)
+        console.log("Error: " + error);
     }
-    tmpValue.Value = "";
 }
 
 //control the solenoid
@@ -207,7 +289,7 @@ function SolenoidOn() {
                     console.log("error: " + error);
                 });
     } catch (error) {
-        console.log("Error: " + error)
+        console.log("Error: " + error);
     }
 }
 
@@ -222,7 +304,7 @@ function SolenoidOff() {
                     console.log("error: " + error);
                 });
     } catch (error) {
-        console.log("Error: " + error)
+        console.log("Error: " + error);
     }
 }
 
