@@ -46,7 +46,7 @@ public class DataLogger {
         Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 1);
         try {
             while (!Thread.interrupted()) {
-                dm.getAllStatus();
+                //dm.getAllStatus();
                 Thread.sleep(1000 / FusorControlServer.config.logFreq);
                 logAll();
             }

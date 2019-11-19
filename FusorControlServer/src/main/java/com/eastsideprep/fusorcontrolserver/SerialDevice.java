@@ -82,6 +82,7 @@ public class SerialDevice {
             System.out.println("command to device " + name + ": " + s);
         //}
         write(SerialDevice.makeCommand(s));
+        write(SerialDevice.makeCommand(s));
     }
 
     public void set(String var, Object val) {

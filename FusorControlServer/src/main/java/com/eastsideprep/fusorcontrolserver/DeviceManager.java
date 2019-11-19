@@ -107,6 +107,7 @@ public class DeviceManager {
         } else if (response.startsWith(SerialDevice.FUSOR_STATUS_AUTO)) {
             SerialDevice sd = this.arduinoMap.get(port);
             if (sd != null) {
+                System.out.println("Received auto status confirmation from port: "+sd.name);
                 sd.setAutoStatus(true);
             }
         } else if (response.startsWith(SerialDevice.FUSOR_STATUS + ":")) {
