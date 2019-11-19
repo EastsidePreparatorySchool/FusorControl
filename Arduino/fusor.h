@@ -37,9 +37,10 @@ static FusorVariable fusorVariables[FUSOR_MAX_VARIABLES];
 static bool _fusorAutoStatus = false;
 static long _fusorLastStatus = 0;
 
-static char *_fusorCmd = "FC[";
-static char *_fusorRsp = "FR[";
-static char *_fusorEnd = "]FE";
+static char *_fusorCmd = "CMD[";
+static char *_fusorRsp = "RSP[";
+static char *_fusorEnd = "]END";
+#define FUSOR_FIX_LENGTH 4
 
 #ifdef BLUETOOTH
 BluetoothSerial SerialBT;
@@ -111,12 +112,18 @@ void fusorSendResponse(char *msg)
     fusorStartResponse(msg);
   }
 
-  // make sure to not leave any end marker in the message unaltered, 
+  // make sure to not leave any markers in the message unaltered, 
   // so that the host doesn't get confused
+char *start = strstr(fusorResponseBuffer,_fusorEnd);
+  if (start != NULL)
+  {
+    strncpy(start, "cmd<", FUSOR_FIX_LENGTH);
+  }
+
   char *end = strstr(fusorResponseBuffer,_fusorEnd);
   if (end != NULL)
   {
-    strncpy(end, "]fe", 3);
+    strncpy(end, ">end", FUSOR_FIX_LENGTH);
   }
 
   // add the real end marker
@@ -165,7 +172,7 @@ char *_fusorGetCommand(char *sCommand)
   if (sCommand != NULL)
   {
     // found keyword, skip, compact
-    sCommand += 3;
+    sCommand += FUSOR_FIX_LENGTH;
     sCommand = _fusorCompactCmdBuffer(sCommand);
 
     // look for end of command
@@ -186,7 +193,7 @@ char *_fusorParseCommand(char *full, char **command, char **var, char **val)
 {
   char *next;
   int len = strlen(full);
-  char *nextCmd = full + len + 3;
+  char *nextCmd = full + len + FUSOR_FIX_LENGTH;
 
   *command = full;
   *var = NULL;

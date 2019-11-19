@@ -17,9 +17,9 @@ public class SerialDevice {
     private String confirmation = null;
     private final Object confMonitor = new Object();
 
-    public final static String FUSOR_COMMAND_PREFIX = "FC[";
-    public final static String FUSOR_RESPONSE_PREFIX = "FR[";
-    public final static String FUSOR_POSTFIX = "]FE";
+    public final static String FUSOR_COMMAND_PREFIX = "CMD[";
+    public final static String FUSOR_RESPONSE_PREFIX = "RSP[";
+    public final static String FUSOR_POSTFIX = "]END";
 
     public final static String FUSOR_IDENTIFY = "IDENTIFY";
     public final static String FUSOR_STATUS = "STATUS";
@@ -58,9 +58,9 @@ public class SerialDevice {
         this.os = sd.os;
     }
 
-    public void write(String s) {
+    public boolean write(String s) {
         if (this.os == null) {
-            return;
+            return true;
         }
 
         if (FusorControlServer.config.superVerbose) {
@@ -72,8 +72,10 @@ public class SerialDevice {
                 os.write(bytes);
             } catch (IOException ex) {
                 System.out.println("SD write exception: " + this.name + ", " + ex.getLocalizedMessage());
+                return false;
             }
         }
+        return true;
     }
 
     public boolean command(String s) {
@@ -94,10 +96,12 @@ public class SerialDevice {
         // try this up to 5 times, wait for confirmation
         for (int i = 0; i < 5; i++) {
             try {
-                write(cmd);
+                if (!write(cmd)) {
+                    return false;
+                }
                 waitForConfirmation(FusorControlServer.config.cmdTimeOut);
             } catch (Exception e) {
-                System.out.println("exc "+e);
+                System.out.println("exc " + e);
                 return false;
             }
 
@@ -119,9 +123,9 @@ public class SerialDevice {
     }
 
     private void waitForConfirmation(long ms) throws InterruptedException {
-            synchronized (this.confMonitor) {
-                this.confMonitor.wait(ms);
-            }
+        synchronized (this.confMonitor) {
+            this.confMonitor.wait(ms);
+        }
     }
 
     public void setConfirmation(String conf) {

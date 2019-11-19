@@ -114,7 +114,9 @@ public class DeviceManager {
         } else {
             SerialDevice sd = this.arduinoMap.get(port);
             if (sd != null) {
-                System.out.println("Received cmd confirmation from device: " + sd.name + ": " + response);
+                if (FusorControlServer.config.superVerbose) {
+                    System.out.println("Received cmd confirmation from device: " + sd.name + ": " + response);
+                }
                 sd.setConfirmation(response);
             }
         }

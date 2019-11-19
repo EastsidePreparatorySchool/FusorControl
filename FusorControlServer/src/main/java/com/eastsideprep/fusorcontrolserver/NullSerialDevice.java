@@ -12,8 +12,9 @@ public class NullSerialDevice extends SerialDevice {
     }
 
     @Override
-    public void write(String s) {
+    public boolean write(String s) {
         //System.out.println("Writing to null serial device: "+this.name+": "+s);
+        return true;
     }
 
 }

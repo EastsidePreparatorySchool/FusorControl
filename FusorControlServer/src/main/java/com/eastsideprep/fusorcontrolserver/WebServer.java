@@ -113,7 +113,7 @@ public class WebServer {
             if (cd.tmp.setOn()) {
                 return "turned on TMP";
             }
-            halt("TMP control failed");
+            halt(500,"TMP control failed");
             return "";
         });
 
@@ -121,7 +121,7 @@ public class WebServer {
             if (cd.tmp.setOff()) {
                 return "turned off TMP";
             }
-            halt("TMP control failed");
+            halt(500,"TMP control failed");
             return "";
         });
 
@@ -131,7 +131,7 @@ public class WebServer {
             if (cd.gas.setNeedleValve(value)) {
                 return "set needle valve value as " + value;
             }
-            halt("set needle valve failed");
+            halt(500,"set needle valve failed");
             return "";
         });
 
@@ -140,7 +140,7 @@ public class WebServer {
             if (cd.gas.setOpen()) {
                 return "set solenoid to open";
             }
-            halt("set solenoid failed");
+            halt(500,"set solenoid failed");
             return "";
 
         });
@@ -149,7 +149,7 @@ public class WebServer {
             if (cd.gas.setClosed()) {
                 return "set solenoid to closed";
             } else {
-                halt("set solenoid faild");
+                halt(500,"set solenoid faild");
                 return "";
             }
         });
