@@ -25,9 +25,9 @@ function infoFromData(data) {
         var speed = getVariable(data, "TMP", "lowspeed");
         info += "speed: " + mapBoolean(speed, "low", "high") + ", ";
         var freq = getVariable(data, "TMP", "pump_freq");
-        info += "frequency: " + freq + " Hz, ";
+        info += "frequency: " + Math.round(freq) + " Hz, ";
         var amps = getVariable(data, "TMP", "pump_curr_amps");
-        info += "power draw: " + amps + " A\n";
+        info += "power draw: " + (Math.round(amps*100)/100) + " A\n";
     } else {
         info += "n/c\n";
     }
