@@ -427,13 +427,14 @@ void _fusorCmdGetVariable(char *var)
 
 void _fusorCmdAutoStatusOn()
 {
-  fusorSendResponse("STATUS:AUTO");
+  fusorSendResponse("AUTOSTATUSON");
   _fusorCmdGetAll();
   _fusorAutoStatus = true;
 }
 
 void _fusorCmdAutoStatusOff()
 {
+  fusorSendResponse("AUTOSTATUSOFF");
   _fusorAutoStatus = false;
 }
 

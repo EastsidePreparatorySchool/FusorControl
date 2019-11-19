@@ -104,18 +104,18 @@ public class DeviceManager {
         if (response.startsWith(SerialDevice.FUSOR_IDENTIFY + ":")) {
             //System.out.println("  Received identification message: " + response + " from port: " + port.getSystemPortName());
             identify(response.substring(SerialDevice.FUSOR_IDENTIFY.length() + 1), port);
-        } else if (response.startsWith(SerialDevice.FUSOR_STATUS_AUTO)) {
-            SerialDevice sd = this.arduinoMap.get(port);
-            if (sd != null) {
-                System.out.println("Received auto status confirmation from port: "+sd.name);
-                sd.setAutoStatus(true);
-            }
         } else if (response.startsWith(SerialDevice.FUSOR_STATUS + ":")) {
             SerialDevice sd = this.arduinoMap.get(port);
             if (sd != null) {
                 String status = response.substring(SerialDevice.FUSOR_STATUS.length() + 1);
                 status = DataLogger.makeLogResponse(sd, time, status);
                 sd.setStatus(status);
+            }
+        } else {
+            SerialDevice sd = this.arduinoMap.get(port);
+            if (sd != null) {
+                System.out.println("Received cmd confirmation from device: " + sd.name + ": " + response);
+                sd.setConfirmation(response);
             }
         }
     }
@@ -263,8 +263,8 @@ public class DeviceManager {
                                 wrongOne[0] = pB;
                             } catch (Exception ex) {
                                 if (FusorControlServer.config.superVerbose) {
-                                    System.out.println("Exception on bluetooth " + p.getSystemPortName());
-                                    System.out.println(ex);
+                                    //System.out.println("Exception on bluetooth " + p.getSystemPortName());
+                                    //System.out.println(ex);
                                 }
                             }
                         });
@@ -278,8 +278,8 @@ public class DeviceManager {
                                 wrongOne[0] = p;
                             } catch (Exception ex) {
                                 if (FusorControlServer.config.superVerbose) {
-                                    System.out.println("Exception on bluetooth " + pB.getSystemPortName());
-                                    System.out.println(ex);
+                                    //System.out.println("Exception on bluetooth " + pB.getSystemPortName());
+                                    //System.out.println(ex);
                                 }
                             }
                         });
@@ -327,6 +327,8 @@ public class DeviceManager {
             threads[i] = new Thread(() -> {
                 try {
                     port.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
+                    port.openPort();
+                    port.closePort();
                     port.openPort();
                     port.addDataListener(connectionListener);
                     Thread.sleep(2000);

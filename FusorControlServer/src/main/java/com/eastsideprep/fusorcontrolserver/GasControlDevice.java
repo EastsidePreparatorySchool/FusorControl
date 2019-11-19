@@ -7,15 +7,15 @@ public class GasControlDevice extends SerialDevice {
         this.setStatus("{\"device\":\"GAS\"}");
     }
 
-    public void setOpen() {
-        this.set("solenoid", true);
+    public boolean setOpen() {
+        return this.set("solenoid", true);
     }
 
-    public void setClosed() {
-        this.set("solenoid", false);
+    public boolean setClosed() {
+        return this.set("solenoid", false);
     }
     
-    public void setNeedleValve(int n) {
-        this.set("needlevalve", n);
+    public boolean setNeedleValve(int n) {
+        return this.set("needlevalve", n);
     }
 }

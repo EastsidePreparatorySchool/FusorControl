@@ -7,7 +7,7 @@ public class VariacControlDevice extends SerialDevice {
         this.setStatus("{\"device\":\"VARIAC\"}");
     }
     
-    public void setVoltage(int v) {
-        this.set("input_volts", v);
+    public boolean setVoltage(int v) {
+        return this.set("input_volts", v);
     }
 }

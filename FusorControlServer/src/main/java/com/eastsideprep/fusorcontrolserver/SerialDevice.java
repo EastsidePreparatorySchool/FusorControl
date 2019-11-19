@@ -14,6 +14,8 @@ public class SerialDevice {
     private String lastStatus;
     private String currentStatus;
     private boolean autoStatus = false;
+    private String confirmation = null;
+    private final Object confMonitor = new Object();
 
     public final static String FUSOR_COMMAND_PREFIX = "FC[";
     public final static String FUSOR_RESPONSE_PREFIX = "FR[";
@@ -74,19 +76,63 @@ public class SerialDevice {
         }
     }
 
-    public void command(String s) {
+    public boolean command(String s) {
         if (this.os == null) {
-            return;
+            return true;
         }
-        //if (FusorControlServer.config.superVerbose || (!s.equals("GETALL"))) {
+        if (FusorControlServer.config.superVerbose) {
             System.out.println("command to device " + name + ": " + s);
-        //}
-        write(SerialDevice.makeCommand(s));
-        write(SerialDevice.makeCommand(s));
+        }
+
+        String cmd = makeCommand(s);
+
+        if (s.equals("GETALL")) {
+            write(cmd);
+            return true;
+        }
+
+        // try this up to 5 times, wait for confirmation
+        for (int i = 0; i < 5; i++) {
+            try {
+                write(cmd);
+                waitForConfirmation(FusorControlServer.config.cmdTimeOut);
+            } catch (Exception e) {
+                System.out.println("exc "+e);
+                return false;
+            }
+
+            if (retrieveConfirmation(s)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    public void set(String var, Object val) {
-        command("SET:" + var + ":" + val);
+    private boolean retrieveConfirmation(String cmd) {
+        boolean result;
+        synchronized (this.confMonitor) {
+            //System.out.println("Cmd: " +cmd+ ", conf: "+this.confirmation);
+            result = cmd.equals(this.confirmation);
+            this.confirmation = null;
+        }
+        return result;
+    }
+
+    private void waitForConfirmation(long ms) throws InterruptedException {
+            synchronized (this.confMonitor) {
+                this.confMonitor.wait(ms);
+            }
+    }
+
+    public void setConfirmation(String conf) {
+        synchronized (this.confMonitor) {
+            this.confirmation = conf;
+            this.confMonitor.notify();
+        }
+    }
+
+    public boolean set(String var, Object val) {
+        return command("SET:" + var + ":" + val);
     }
 
     public void get(String var) {

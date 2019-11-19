@@ -51,6 +51,7 @@ public class WebServer {
 
         //these set all the commands that are going to be sent from the client
         get("/", (req, res) -> "<h1><a href='index.html'>Go to index.html</a></h1>");
+
         get("/kill", (req, res) -> {
             if (dl != null) {
                 dl.shutdown();
@@ -95,8 +96,11 @@ public class WebServer {
         get("/variac", (req, res) -> {
             int variacValue = Integer.parseInt(req.queryParams("value"));
             System.out.println("Received Variac Set " + variacValue);
-            cd.variac.setVoltage(variacValue);
-            return "set value as " + req.queryParams("value");
+            if (cd.variac.setVoltage(variacValue)) {
+                return "set value as " + req.queryParams("value");
+            }
+            halt ("Variac control failed");
+            return "";
         });
 
         //number of cameras streaming
@@ -106,31 +110,48 @@ public class WebServer {
 
         //tmp control
         get("/tmpOn", (req, res) -> {
-            cd.tmp.setOn();
-            return "turned on TMP";
+            if (cd.tmp.setOn()) {
+                return "turned on TMP";
+            }
+            halt("TMP control failed");
+            return "";
         });
 
         get("/tmpOff", (req, res) -> {
-            cd.tmp.setOff();
-            return "turned off TMP";
+            if (cd.tmp.setOff()) {
+                return "turned off TMP";
+            }
+            halt("TMP control failed");
+            return "";
         });
 
         get("/needleValve", (req, res) -> {
             int value = Integer.parseInt(req.queryParams("value"));
-            System.out.println("Received needle valve Set " + value);
-            cd.gas.setNeedleValve(value);
-            return "set value as " + req.queryParams("value");
+            //System.out.println("Received needle valve Set " + value);
+            if (cd.gas.setNeedleValve(value)) {
+                return "set needle valve value as " + value;
+            }
+            halt("set needle valve failed");
+            return "";
         });
 
         //solenoid control
         get("/solenoidOn", (req, res) -> {
-            cd.gas.setOpen();
-            return "set solenoid to open";
+            if (cd.gas.setOpen()) {
+                return "set solenoid to open";
+            }
+            halt("set solenoid failed");
+            return "";
+
         });
 
         get("/solenoidOff", (req, res) -> {
-            cd.gas.setClosed();
-            return "set solenoid to closed";
+            if (cd.gas.setClosed()) {
+                return "set solenoid to closed";
+            } else {
+                halt("set solenoid faild");
+                return "";
+            }
         });
 
         //chatter control

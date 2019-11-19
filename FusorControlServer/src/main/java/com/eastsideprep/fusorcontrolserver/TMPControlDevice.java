@@ -7,11 +7,11 @@ public class TMPControlDevice extends SerialDevice {
         this.setStatus("{\"device\":\"TMP\"}");
     }
 
-    public void setOn() {
-        this.set("tmp", true);
+    public boolean setOn() {
+        return this.set("tmp", true);
     }
 
-    public void setOff() {
-        this.set("tmp", false);
+    public boolean setOff() {
+        return this.set("tmp", false);
     }
 }
