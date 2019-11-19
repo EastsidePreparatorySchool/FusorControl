@@ -78,9 +78,9 @@ public class SerialDevice {
         if (this.os == null) {
             return;
         }
-        if (FusorControlServer.config.superVerbose || (!s.equals("GETALL"))) {
+        //if (FusorControlServer.config.superVerbose || (!s.equals("GETALL"))) {
             System.out.println("command to device " + name + ": " + s);
-        }
+        //}
         write(SerialDevice.makeCommand(s));
     }
 
@@ -99,7 +99,7 @@ public class SerialDevice {
     }
 
     public void autoStatusOn() {
-        command("AUTOSTATUSOFF");
+        command("AUTOSTATUSON");
     }
 
     public void autoStatusOff() {

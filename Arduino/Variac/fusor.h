@@ -34,6 +34,8 @@ static int fusorCmdBufpos = 0;
 static char fusorResponseBuffer[FUSOR_RESPONSE_MAX + 1];
 static int fusorNumVars = 0;
 static FusorVariable fusorVariables[FUSOR_MAX_VARIABLES];
+static bool _fusorAutoStatus = false;
+static long _fusorLastStatus = 0;
 
 #ifdef BLUETOOTH
 BluetoothSerial SerialBT;
@@ -56,6 +58,9 @@ char *_fusorSkipCommand(char *current);
 char *_fusorParseCommand(char *full, char **command, char **var, char **val);
 void _fusorCmdExecute(char *sCmd, char *sVar, char *sVal);
 void _fusorCmdGetAll();
+void _fusorCmdAutoStatusOn();
+void _fusorCmdAutoStatusOff();
+
 struct FusorVariable *_fusorGetVariableEntry(char *name);
 void _fusorCmdSetVariable(char *var, char *val);
 void _fusorCmdGetVariable(char *var);
@@ -227,12 +232,26 @@ void _fusorCmdExecute(char *sCmd, char *sVar, char *sVal)
   //fusorStartResponse("handling cmd:");
   //fusorAddResponse(sCmd);
   //fusorSendResponse(NULL);
-  if (strcmp(sCmd, "SET") == 0)
+  else if (strcmp(sCmd, "SET") == 0)
+  {
     _fusorCmdSetVariable(sVar, sVal);
-  if (strcmp(sCmd, "GET") == 0)
+  }
+  else if (strcmp(sCmd, "GET") == 0)
+  {
     _fusorCmdGetVariable(sVar);
-  if (strcmp(sCmd, "GETALL") == 0)
+  }
+  else if (strcmp(sCmd, "GETALL") == 0)
+  {
     _fusorCmdGetAll();
+  }
+  else if (strcmp(sCmd, "AUTOSTATUSON") == 0)
+  {
+    _fusorCmdAutoStatusOn();
+  }
+  else if (strcmp(sCmd, "AUTOSTATUSOFF") == 0)
+  {
+    _fusorCmdAutoStatusOff();
+  }
 
   // FUSOR_LED_ON();
   // delay(10);
@@ -253,7 +272,7 @@ void _fusorCmdGetAll()
     FusorVariable *pfv = &fusorVariables[i];
     fusorAddResponse(pfv->name);
     fusorAddResponse("\":{");
-    
+
     fusorAddResponse("\"value\":");
     switch (pfv->type)
     {
@@ -295,6 +314,18 @@ void _fusorCmdGetAll()
 
   fusorAddResponse("}");
   fusorSendResponse(NULL);
+  _fusorLastStatus = millis();
+}
+
+void _fusorDoAutoStatus()
+{
+  if (_fusorAutoStatus)
+  {
+    if ((millis() - _fusorLastStatus) > 100)
+    {
+      _fusorCmdGetAll();
+    }
+  }
 }
 
 struct FusorVariable *_fusorGetVariableEntry(char *name)
@@ -369,6 +400,18 @@ void _fusorCmdGetVariable(char *var)
     fusorAddResponse(var);
     fusorSendResponse(NULL);
   }
+}
+
+void _fusorCmdAutoStatusOn()
+{
+  fusorSendResponse("STATUS:AUTO");
+  _fusorCmdGetAll();
+  _fusorAutoStatus = true;
+}
+
+void _fusorCmdAutoStatusOff()
+{
+  _fusorAutoStatus = false;
 }
 
 //
@@ -509,6 +552,7 @@ void fusorInitWithBaudRate(char *name, long baudRate)
   fusorCmdBuffer[0] = 0;
   fusorCmdBufpos = 0;
   fusorNumVars = 0;
+  _fusorAutoStatus = false;
 }
 
 //
@@ -519,6 +563,7 @@ void fusorLoop()
 {
 
   bool didGetAll = false;
+  _fusorDoAutoStatus();
 
   // reset all "updated" values
   for (int i = 0; i < fusorNumVars; i++)
