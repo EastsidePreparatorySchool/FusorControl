@@ -14,7 +14,7 @@ void setup(){
   fusorAddVariable("solenoid", FUSOR_VARTYPE_BOOL);
   fusorAddVariable("needlevalve", FUSOR_VARTYPE_INT);
   fusorSetBoolVariable("solenoid", false);
-  fusorSetIntVariable("needlvalve", 0);
+  fusorSetIntVariable("needlevalve", 0);
 
   // relay control for solenoid valve
   pinMode(SOL, OUTPUT);

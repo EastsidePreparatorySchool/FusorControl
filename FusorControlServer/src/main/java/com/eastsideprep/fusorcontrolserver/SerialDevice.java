@@ -13,6 +13,7 @@ public class SerialDevice {
     SerialPort port;
     private String lastStatus;
     private String currentStatus;
+    private boolean autoStatus = false;
 
     public final static String FUSOR_COMMAND_PREFIX = "FusorCommand[";
     public final static String FUSOR_RESPONSE_PREFIX = "FusorResponse[";
@@ -20,6 +21,7 @@ public class SerialDevice {
 
     public final static String FUSOR_IDENTIFY = "IDENTIFY";
     public final static String FUSOR_STATUS = "STATUS";
+    public final static String FUSOR_STATUS_AUTO = "STATUS:AUTO";
 
     public static String makeCommand(String s) {
         return FUSOR_COMMAND_PREFIX + s + FUSOR_POSTFIX;
@@ -59,8 +61,8 @@ public class SerialDevice {
             return;
         }
 
-        if(FusorControlServer.config.superVerbose) {
-            System.out.println("writing to port "+port.getSystemPortName()+":"+s);
+        if (FusorControlServer.config.superVerbose) {
+            System.out.println("writing to port " + port.getSystemPortName() + ":" + s);
         }
         byte[] bytes = s.getBytes();
         synchronized (port) {
@@ -91,7 +93,18 @@ public class SerialDevice {
     }
 
     public void getAll() {
-        command("GETALL");
+        if (!this.autoStatus) {
+            command("GETALL");
+        }
+    }
+
+    public void autoStatusOn() {
+        command("AUTOSTATUSOFF");
+    }
+
+    public void autoStatusOff() {
+        command("AUTOSTATUSOFF");
+        this.autoStatus = false;
     }
 
     public void setStatus(String s) {
@@ -113,8 +126,12 @@ public class SerialDevice {
     public String getLastStatus() {
         return this.lastStatus;
     }
-    
-    public boolean isValid(){
+
+    public boolean isValid() {
         return os != null;
+    }
+
+    public void setAutoStatus(boolean auto) {
+        this.autoStatus = auto;
     }
 }

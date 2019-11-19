@@ -104,6 +104,11 @@ public class DeviceManager {
         if (response.startsWith(SerialDevice.FUSOR_IDENTIFY + ":")) {
             //System.out.println("  Received identification message: " + response + " from port: " + port.getSystemPortName());
             identify(response.substring(SerialDevice.FUSOR_IDENTIFY.length() + 1), port);
+        } else if (response.startsWith(SerialDevice.FUSOR_STATUS_AUTO)) {
+            SerialDevice sd = this.arduinoMap.get(port);
+            if (sd != null) {
+                sd.setAutoStatus(true);
+            }
         } else if (response.startsWith(SerialDevice.FUSOR_STATUS + ":")) {
             SerialDevice sd = this.arduinoMap.get(port);
             if (sd != null) {
@@ -485,6 +490,20 @@ public class DeviceManager {
             sd.getAll();
         }
 
+    }
+
+    void autoStatusOn() {
+        ArrayList<SerialDevice> devices = arduinoMap.getAllDevices();
+        for (SerialDevice sd : devices) {
+            sd.autoStatusOn();
+        }
+    }
+
+    void autoStatusOff() {
+        ArrayList<SerialDevice> devices = arduinoMap.getAllDevices();
+        for (SerialDevice sd : devices) {
+            sd.autoStatusOff();
+        }
     }
 
     String readStatusResults(boolean includeCore) {

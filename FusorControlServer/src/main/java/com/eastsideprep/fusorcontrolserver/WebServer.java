@@ -70,6 +70,7 @@ public class WebServer {
                 }
                 dl = new DataLogger();
                 dl.init(dm);
+                dm.autoStatusOn();
                 System.out.println("New log started");
                 return "log started";
 
@@ -79,6 +80,7 @@ public class WebServer {
         get("/stoplog", (req, res) -> {
             synchronized (this) {
                 if (dl != null) {
+                    dm.autoStatusOff();
                     dl.shutdown();
                     dl = null;
                     System.out.println("Log stopped");
@@ -120,7 +122,6 @@ public class WebServer {
             return "set value as " + req.queryParams("value");
         });
 
-
         //solenoid control
         get("/solenoidOn", (req, res) -> {
             cd.gas.setOpen();
@@ -143,6 +144,12 @@ public class WebServer {
             return "quiet";
         });
 
+        addGetStatusRoute();
+
+        System.out.println("Initialized Web Server");
+    }
+
+    private void addGetStatusRoute() {
         get("/getstatus", (req, res) -> {
             //System.out.println("/getstatus");
             if (dl == null) {
@@ -156,7 +163,5 @@ public class WebServer {
             }
             return s;
         });
-
-        System.out.println("Initialized Web Server");
     }
 }
