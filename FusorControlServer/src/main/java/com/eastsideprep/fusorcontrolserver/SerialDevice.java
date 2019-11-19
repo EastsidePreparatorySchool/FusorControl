@@ -15,9 +15,9 @@ public class SerialDevice {
     private String currentStatus;
     private boolean autoStatus = false;
 
-    public final static String FUSOR_COMMAND_PREFIX = "FusorCommand[";
-    public final static String FUSOR_RESPONSE_PREFIX = "FusorResponse[";
-    public final static String FUSOR_POSTFIX = "]END";
+    public final static String FUSOR_COMMAND_PREFIX = "FC[";
+    public final static String FUSOR_RESPONSE_PREFIX = "FR[";
+    public final static String FUSOR_POSTFIX = "]FE";
 
     public final static String FUSOR_IDENTIFY = "IDENTIFY";
     public final static String FUSOR_STATUS = "STATUS";

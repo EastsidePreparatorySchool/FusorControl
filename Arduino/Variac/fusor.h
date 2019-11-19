@@ -37,6 +37,10 @@ static FusorVariable fusorVariables[FUSOR_MAX_VARIABLES];
 static bool _fusorAutoStatus = false;
 static long _fusorLastStatus = 0;
 
+static char *_fusorCmd = "FC[";
+static char *_fusorRsp = "FR[";
+static char *_fusorEnd = "]FE";
+
 #ifdef BLUETOOTH
 BluetoothSerial SerialBT;
 #define SERIAL SerialBT
@@ -86,7 +90,7 @@ void fusorSetBoolVariable(char *var, bool val);
 
 void fusorStartResponse(char *response)
 {
-  strcpy(fusorResponseBuffer, "FusorResponse[");
+  strcpy(fusorResponseBuffer, _fusorRsp);
   if (response != NULL)
   {
     fusorAddResponse(response);
@@ -107,15 +111,16 @@ void fusorSendResponse(char *msg)
     fusorStartResponse(msg);
   }
 
-  // make sure to not leave "]END" in the message, so that the host doesn't get confused
-  char *end = strstr(fusorResponseBuffer, "]END");
+  // make sure to not leave any end marker in the message unaltered, 
+  // so that the host doesn't get confused
+  char *end = strstr(fusorResponseBuffer,_fusorEnd);
   if (end != NULL)
   {
-    strncpy(end, "]end", 4);
+    strncpy(end, "]fe", 3);
   }
 
   // add the real end marker
-  fusorAddResponse("]END");
+  fusorAddResponse(_fusorEnd);
   SERIAL.write((const uint8_t *)fusorResponseBuffer, strlen(fusorResponseBuffer));
 }
 
@@ -156,15 +161,15 @@ char *_fusorGetCommand(char *sCommand)
   }
 
   // let's parse
-  sCommand = strstr(sCommand, "FusorCommand[");
+  sCommand = strstr(sCommand,_fusorCmd);
   if (sCommand != NULL)
   {
     // found keyword, skip, compact
-    sCommand += 13;
+    sCommand += 3;
     sCommand = _fusorCompactCmdBuffer(sCommand);
 
     // look for end of command
-    char *sEnd = strstr(sCommand, "]END");
+    char *sEnd = strstr(sCommand, _fusorEnd);
     if (sEnd != NULL)
     {
       // found complete command, terminate appropriately, return start
@@ -181,7 +186,7 @@ char *_fusorParseCommand(char *full, char **command, char **var, char **val)
 {
   char *next;
   int len = strlen(full);
-  char *nextCmd = full + len + 4;
+  char *nextCmd = full + len + 3;
 
   *command = full;
   *var = NULL;
@@ -298,7 +303,7 @@ void _fusorCmdGetAll()
       fusorAddResponse((char *)(pfv->boolValue ? "true" : "false"));
       break;
     default:
-      fusorAddResponse("<unknown type>");
+      fusorAddResponse("<?>");
       break;
     }
     fusorAddResponse(",\"vartime\":");
@@ -325,6 +330,24 @@ void _fusorDoAutoStatus()
     {
       _fusorCmdGetAll();
     }
+  }
+}
+
+void fusorDelay(int ms) {
+  long start = millis();
+  while (millis() < (start + ms)) {
+    _fusorDoAutoStatus();
+    _fusorReadToCmdBuffer();
+    delayMicroseconds(100);
+  }
+}
+
+void fusorDelayMicroseconds(int us) {
+  long start = micros();
+  while (micros() < (start + us)) {
+    _fusorDoAutoStatus();
+    _fusorReadToCmdBuffer();
+    delayMicroseconds(1);
   }
 }
 
@@ -376,7 +399,7 @@ void _fusorCmdSetVariable(char *var, char *val)
   }
   else
   {
-    fusorStartResponse("ERROR: unknown variable:");
+    fusorStartResponse("?:");
     fusorAddResponse(var);
     fusorSendResponse(NULL);
   }
@@ -396,7 +419,7 @@ void _fusorCmdGetVariable(char *var)
   }
   else
   {
-    fusorStartResponse("ERROR: unknown variable:");
+    fusorStartResponse("?:");
     fusorAddResponse(var);
     fusorSendResponse(NULL);
   }

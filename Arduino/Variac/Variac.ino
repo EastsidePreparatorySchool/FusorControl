@@ -36,7 +36,7 @@ void setup(){
 
   //zeroVoltage();
   FUSOR_LED_ON();
-  delay(300);
+  fusorDelay(300);
   FUSOR_LED_OFF();
 }
 
@@ -73,9 +73,9 @@ void setVoltage(int volts) {
     digitalWrite(DIR, (dif < 0) ? LOW : HIGH);
 
     digitalWrite(PUL, HIGH);
-    delayMicroseconds(200);
+    fusorDelayMicroseconds(200);
     digitalWrite(PUL, LOW);
-    delayMicroseconds(200);
+    fusorDelayMicroseconds(200);
     fusorSendResponse("at end");
   } while ( abs(dif) > 10 );
 
@@ -97,9 +97,9 @@ void zeroVoltage() {
   digitalWrite(DIR, LOW);
   for (int i = 0; i < 20; i++) {
     digitalWrite(PUL, HIGH);
-    delayMicroseconds(400);
+    fusorDelayMicroseconds(400);
     digitalWrite(PUL, LOW);
-    delayMicroseconds(400);
+    fusorDelayMicroseconds(400);
   }
   digitalWrite(ENA, HIGH);
   digitalWrite(REL, LOW);
