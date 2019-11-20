@@ -1,6 +1,7 @@
 copy fusor.h variac
 copy fusor.h TMP
 copy fusor.h gas
+copy fusor.h needle-valve
 
 copy fusor.h hv-highside
 copy fusor.h hv-lowside
