@@ -5,6 +5,11 @@
 //
 
 #include "fusor.h"
+#include <Servo.h>
+
+Servo needlevalveservo;
+final int MIN_DEG = 0;
+final int MAX_DEG = 180;
 
 void setup(){
   fusorInit("NEEDLEVALVE");
@@ -31,5 +36,6 @@ void updateAll() {
 }
 
 void needleValve(int percent) {
-  // TODO: Write code for needle valve controller here
+  int angle = MIN_DEG + (MAX_DEG - MIN_DEG)* percent / 100;
+  needlevalveservo.write(angle);
 }
