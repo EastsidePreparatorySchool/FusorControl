@@ -8,16 +8,19 @@
 #include <Servo.h>
 
 Servo needlevalveservo;
-final int MIN_DEG = 0;
-final int MAX_DEG = 180;
+int MIN_DEG = 0;
+int MAX_DEG = 180;
+int SERVO_PWM_PORT = 9;
 
 void setup(){
   fusorInit("NEEDLEVALVE");
   fusorAddVariable("needlevalve", FUSOR_VARTYPE_INT);
+  fusorAddVariable("nv_angle", FUSOR_VARTYPE_INT);
   fusorSetIntVariable("needlevalve", 0);
+  fusorSetIntVariable("nv_angle", 0);
 
   needleValve(0);
-
+  needlevalveservo.attach(SERVO_PWM_PORT);
   FUSOR_LED_ON();
   delay(300);
   FUSOR_LED_OFF();
@@ -36,6 +39,8 @@ void updateAll() {
 }
 
 void needleValve(int percent) {
-  int angle = MIN_DEG + (MAX_DEG - MIN_DEG)* percent / 100;
+  int angle = MIN_DEG + (MAX_DEG - MIN_DEG) * percent / 100;
+  fusorSetIntVariable("nv_angle", angle);
+
   needlevalveservo.write(angle);
 }
