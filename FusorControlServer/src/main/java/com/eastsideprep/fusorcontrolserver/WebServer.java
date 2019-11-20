@@ -127,10 +127,12 @@ public class WebServer {
 
         get("/needleValve", (req, res) -> {
             int value = Integer.parseInt(req.queryParams("value"));
-            //System.out.println("Received needle valve Set " + value);
-            if (cd.gas.setNeedleValve(value)) {
+            System.out.println("Received needle valve Set " + value);
+            if (this.cd.needle.set("needlevalve", value)) {
+                System.out.println("needle valve success");
                 return "set needle valve value as " + value;
-            }
+            }   
+            System.out.println("needle valve fail");
             halt(500,"set needle valve failed");
             return "";
         });
