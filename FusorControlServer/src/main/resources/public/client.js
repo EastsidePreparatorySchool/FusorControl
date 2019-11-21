@@ -184,9 +184,9 @@ function getStatus() {
             })
             .catch(error => {
                 console.log("getstatus error: " + error);
-                console.log("stopping status requests to server");
-                stopStatus();
-                selectButton("stopLog", "startLog");
+                //console.log("stopping status requests to server");
+                //stopStatus();
+                //selectButton("stopLog", "startLog");
             });
 }
 
