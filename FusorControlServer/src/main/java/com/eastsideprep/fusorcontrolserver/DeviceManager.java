@@ -330,8 +330,8 @@ public class DeviceManager {
                 try {
                     port.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
                     port.openPort();
-                    port.closePort();
-                    port.openPort();
+//                    port.closePort();
+//                    port.openPort();
                     port.addDataListener(connectionListener);
                     Thread.sleep(2000);
                     writeToPort(port, SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));

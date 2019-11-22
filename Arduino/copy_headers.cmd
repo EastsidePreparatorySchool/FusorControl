@@ -8,7 +8,7 @@ copy fusor.h hv-lowside
 copy fusor.h gc-serial
 copy fusor.h PN-junction
 copy fusor.h diaphragm
-copy fusor.g pirani
+copy fusor.h pirani
 
 copy fusor.h generic
 copy fusor.h example
