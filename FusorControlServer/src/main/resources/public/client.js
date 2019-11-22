@@ -127,13 +127,19 @@ function getVariable(data, device, variable) {
 }
 
 
-document.getElementById("variacValue").addEventListener("keyup", function (event) {
-    if (event.keyCode === 13) { //enter key: 13
-        event.preventDefault();
-        document.getElementById("variacButton").click();
-    }
-});
-
+//document.getElementById("variacValue").addEventListener("keyup", function (event) {
+//    if (event.keyCode === 13) { //enter key: 13
+//        event.preventDefault();
+//        document.getElementById("variacButton").click();
+//    }
+//});
+//
+//document.getElementById("needleValue").addEventListener("keyup", function (event) {
+//    if (event.keyCode === 13) { //enter key: 13
+//        event.preventDefault();
+//        document.getElementById("needleButton").click();
+//    }
+//});
 
 function selectButton(select, unselect) {
     document.getElementById(unselect).style.border = "none";

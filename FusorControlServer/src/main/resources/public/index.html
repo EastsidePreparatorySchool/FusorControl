@@ -35,7 +35,7 @@
                     <br>
                     <div>
                         <h3>Variac Input Voltage: </h3>
-                        <input id="variacValue" value="0">
+                        <input id="variacValue" min="0" max="140" step="1" size="10" value="0" type="number" onchange="variac(this.value)">
                         <button onclick="variac(document.getElementById('variacValue').value)" id="variacButton">Set</button>
                     </div>
                     <br>
@@ -47,7 +47,7 @@
                                 style="border:2px solid black;width: 40%; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;"
                                 onclick="SolenoidOff()">Closed</button>
                         <h3>Needle valve: </h3>
-                        <input id="needleValue" value="0">
+                        <input id="needleValue" min="0" max="100" step="1" size="10" value="0" type="number"  onchange="needleValve(this.value)" >
                         <button onclick="needleValve(document.getElementById('needleValue').value)" id="needleButton">Set</button>
                     </div>
 
