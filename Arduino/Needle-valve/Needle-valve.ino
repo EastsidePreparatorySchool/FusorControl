@@ -43,4 +43,8 @@ void needleValve(int percent) {
   fusorSetIntVariable("nv_angle", angle);
 
   needlevalveservo.write(angle);
+
+  // the servo library doesn't like being talked to while the servo is still settling
+  fusorDelay(1200);
+  fusorClearCommandQueue();
 }

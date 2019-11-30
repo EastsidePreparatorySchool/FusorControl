@@ -112,15 +112,15 @@ void fusorSendResponse(char *msg)
     fusorStartResponse(msg);
   }
 
-  // make sure to not leave any markers in the message unaltered, 
+  // make sure to not leave any markers in the message unaltered,
   // so that the host doesn't get confused
-char *start = strstr(fusorResponseBuffer,_fusorEnd);
+  char *start = strstr(fusorResponseBuffer, _fusorEnd);
   if (start != NULL)
   {
     strncpy(start, "cmd<", FUSOR_FIX_LENGTH);
   }
 
-  char *end = strstr(fusorResponseBuffer,_fusorEnd);
+  char *end = strstr(fusorResponseBuffer, _fusorEnd);
   if (end != NULL)
   {
     strncpy(end, ">end", FUSOR_FIX_LENGTH);
@@ -159,6 +159,25 @@ int _fusorReadToCmdBuffer()
   return strlen(fusorCmdBuffer);
 }
 
+void fusorClearCommandQueue()
+{
+  if (_fusorReadToCmdBuffer() > 0)
+  {
+    char *sCommand = NULL;
+    while (sCommand = _fusorGetCommand(sCommand))
+    {
+      //fusorSendResponse("Got cmd");
+      char *sCmd;
+      char *sVar;
+      char *sVal;
+      int len = strlen(sCommand);
+
+      sCommand = _fusorParseCommand(sCommand, &sCmd, &sVar, &sVal);
+      _fusorCompactCmdBuffer(sCommand);
+    }
+  }
+}
+
 char *_fusorGetCommand(char *sCommand)
 {
   // start from beginning if indicated
@@ -168,7 +187,7 @@ char *_fusorGetCommand(char *sCommand)
   }
 
   // let's parse
-  sCommand = strstr(sCommand,_fusorCmd);
+  sCommand = strstr(sCommand, _fusorCmd);
   if (sCommand != NULL)
   {
     // found keyword, skip, compact
@@ -340,18 +359,22 @@ void _fusorDoAutoStatus()
   }
 }
 
-void fusorDelay(int ms) {
+void fusorDelay(int ms)
+{
   long start = millis();
-  while (millis() < (start + ms)) {
+  while (millis() < (start + ms))
+  {
     _fusorDoAutoStatus();
     _fusorReadToCmdBuffer();
     delayMicroseconds(100);
   }
 }
 
-void fusorDelayMicroseconds(int us) {
+void fusorDelayMicroseconds(int us)
+{
   long start = micros();
-  while (micros() < (start + us)) {
+  while (micros() < (start + us))
+  {
     _fusorDoAutoStatus();
     _fusorReadToCmdBuffer();
     delayMicroseconds(1);
