@@ -46,9 +46,14 @@ void loop() {
 
 void updateAll() {
   //fusorSendResponse("updating ...");
-  // put our current amps and freq out
+  // put our current amps and freq out, read them a few times before counting the result
+  
+  for(int i =0; i < 10; analogRead(TMP_AMPS), i++);
   int amps = analogRead(TMP_AMPS);
+
+  for(int i =0; i < 10; analogRead(TMP_AMPS), i++);
   int freq = analogRead(TMP_FREQ);
+  
   fusorSetIntVariable("pump_curr_adc", amps);
   fusorSetIntVariable("pump_freq_adc", freq);
   fusorSetFloatVariable("pump_curr_amps", ((float)amps)*2.5f/1024.0f); // full adc 1024 = 2.5A
