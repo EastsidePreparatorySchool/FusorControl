@@ -1,13 +1,13 @@
 //
 // Fusor project code for control Arduino
 // "TMP" - Turbo-Molecular-Pump controller
-// Arduino Mega 2560 with custom shield
+// Sparkfun Uno with breadboard shield
 //
 
 #include "fusor.h"
 
-#define TMP_ON    43 // pin for TMP on(high)/off(low)
-#define TMP_SPEED 42 // pin for TMP speed low/high
+#define TMP_ON    2  // pin for TMP on(high)/off(low)
+#define TMP_SPEED 3  // pin for TMP speed low/high
 #define TMP_AMPS  A0 // pin for pump amps 0-10V = 0 - 2.5A
 #define TMP_FREQ  A1 // pin for pump freq 0-10V = 0 - 1250Hz
 
@@ -27,8 +27,11 @@ void setup(){
   fusorSetFloatVariable("pump_curr_amps", 0.0);
   fusorSetFloatVariable("pump_freq", 0.0);
 
+  pinMode(TMP_ON, OUTPUT);
+  pinMode(TMP_SPEED, OUTPUT);
+
   tmpOff();
-  tmpLow();
+  tmpHigh();
   
   FUSOR_LED_ON();
   delay(200);
@@ -85,14 +88,14 @@ void updateAll() {
 
 void tmpOn() {
   FUSOR_LED_ON();
-  digitalWrite(TMP_ON, LOW);
+  digitalWrite(TMP_ON, HIGH);
   //delay(100);
   FUSOR_LED_OFF();
 }
 
 void tmpOff() {
   FUSOR_LED_ON();
-  digitalWrite(TMP_ON, HIGH);
+  digitalWrite(TMP_ON, LOW);
   //delay(100);
   FUSOR_LED_OFF();
 }
