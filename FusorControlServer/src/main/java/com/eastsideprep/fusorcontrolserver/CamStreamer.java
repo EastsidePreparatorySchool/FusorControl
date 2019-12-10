@@ -20,17 +20,23 @@ public class CamStreamer {
 
     private WebcamStreamer ws;
     public int numCameras = 0;
+    
 
     CamStreamer() {
         // old code Webcam webcam = Webcam.getDefault();
         List<Webcam> cams = Webcam.getWebcams();
         int count = 0;
-        
+        int def = 0;
 
         for (Webcam cam : cams) {
             if (cam == null) {
                 System.out.println("webcam error");
                 return;
+            }
+            
+            if (cam.getName().startsWith("EasyCamera")){
+                def = 1;
+                continue;
             }
             cam.open();
             System.out.println("Webcam " + count + ", \"" + cam.getName() + "\" opened");
@@ -44,7 +50,7 @@ public class CamStreamer {
             count++;
         }
         
-        numCameras = cams.size();
+        numCameras = cams.size()-def;
     }
 
 //    void encode() {
