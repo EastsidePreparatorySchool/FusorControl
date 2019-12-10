@@ -11,7 +11,7 @@
 #define TMP_AMPS  A0 // pin for pump amps 0-10V = 0 - 2.5A
 #define TMP_FREQ  A1 // pin for pump freq 0-10V = 0 - 1250Hz
 
-void setup(){
+void setup() {
   fusorInit("TMP");
   fusorAddVariable("tmp", FUSOR_VARTYPE_BOOL);
   fusorAddVariable("lowspeed", FUSOR_VARTYPE_BOOL);
@@ -32,7 +32,7 @@ void setup(){
 
   tmpOff();
   tmpHigh();
-  
+
   FUSOR_LED_ON();
   delay(200);
   FUSOR_LED_OFF();
@@ -41,7 +41,7 @@ void setup(){
 void loop() {
   // must do this in loop, the rest is optional
   fusorLoop();
-  
+
   updateAll();
   delay(5);
 }
@@ -50,17 +50,17 @@ void loop() {
 void updateAll() {
   //fusorSendResponse("updating ...");
   // put our current amps and freq out, read them a few times before counting the result
-  
-  for(int i =0; i < 10; analogRead(TMP_AMPS), i++);
+
+  for (int i = 0; i < 10; analogRead(TMP_AMPS), i++);
   int amps = analogRead(TMP_AMPS);
 
-  for(int i =0; i < 10; analogRead(TMP_AMPS), i++);
+  for (int i = 0; i < 10; analogRead(TMP_FREQ), i++);
   int freq = analogRead(TMP_FREQ);
-  
+
   fusorSetIntVariable("pump_curr_adc", amps);
   fusorSetIntVariable("pump_freq_adc", freq);
-  fusorSetFloatVariable("pump_curr_amps", ((float)amps)*2.5f/1024.0f); // full adc 1024 = 2.5A
-  fusorSetFloatVariable("pump_freq", ((float)freq)*1250.0f/1024.0f); // full adc 1024 = 1250 Hz
+  fusorSetFloatVariable("pump_curr_amps", ((float)amps) * 2.5f / 1024.0f); // full adc 1024 = 2.5A
+  fusorSetFloatVariable("pump_freq", ((float)freq) * 1250.0f / 1024.0f); // full adc 1024 = 1250 Hz
 
   //fusorSendResponse("done setting reads ...");
 
