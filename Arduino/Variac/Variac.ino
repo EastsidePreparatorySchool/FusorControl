@@ -60,26 +60,27 @@ void setVoltage(int volts) {
   digitalWrite(ENA, LOW);
   digitalWrite(REL, HIGH);
 
-  fusorSendResponse("before");
+  //fusorSendResponse("before");
   long start = millis();
   do {
     // make sure do not spend forever in here
     if (millis() - start > 3000) {
       break;
     }
-    fusorSendResponse("in loop2");
+    //fusorSendResponse("in loop2");
     pot = analogRead(POT);
     dif = targetPot - pot;
     digitalWrite(DIR, (dif < 0) ? LOW : HIGH);
 
     digitalWrite(PUL, HIGH);
-    fusorDelayMicroseconds(200);
+    delayMicroseconds(200);
     digitalWrite(PUL, LOW);
-    fusorDelayMicroseconds(200);
-    fusorSendResponse("at end");
+    delayMicroseconds(200);
+    //fusorSendResponse("at end");
+    fusorDelayMicroseconds(5); // just to give it a chance to drain the USB queue and provide status
   } while ( abs(dif) > 10 );
 
-  fusorSendResponse("after loop");
+  //fusorSendResponse("after loop");
   digitalWrite(ENA, HIGH);
   digitalWrite(REL, LOW);
   FUSOR_LED_OFF();
@@ -97,9 +98,10 @@ void zeroVoltage() {
   digitalWrite(DIR, LOW);
   for (int i = 0; i < 20; i++) {
     digitalWrite(PUL, HIGH);
-    fusorDelayMicroseconds(400);
+    delayMicroseconds(400);
     digitalWrite(PUL, LOW);
-    fusorDelayMicroseconds(400);
+    delayMicroseconds(400);
+    fusorDelayMicroseconds(5);
   }
   digitalWrite(ENA, HIGH);
   digitalWrite(REL, LOW);
