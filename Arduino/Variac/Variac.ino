@@ -30,6 +30,7 @@ void setup(){
 
   // stepper controller power relay
   pinMode(REL, OUTPUT);
+  digitalWrite(REL, LOW);
 
   // feedback from variac
   pinMode(POT, INPUT);
@@ -122,9 +123,9 @@ void updateAll() {
   
   // put our current potentiometer reading into "potentiometer"
 
-  // if "volts" was updated, set variac to that voltage
-  if (fusorVariableUpdated("volts")) {
-    volts = fusorGetIntVariable("volts");
+  // if "input_volts" was updated, set variac to that voltage
+  if (fusorVariableUpdated("input_volts")) {
+    volts = fusorGetIntVariable("input_volts");
     setVoltage(volts);
   }
   
@@ -133,5 +134,5 @@ void updateAll() {
 
   fusorSetIntVariable("pot_adc", pot);
   fusorSetFloatVariable("potentiometer", ((float)pot)*5.0f/1024);
-  fusorSetIntVariable("volts", volts);
+  fusorSetIntVariable("input_volts", volts);
 }
