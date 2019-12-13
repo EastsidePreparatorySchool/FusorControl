@@ -49,10 +49,12 @@ function infoFromData(data) {
     }
 
 
-    info += "Variac input setting: ";
+    info += "Variac: ";
     if (isDevicePresent(data, "VARIAC")) {
         var volts = getVariable(data, "VARIAC", "input_volts");
-        info += "" + volts + " V\n";
+        info += "" + volts + " V target\n";
+        volts = getVariable(data, "VARIAC", "pontentiometer");
+        info += "" + volts + " V actual\n";
     } else {
         info += "n/c\n";
     }

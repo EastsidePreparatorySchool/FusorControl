@@ -20,7 +20,7 @@
 void setup(){
   fusorInit("VARIAC");
   fusorAddVariable("input_volts", FUSOR_VARTYPE_INT);
-  fusorAddVariable("potentiometer", FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("potentiometer", FUSOR_VARTYPE_INT);
   fusorAddVariable("pot_adc", FUSOR_VARTYPE_INT);
 
   // stepper control for varaic
@@ -61,23 +61,23 @@ void setVoltage(int volts) {
   digitalWrite(ENA, LOW);
   digitalWrite(REL, HIGH);
 
-  //fusorSendResponse("before");
   long start = millis();
   do {
     // make sure do not spend forever in here
     if (millis() - start > 3000) {
       break;
     }
-    //fusorSendResponse("in loop2");
     pot = analogRead(POT);
     dif = targetPot - pot;
     digitalWrite(DIR, (dif < 0) ? LOW : HIGH);
 
     digitalWrite(PUL, HIGH);
+    // no fusorDelay..() here, can't afford to make this too long
     delayMicroseconds(200);
     digitalWrite(PUL, LOW);
+    // no fusorDelay..() here, can't afford to make this too long
     delayMicroseconds(200);
-    //fusorSendResponse("at end");
+    // now we can take a little breath, use fusorDelay..()
     fusorDelayMicroseconds(5); // just to give it a chance to drain the USB queue and provide status
   } while ( abs(dif) > 10 );
 
@@ -133,6 +133,5 @@ void updateAll() {
   volts = potToVolts(pot);
 
   fusorSetIntVariable("pot_adc", pot);
-  fusorSetFloatVariable("potentiometer", ((float)pot)*5.0f/1024);
-  fusorSetIntVariable("input_volts", volts);
+  fusorSetIntVariable("potentiometer",volts);
 }
