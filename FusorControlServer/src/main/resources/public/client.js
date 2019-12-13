@@ -4,7 +4,6 @@
 
 var endTest = false;
 var statusTimer = null;
-
 function mapBoolean(b, trueval, falseval) {
     if (b === true) {
         return trueval;
@@ -15,9 +14,7 @@ function mapBoolean(b, trueval, falseval) {
 }
 
 function infoFromData(data) {
-    data = JSON.parse(data);
     info = "";
-
     info += "Pump: ";
     if (isDevicePresent(data, "TMP")) {
         var tmp = getVariable(data, "TMP", "tmp");
@@ -27,7 +24,7 @@ function infoFromData(data) {
         var freq = getVariable(data, "TMP", "pump_freq");
         info += "frequency: " + Math.round(freq) + " Hz, ";
         var amps = getVariable(data, "TMP", "pump_curr_amps");
-        info += "power draw: " + (Math.round(amps*100)/100) + " A\n";
+        info += "power draw: " + (Math.round(amps * 100) / 100) + " A\n";
     } else {
         info += "n/c\n";
     }
@@ -52,7 +49,7 @@ function infoFromData(data) {
     info += "Variac: ";
     if (isDevicePresent(data, "VARIAC")) {
         var volts = getVariable(data, "VARIAC", "input_volts");
-        info += "" + volts + " V target\n";
+        info += "" + volts + " V target ";
         volts = getVariable(data, "VARIAC", "pontentiometer");
         info += "" + volts + " V actual\n";
     } else {
@@ -61,9 +58,9 @@ function infoFromData(data) {
 
     info += "HV Low side: ";
     if (isDevicePresent(data, "HV-LOWSIDE")) {
-        info += "variac rms: " + Math.round(getVariable(data, "HV-LOWSIDE", "variac_rms"),3) + " V, ";
-        info += "nst rms: " + Math.round(getVariable(data, "HV-LOWSIDE", "nst_rms"),3) + " KV, ";
-        info += "cw avg: " + Math.round(getVariable(data, "HV-LOWSIDE", "cw_avg"),3) + " KV, ";
+        info += "variac rms: " + Math.round(getVariable(data, "HV-LOWSIDE", "variac_rms") * 1000) / 1000 + " V, ";
+        info += "nst rms: " + Math.round(getVariable(data, "HV-LOWSIDE", "nst_rms") * 1000) / 1000 + " KV, ";
+        info += "cw avg: " + Math.round(getVariable(data, "HV-LOWSIDE", "cw_avg") * 1000) / 1000 + " KV, ";
         info += "n: " + getVariable(data, "HV-LOWSIDE", "n") + "\n";
     } else {
         info += "n/c\n";
@@ -128,6 +125,54 @@ function getVariable(data, device, variable) {
     return value;
 }
 
+function getVariableTimeStamp(data, device, variable) {
+    var value;
+    device = data.find((item) => item["device"] === device);
+    if (device === undefined) {
+        return ("<n/c>");
+    }
+    data = device["data"];
+    if (data === undefined) {
+        return "<n/a>";
+    }
+    variable = data[variable];
+    if (variable === undefined) {
+        return "<n/a>";
+    }
+    value = variable["vartime"];
+    if (value === undefined) {
+        return "<n/a>";
+    }
+    return value;
+}
+
+
+function getDeviceInfo(data, device, variable) {
+    var value;
+    device = data.find((item) => item["device"] === device);
+    if (device === undefined) {
+        return ("<n/c>");
+    }
+
+    // treat servertime and devicetime differently (fix this some day)
+    if (variable === "servertime") {
+        data = device[variable]; // servertime is in the envelope added by the server
+        if (data === undefined) {
+            return "<n/a>";
+        }
+        return data;
+    } else if (variable === "devicetime") {
+        data = device["data"]; // devicetime is defined in the "data" section
+        if (data === undefined) {
+            return "<n/a>";
+        }
+        data = data[variable];
+        if (data === undefined) {
+            return "<n/a>";
+        }
+        return data;
+    }
+}
 
 //document.getElementById("variacValue").addEventListener("keyup", function (event) {
 //    if (event.keyCode === 13) { //enter key: 13
@@ -143,6 +188,126 @@ function getVariable(data, device, variable) {
 //    }
 //});
 
+var vizChannels = {
+    'TMP.pump_freq': {name: 'TMP frequency (Hz)', variable: 'pump_freq', min: 0, max: 1250},
+    'TMP.pump_curr_amps': {name: 'TMP current (A)', variable: 'pump_curr_amps', min: 0, max: 2.5},
+    'PIRANI.pirani_adc': {name: 'Pressure (adc)', variable: 'pirani_adc', min: 0, max: 1024},
+    'VARIAC.input_volts': {name: 'Variac target (V)', variable: 'input_volts', min: 0, max: 130},
+    'VARIAC.potentiometer': {name: 'Variac actual (V)', variable: 'potentiometer', min: 0, max: 130},
+    'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', variable: 'variac_rms', min: 0, max: 130},
+    'HV-LOWSIDE.nst_rms': {name: 'NST RMS (KV)', variable: 'nst_rms', min: 0, max: 15},
+    'HV-LOWSIDE.cw_avg': {name: 'CW AVG (KV)', variable: 'cw_avg', min: 0, max: 50},
+    'HV-HIGHSIDE.hs_current_adc': {name: 'CW current ()', variable: 'hs_current_adc', min: 0, max: 50},
+    'GC-SERIAL.cps': {name: 'GCW (cps)', variable: 'cps', min: 0, max: 100},
+    'PN_JUNCTION.total': {name: 'PNJ (adc)', variable: 'total', min: 0, max: 100}
+};
+
+var vizData = [];
+var chart = null;
+function createViz() {
+    var options = {
+        zoomEnabled: true,
+        animationEnabled: true,
+        title: {
+            text: ""
+        },
+        axisY: {
+            title: "Percent",
+            includeZero: true,
+            suffix: " %",
+            lineThickness: 1,
+            maximum:100
+        },
+        axisX: {
+            title: "time",
+            includeZero: false,
+            suffix: " s",
+            lineThickness: 1
+        },
+        legend: {
+            cursor: "pointer",
+            itemmouseover: function (e) {
+                e.dataSeries.lineThickness = e.chart.data[e.dataSeriesIndex].lineThickness * 2;
+                e.dataSeries.markerSize = e.chart.data[e.dataSeriesIndex].markerSize + 2;
+                e.chart.render();
+            },
+            itemmouseout: function (e) {
+                e.dataSeries.lineThickness = e.chart.data[e.dataSeriesIndex].lineThickness / 2;
+                e.dataSeries.markerSize = e.chart.data[e.dataSeriesIndex].markerSize - 2;
+                e.chart.render();
+            },
+            itemclick: function (e) {
+                if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+                    e.dataSeries.visible = false;
+                } else {
+                    e.dataSeries.visible = true;
+                }
+                e.chart.render();
+            }
+        },
+        toolTip: {
+            shared: false,
+            content: "{name}: t: {x}, y: {value}"
+        },
+        data: vizData
+    };
+    for (var channel in vizChannels) {
+        var dataSeries = {
+            type: "line",
+            name: vizChannels[channel].name,
+            showInLegend: true,
+            dataPoints: []
+        };
+
+        vizData.push(dataSeries);
+        vizChannels[channel].dataSeries = dataSeries;
+    }
+
+    chart = new CanvasJS.Chart("chartContainer", options);
+    chart.render();
+}
+
+
+function updateViz(dataArray, startTime) {
+    for (var i = 0; i < dataArray.length; i++) {
+        var data = dataArray[i];
+        var devicename = data["device"];
+        var devicedata = data["data"];
+
+        for (var variable in devicedata) {
+            var vc = vizChannels[devicename+"."+variable];
+            if (vc === undefined) {
+                continue;
+            }
+            var dataSeries = vc.dataSeries;
+
+            // get value for this channel
+            var value = Number(devicedata[variable]["value"]);
+            var percent = (Math.abs(value) - vc.min) * 100 / (vc.max - vc.min);
+
+            // get the three relevant timestamps, and do the math
+            if (vc.offset === undefined) {
+                var serverTime = Number(data["servertime"]);
+                var deviceTime = Number(devicedata["devicetime"]);
+                var offset = deviceTime - (serverTime - startTime);
+                if (!isNaN(offset)) {
+                    vc.offset = offset;
+                }
+            }
+            var varTime = Number(devicedata[variable]["vartime"]);
+            varTime -= vc.offset;
+
+            //console.log("x: "+varTime+" y: "+percent)
+
+            dataSeries.dataPoints.push({x: Math.round(varTime * 10) / 10000, y: percent, value: value});
+            while (dataSeries.dataPoints.length > 100000) {
+                dataSeries.dataPoints.shift();
+            }
+        }
+    }
+    chart.render();
+}
+
 function selectButton(select, unselect) {
     document.getElementById(unselect).style.border = "none";
     document.getElementById(select).style.border = "2px solid black";
@@ -153,7 +318,6 @@ function request(obj) {
     return new Promise((resolve, reject) => {
         let xhr = new XMLHttpRequest();
         xhr.open(obj.method || "GET", obj.url);
-
         xhr.onload = () => {
             if (xhr.status >= 200 && xhr.status < 300) {
                 resolve(xhr.response);
@@ -162,7 +326,6 @@ function request(obj) {
             }
         };
         xhr.onerror = () => reject(xhr.statusText);
-
         xhr.send(obj.body);
     });
 }
@@ -180,14 +343,33 @@ function xmlRequest(verb, url) {
     xhr.send();
 }
 
+function updateStatus(data, raw, startTime) {
+    if (data !== null) {
 
-//gets status of all non-core devices
+        document.getElementById("data").value = infoFromData(data, startTime);
+        if (raw !== null) {
+            document.getElementById("data").value += "\n\n" + raw;
+        }
+        updateViz(data, startTime);
+    }
+}
+
+
 function getStatus() {
-    request({url: "/getstatus", method: "GET"})
-            .then(data => {
-                document.getElementById("data").value = infoFromData(data);
-                document.getElementById("data").value += "\n\n" + data;
+//    // for local testing: read next line from data file
+//    if (window.location.href.startsWith("file")) {
+//        data = nextStatusLine();
+//        if (data !== null) {
+//            updateStatus(data);
+//        }
+//        return;
+//    }
 
+    // for the real thing: web request to server
+    request({url: "/getstatus", method: "GET"})
+            .then(raw => {
+                data = JSON.parse(raw);
+                updateStatus(data, raw);
                 //console.log(data);
             })
             .catch(error => {
@@ -342,5 +524,82 @@ function stopStatus() {
         statusTimer = null;
     }
 }
+
+function openTab(evt, tabName) {
+    // Declare all variables
+    var i, tabcontent, tablinks;
+    // Get all elements with class="tabcontent" and hide them
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+
+    // Get all elements with class="tablinks" and remove the class "active"
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+
+    // Show the current tab, and add an "active" class to the button that opened the tab
+    document.getElementById(tabName).style.display = "block";
+    if (evt !== null) {
+        evt.currentTarget.className += " active";
+    }
+}
+
+
+//
+// init code
+//
+
+createViz();
+openTab(null, "chart_info");
+//
+// for local testing: read next line from data file
+//
+
+var testData = [];
+var testCurrentIndex = 0;
+var startTime;
+var timer;
+
+function timerTest() {
+    if (testCurrentIndex >= testData.length) {
+        clearInterval(timer);
+        return;
+    }
+    var data = [];
+    var devicesSeen = {};
+    startTime = testData[testCurrentIndex]["servertime"];
+    while (testCurrentIndex < testData.length) {
+        datum = testData[testCurrentIndex];
+        if (datum["device"] in devicesSeen)
+            break;
+        testCurrentIndex++;
+        data.push(datum);
+        devicesSeen[datum["device"]] = true;
+    }
+    if (data.length === 0) {
+        data = null;
+    }
+    var raw = JSON.stringify(data);
+
+    updateStatus(data, raw, startTime);
+}
+
+// read JSON test file
+if (window.location.href.startsWith("file")) {
+    testData = fullData;
+    if (testData.length > 0) {
+        startTime = testData[0]["servertime"];
+    }
+    console.log("length of test data: " + testData.length);
+    //timer = setInterval(timerTest, 100);
+    
+    updateStatus(testData, null, startTime);
+}
+
+
+
 
         
