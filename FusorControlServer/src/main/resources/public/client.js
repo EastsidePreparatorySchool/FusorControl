@@ -59,9 +59,9 @@ function infoFromData(data) {
 
     info += "HV Low side: ";
     if (isDevicePresent(data, "HV-LOWSIDE")) {
-        info += "variac rms: " + getVariable(data, "HV-LOWSIDE", "variac_rms") + " V, ";
-        info += "nst rms: " + getVariable(data, "HV-LOWSIDE", "nst_rms") + " V, ";
-        info += "cw avg: " + getVariable(data, "HV-LOWSIDE", "cw_avg") + " V, ";
+        info += "variac rms: " + Math.round(getVariable(data, "HV-LOWSIDE", "variac_rms"),3) + " V, ";
+        info += "nst rms: " + Math.round(getVariable(data, "HV-LOWSIDE", "nst_rms"),3) + " KV, ";
+        info += "cw avg: " + Math.round(getVariable(data, "HV-LOWSIDE", "cw_avg"),3) + " KV, ";
         info += "n: " + getVariable(data, "HV-LOWSIDE", "n") + "\n";
     } else {
         info += "n/c\n";
