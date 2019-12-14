@@ -42,7 +42,7 @@ void setup(){
 }
 
 
-float potToVolts(int pot) {
+int potToVolts(int pot) {
   return map(pot, 0, 1024, MINVOLTS, MAXVOLTS);
 }
 
