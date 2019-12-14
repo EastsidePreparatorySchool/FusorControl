@@ -13,18 +13,21 @@ public class DataLogger {
     private Thread loggerThread;
     private DeviceManager dm;
     private String logPath;
+    private CamStreamer cs;
 
     public static String makeLogResponse(SerialDevice sd, long time, String response) {
         return "{\"device\":\"" + sd.name + "\",\"data\":" + response + ",\"servertime\":" + time + "}";
 
     }
 
-    public void init(DeviceManager dm) throws IOException {
+    public void init(DeviceManager dm, CamStreamer cs) throws IOException {
         this.dm = dm;
         
         //creates time stamp and appends to .json file, then creates a writer and inits headers
         makeLogPath();
         open();
+        this.cs = cs;
+        //cs.startRecording(this.logPath+"cam");
 
         loggerThread = new Thread(() -> loggerThreadLoop());
         if (!FusorControlServer.config.noLog) {
@@ -34,6 +37,7 @@ public class DataLogger {
 
     void shutdown() {
         try {
+            //cs.stopRecording();
             loggerThread.interrupt();
             loggerThread.join(500);
             close();
@@ -116,6 +120,5 @@ public class DataLogger {
                 System.err.println("Log folder " + folder + "does not exist and cannot be created");
             }
         }
-
     }
 }

@@ -189,9 +189,11 @@ function getDeviceInfo(data, device, variable) {
 //});
 
 var vizChannels = {
+    'TMP.tmp': {name: 'TMP status', variable: 'tmp', min: 0, max: 1},
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', variable: 'pump_freq', min: 0, max: 1250},
     'TMP.pump_curr_amps': {name: 'TMP current (A)', variable: 'pump_curr_amps', min: 0, max: 2.5},
-    'PIRANI.pirani_adc': {name: 'Pressure (adc)', variable: 'pirani_adc', min: 0, max: 1024},
+    'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', variable:'diaphragm_adc', min:0, max:110},
+    'PIRANI.pirani_adc': {name: 'Fine pressure (adc)', variable: 'pirani_adc', min: 0, max: 1024},
     'VARIAC.input_volts': {name: 'Variac target (V)', variable: 'input_volts', min: 0, max: 130},
     'VARIAC.potentiometer': {name: 'Variac actual (V)', variable: 'potentiometer', min: 0, max: 130},
     'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', variable: 'variac_rms', min: 0, max: 130},
@@ -199,7 +201,7 @@ var vizChannels = {
     'HV-LOWSIDE.cw_avg': {name: 'CW AVG (KV)', variable: 'cw_avg', min: 0, max: 50},
     'HV-HIGHSIDE.hs_current_adc': {name: 'CW current ()', variable: 'hs_current_adc', min: 0, max: 50},
     'GC-SERIAL.cps': {name: 'GCW (cps)', variable: 'cps', min: 0, max: 100},
-    'PN_JUNCTION.total': {name: 'PNJ (adc)', variable: 'total', min: 0, max: 100}
+    'PN-JUNCTION.total': {name: 'PNJ (adc)', variable: 'total', min: 0, max: 100}
 };
 
 var vizData = [];

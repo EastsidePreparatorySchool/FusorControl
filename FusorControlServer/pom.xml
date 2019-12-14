@@ -10,6 +10,12 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
+    <repositories>
+        <repository>
+            <id>xuggle repo</id>
+            <url>https://repository.liferay.com/nexus/content/repositories/public/</url>
+        </repository>
+    </repositories>
     <dependencies>
         <!-- https://mvnrepository.com/artifact/com.sparkjava/spark-core -->
         <dependency>
@@ -39,10 +45,10 @@
             <version>0.3.12</version>
         </dependency>
         
-<!--        <dependency>
+        <dependency>
             <groupId>xuggle</groupId>
             <artifactId>xuggle-xuggler</artifactId>
             <version>5.2</version>
-        </dependency>-->
+        </dependency>
     </dependencies>
 </project>

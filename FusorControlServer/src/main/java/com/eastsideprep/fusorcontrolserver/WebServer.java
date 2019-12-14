@@ -70,7 +70,7 @@ public class WebServer {
                     dl.shutdown();
                 }
                 dl = new DataLogger();
-                dl.init(dm);
+                dl.init(dm, cs);
                 dm.autoStatusOn();
                 System.out.println("New log started");
                 return "log started";

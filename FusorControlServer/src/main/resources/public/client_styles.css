@@ -3,7 +3,7 @@ body {
     font-size: 1.1em;
     width: 98%;
     background-color: #717af7;
-    color: #130f0281;
+    color: #130f02;
     font-family: 'Lato', sans-serif;
 }
 
@@ -22,7 +22,7 @@ h3 {
 
 .button {
     height: 50px;
-    width: 24.5%;
+    width: 19.5%;
     border: none;
     border-radius: 8px;
     opacity: 0.9;
