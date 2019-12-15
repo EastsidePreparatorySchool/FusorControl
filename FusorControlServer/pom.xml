@@ -13,7 +13,7 @@
     <repositories>
         <repository>
             <id>xuggle repo</id>
-            <url>https://repository.liferay.com/nexus/content/repositories/public/</url>
+            <url>https://www.dcm4che.org/maven2/</url>
         </repository>
     </repositories>
     <dependencies>
@@ -48,7 +48,13 @@
         <dependency>
             <groupId>xuggle</groupId>
             <artifactId>xuggle-xuggler</artifactId>
-            <version>5.2</version>
+            <version>5.4</version>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.12</version>
+            <type>jar</type>
         </dependency>
     </dependencies>
 </project>

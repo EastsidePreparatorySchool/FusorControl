@@ -22,24 +22,39 @@ public class DataLogger {
 
     public void init(DeviceManager dm, CamStreamer cs) throws IOException {
         this.dm = dm;
-        
-        //creates time stamp and appends to .json file, then creates a writer and inits headers
-        makeLogPath();
-        open();
-        this.cs = cs;
-        //cs.startRecording(this.logPath+"cam");
 
-        loggerThread = new Thread(() -> loggerThreadLoop());
         if (!FusorControlServer.config.noLog) {
+            // make sure the folder exists
+            makeLogPath();
+
+            // create time info for logfile and cam files
+            Date date = new Date();
+            long millis = System.currentTimeMillis();
+            Instant instant1 = date.toInstant();
+            String ts = instant1.toString();
+            String fileName = makeFileName(ts);
+
+            // create logfile
+            open(fileName, millis, ts);
+            this.cs = cs;
+            cs.startRecording(fileName+"_cam_");
+
+            // and go
+            loggerThread = new Thread(() -> loggerThreadLoop());
             loggerThread.start();
         }
     }
 
     void shutdown() {
         try {
-            //cs.stopRecording();
+            // stop the camera
+            cs.stopRecording();
+            
+            // stop the logger thread
             loggerThread.interrupt();
             loggerThread.join(500);
+            
+            // flush and close the log file
             close();
         } catch (Exception ex) {
         }
@@ -72,13 +87,14 @@ public class DataLogger {
         }
     }
 
-    private void open() throws IOException {
-        Date date = new Date();
-        long millis = System.currentTimeMillis();
-        Instant instant1 = date.toInstant();
-        String ts = instant1.toString();
-        String fileName = logPath + "fusor-" + ts.replace(":", "-").replace(".", "-") + ".json";
-        writer = new FileWriter(fileName);
+    private String makeFileName(String ts) {
+
+        return logPath + "fusor-" + ts.replace(":", "-").replace(".", "-");
+    }
+
+    private void open(String filePrefix, long millis, String ts) throws IOException {
+        String fileFullName = filePrefix + ".json";
+        writer = new FileWriter(fileFullName);
         writer.append("{\"base-timestamp\":" + millis + ",\"instant\":\"" + ts + "\",\"log\":[\n");
         writer.flush();
     }
@@ -103,14 +119,14 @@ public class DataLogger {
 
         // take of ending slashes for a moment
         if (logPath.endsWith(System.getProperty("file.separator"))) {
-            logPath = logPath.substring(0, logPath.length()-1);
+            logPath = logPath.substring(0, logPath.length() - 1);
         }
         // make sure log path exists
         createFolder(this.logPath);
-        
+
         // put the slash back on
-        logPath +=  System.getProperty("file.separator");
-        System.out.println("Log path is "+logPath);
+        logPath += System.getProperty("file.separator");
+        System.out.println("Log path is " + logPath);
     }
 
     public static void createFolder(String folder) {
