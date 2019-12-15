@@ -4,6 +4,9 @@
 
 var endTest = false;
 var statusTimer = null;
+var logStart = undefined;
+var maxTime = 0;
+
 function mapBoolean(b, trueval, falseval) {
     if (b === true) {
         return trueval;
@@ -192,7 +195,7 @@ var vizChannels = {
     'TMP.tmp': {name: 'TMP status', variable: 'tmp', min: 0, max: 1},
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', variable: 'pump_freq', min: 0, max: 1250},
     'TMP.pump_curr_amps': {name: 'TMP current (A)', variable: 'pump_curr_amps', min: 0, max: 2.5},
-    'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', variable:'diaphragm_adc', min:0, max:110},
+    'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', variable: 'diaphragm_adc', min: 0, max: 110},
     'PIRANI.pirani_adc': {name: 'Fine pressure (adc)', variable: 'pirani_adc', min: 0, max: 1024},
     'VARIAC.input_volts': {name: 'Variac target (V)', variable: 'input_volts', min: 0, max: 130},
     'VARIAC.potentiometer': {name: 'Variac actual (V)', variable: 'potentiometer', min: 0, max: 130},
@@ -206,6 +209,8 @@ var vizChannels = {
 
 var vizData = [];
 var chart = null;
+var vizFrozen = false;
+
 function createViz() {
     var options = {
         zoomEnabled: true,
@@ -218,7 +223,7 @@ function createViz() {
             includeZero: true,
             suffix: " %",
             lineThickness: 1,
-            maximum:100
+            maximum: 100
         },
         axisX: {
             title: "time",
@@ -251,7 +256,10 @@ function createViz() {
             shared: false,
             content: "{name}: t: {x}, y: {value}"
         },
-        data: vizData
+        data: vizData,
+        rangeChanging: function (e) {
+            vizFrozen = (e.trigger !== "reset");
+        }
     };
     for (var channel in vizChannels) {
         var dataSeries = {
@@ -277,7 +285,7 @@ function updateViz(dataArray, startTime) {
         var devicedata = data["data"];
 
         for (var variable in devicedata) {
-            var vc = vizChannels[devicename+"."+variable];
+            var vc = vizChannels[devicename + "." + variable];
             if (vc === undefined) {
                 continue;
             }
@@ -291,6 +299,10 @@ function updateViz(dataArray, startTime) {
             if (vc.offset === undefined) {
                 var serverTime = Number(data["servertime"]);
                 var deviceTime = Number(devicedata["devicetime"]);
+                if (startTime === undefined) {
+                    startTime = serverTime;
+                    logStart = serverTime;
+                }
                 var offset = deviceTime - (serverTime - startTime);
                 if (!isNaN(offset)) {
                     vc.offset = offset;
@@ -298,10 +310,17 @@ function updateViz(dataArray, startTime) {
             }
             var varTime = Number(devicedata[variable]["vartime"]);
             varTime -= vc.offset;
+            varTime = Math.max(varTime, 0);
+            var secs = Math.round(varTime * 10) / 10000;
+            maxTime = Math.max(maxTime, secs);
+            if (!vizFrozen) {
+                chart.axisX[0].set("viewportMinimum", Math.max(maxTime - 60, 0));
+                chart.axisX[0].set("viewportMaximum", Math.max(maxTime, 60));
+            }
 
             //console.log("x: "+varTime+" y: "+percent)
 
-            dataSeries.dataPoints.push({x: Math.round(varTime * 10) / 10000, y: percent, value: value});
+            dataSeries.dataPoints.push({x: secs, y: percent, value: value});
             while (dataSeries.dataPoints.length > 100000) {
                 dataSeries.dataPoints.shift();
             }
@@ -358,20 +377,11 @@ function updateStatus(data, raw, startTime) {
 
 
 function getStatus() {
-//    // for local testing: read next line from data file
-//    if (window.location.href.startsWith("file")) {
-//        data = nextStatusLine();
-//        if (data !== null) {
-//            updateStatus(data);
-//        }
-//        return;
-//    }
-
     // for the real thing: web request to server
     request({url: "/getstatus", method: "GET"})
             .then(raw => {
                 data = JSON.parse(raw);
-                updateStatus(data, raw);
+                updateStatus(data, raw, logStart);
                 //console.log(data);
             })
             .catch(error => {
@@ -513,6 +523,8 @@ function SolenoidOff() {
 }
 
 function initStatus() {
+    logStart = undefined;
+    maxTime = 0;
     if (statusTimer === null) {
         console.log("now receiving status");
         statusTimer = setInterval(getStatus, 1000); //per every 1 second
@@ -597,7 +609,7 @@ if (window.location.href.startsWith("file")) {
     }
     console.log("length of test data: " + testData.length);
     //timer = setInterval(timerTest, 100);
-    
+
     updateStatus(testData, null, startTime);
 }
 
