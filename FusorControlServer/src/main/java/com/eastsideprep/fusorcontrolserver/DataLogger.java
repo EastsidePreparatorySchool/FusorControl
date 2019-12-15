@@ -14,6 +14,7 @@ public class DataLogger {
     private DeviceManager dm;
     private String logPath;
     private CamStreamer cs;
+    private long baseTime; 
 
     public static String makeLogResponse(SerialDevice sd, long time, String response) {
         return "{\"device\":\"" + sd.name + "\",\"data\":" + response + ",\"servertime\":" + time + "}";
@@ -35,9 +36,10 @@ public class DataLogger {
             String fileName = makeFileName(ts);
 
             // create logfile
-            open(fileName, millis, ts);
+            this.baseTime = System.currentTimeMillis();
+            open(fileName, ts);
             this.cs = cs;
-            cs.startRecording(fileName+"_cam_");
+            cs.startRecording(fileName+"_cam_", this.baseTime);
 
             // and go
             loggerThread = new Thread(() -> loggerThreadLoop());
@@ -92,10 +94,10 @@ public class DataLogger {
         return logPath + "fusor-" + ts.replace(":", "-").replace(".", "-");
     }
 
-    private void open(String filePrefix, long millis, String ts) throws IOException {
+    private void open(String filePrefix,  String ts) throws IOException {
         String fileFullName = filePrefix + ".json";
         writer = new FileWriter(fileFullName);
-        writer.append("{\"base-timestamp\":" + millis + ",\"instant\":\"" + ts + "\",\"log\":[\n");
+        writer.append("{\"base-timestamp\":" + this.baseTime + ",\"instant\":\"" + ts + "\",\"log\":[\n");
         writer.flush();
     }
 
