@@ -6,6 +6,8 @@ var endTest = false;
 var statusTimer = null;
 var logStart = undefined;
 var maxTime = 0;
+var liveServer = window.location.href.startsWith("http");
+
 
 function mapBoolean(b, trueval, falseval) {
     if (b === true) {
@@ -312,10 +314,13 @@ function updateViz(dataArray, startTime) {
             varTime -= vc.offset;
             varTime = Math.max(varTime, 0);
             var secs = Math.round(varTime * 10) / 10000;
-            maxTime = Math.max(maxTime, secs);
-            if (!vizFrozen) {
-                chart.axisX[0].set("viewportMinimum", Math.max(maxTime - 60, 0));
-                chart.axisX[0].set("viewportMaximum", Math.max(maxTime, 60));
+
+            if (liveServer) {
+                maxTime = Math.max(maxTime, secs);
+                if (!vizFrozen) {
+                    chart.axisX[0].set("viewportMinimum", Math.max(maxTime - 60, 0));
+                    chart.axisX[0].set("viewportMaximum", Math.max(maxTime, 60));
+                }
             }
 
             //console.log("x: "+varTime+" y: "+percent)
@@ -602,7 +607,8 @@ function timerTest() {
 }
 
 // read JSON test file
-if (window.location.href.startsWith("file")) {
+
+if (!liveServer) {
     testData = fullData;
     if (testData.length > 0) {
         startTime = testData[0]["servertime"];
