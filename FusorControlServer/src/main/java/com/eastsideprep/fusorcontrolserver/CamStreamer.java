@@ -16,6 +16,7 @@ import com.xuggle.xuggler.IRational;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import net.sourceforge.tess4j.Tesseract;
 
 public class CamStreamer {
 
@@ -24,12 +25,16 @@ public class CamStreamer {
     private ArrayList<Webcam> cams = new ArrayList<>();
     private ArrayList<Thread> camThreads = new ArrayList<>();
     private volatile boolean stopRecording = false;
+    private Tesseract tesseract;
+    private TessWrapper tw;
+    private DeviceManager dm;
 
-    CamStreamer() {
+    CamStreamer(DeviceManager dm) {
         cams.clear();
         List<Webcam> camList = Webcam.getWebcams();
         int count = 0;
         int def = 0;
+        this.dm = dm;
 
         for (Webcam cam : camList) {
             if (cam == null) {
@@ -40,10 +45,13 @@ public class CamStreamer {
             // keep track of it, for recording
             this.cams.add(cam);
 
-            if (cam.getName().startsWith("EasyCamera")) {
+            if (cam.getName().startsWith("EasyCamera")) { // built-in, useless camera on FUSOR2 laptop
                 def = 1;
                 continue;
             }
+
+            SerialDevice sd = new NullSerialDevice(cam.getName());
+            dm.register(sd);
 
             Dimension size = WebcamResolution.QVGA.getSize();
             cam.setViewSize(size);
@@ -63,6 +71,13 @@ public class CamStreamer {
 
         WebcamDiscoveryService discovery = Webcam.getDiscoveryService();
         discovery.stop();
+
+        tesseract = new Tesseract();
+        tesseract.setDatapath("tessdata");
+        tesseract.setLanguage("letsgodigital");
+        
+        tw = new TessWrapper();
+        tw.init();
     }
 
     void record(Webcam webcam, String fileName, long baseTime) {
@@ -84,17 +99,25 @@ public class CamStreamer {
             return;
         }
 
+        // access our fake serial device in case of OCR
+        SerialDevice sd = dm.get(webcam.getName());
+
         // this thread will do its thing until the logger sets the flag
         Thread t = new Thread(() -> {
             long start = System.currentTimeMillis();
             while (!stopRecording) {
                 try {
                     try {
-                        double secs = ((System.currentTimeMillis() - baseTime)/100)/10.0;
+                        //get timestamp, get image into bufferImage
+                        long millis = System.currentTimeMillis();
+                        double secs = ((millis - baseTime) / 100) / 10.0;
                         BufferedImage image = new BufferedImage(size.width, size.height, BufferedImage.TYPE_3BYTE_BGR);
                         image.getGraphics().drawImage(webcam.getImage(), 0, 0, null);
+
+                        extractNumber(image, millis, sd);
+
                         image.getGraphics().drawString(Double.toString(secs), 10, 20);
-                        image.getGraphics().drawString(file.getName(),10,size.height-10);
+                        image.getGraphics().drawString(file.getName(), 10, size.height - 10);
                         writer.encodeVideo(0, image, System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
                     } catch (Throwable ex) {
                         System.out.println(ex);
@@ -115,6 +138,36 @@ public class CamStreamer {
         });
         t.start();
         this.camThreads.add(t);
+    }
+
+    void extractNumber(BufferedImage image, long millis, SerialDevice sd) {
+   
+        //String s = tesseract.doOCR(image);
+        String s = tw.extract(image);
+
+        if (s != null && s.length() > 0) {
+            String log = "{\"device\":\"" + sd.name + "\",\"data\":{";
+            //System.out.println("Recognized: " + s);
+            s = s.replaceAll("[^\\x00-\\x7F]", "");
+            // erases all the ASCII control characters
+            s = s.replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "");
+            // removes non-printable characters from Unicode
+            s = s.replaceAll("\\p{C}", "");
+            s = s.trim();
+            log += "\"raw\":{\"value\":\"" + s + "\",\"vartime\":" + millis + "}";
+
+            double d = 0;
+            try {
+                d = Double.parseDouble(s);
+                log += ",\"double\":{\"value\":" + d + ",\"vartime\":" + millis + "}";
+            } catch (Exception e) {
+            }
+            log += ",\"devicetime\":" + millis;
+
+            log += "},\"servertime\":" + millis + "}";
+            sd.setStatus(log);
+            //System.out.println("OCR: " + log);
+        }
     }
 
     void startRecording(String filePrefix, long baseTime) {

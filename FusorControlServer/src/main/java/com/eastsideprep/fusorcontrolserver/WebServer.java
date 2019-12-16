@@ -13,8 +13,8 @@ public class WebServer {
     }
 
     public void init() {
-        cs = new CamStreamer();
         dm = new DeviceManager();
+        cs = new CamStreamer(dm);
         // initialize the connections to all serial devices
         cd = dm.init();
 
