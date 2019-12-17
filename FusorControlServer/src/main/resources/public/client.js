@@ -231,7 +231,9 @@ function createViz() {
             title: "time",
             includeZero: false,
             suffix: " s",
-            lineThickness: 1
+            lineThickness: 1,
+            viewportMinimum: 0,
+            viewportMaximum: 60
         },
         legend: {
             cursor: "pointer",
@@ -315,8 +317,8 @@ function updateViz(dataArray, startTime) {
             varTime = Math.max(varTime, 0);
             var secs = Math.round(varTime * 10) / 10000;
 
+            maxTime = Math.max(maxTime, secs);
             if (liveServer) {
-                maxTime = Math.max(maxTime, secs);
                 if (!vizFrozen) {
                     chart.axisX[0].set("viewportMinimum", Math.max(maxTime - 60, 0));
                     chart.axisX[0].set("viewportMaximum", Math.max(maxTime, 60));
@@ -331,6 +333,11 @@ function updateViz(dataArray, startTime) {
             }
         }
     }
+    if (!liveServer) {
+        chart.axisX[0].set("viewportMinimum", 0);
+        chart.axisX[0].set("viewportMaximum", maxTime);
+    }
+
     chart.render();
 }
 
@@ -571,42 +578,15 @@ function openTab(evt, tabName) {
 // init code
 //
 
-createViz();
 openTab(null, "chart_info");
+createViz();
 //
 // for local testing: read next line from data file
 //
 
-var testData = [];
-var testCurrentIndex = 0;
+testDta = fullData;
 var startTime;
-var timer;
 
-function timerTest() {
-    if (testCurrentIndex >= testData.length) {
-        clearInterval(timer);
-        return;
-    }
-    var data = [];
-    var devicesSeen = {};
-    startTime = testData[testCurrentIndex]["servertime"];
-    while (testCurrentIndex < testData.length) {
-        datum = testData[testCurrentIndex];
-        if (datum["device"] in devicesSeen)
-            break;
-        testCurrentIndex++;
-        data.push(datum);
-        devicesSeen[datum["device"]] = true;
-    }
-    if (data.length === 0) {
-        data = null;
-    }
-    var raw = JSON.stringify(data);
-
-    updateStatus(data, raw, startTime);
-}
-
-// read JSON test file
 
 if (!liveServer) {
     testData = fullData;
@@ -614,7 +594,6 @@ if (!liveServer) {
         startTime = testData[0]["servertime"];
     }
     console.log("length of test data: " + testData.length);
-    //timer = setInterval(timerTest, 100);
 
     updateStatus(testData, null, startTime);
 }
