@@ -7,7 +7,7 @@ public class WebServer {
     CamStreamer cs;
     DeviceManager dm;
     CoreDevices cd;
-    DataLogger dl;
+    static DataLogger dl;
 
     public WebServer() {
     }

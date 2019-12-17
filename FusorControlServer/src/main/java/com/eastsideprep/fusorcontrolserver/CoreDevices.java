@@ -14,14 +14,16 @@ public class CoreDevices {
 
     public CoreDevices(DeviceManager dm) {
         this.dm = dm;
+    }
 
+    public void refresh(){
         this.variac = (VariacControlDevice) dm.get("VARIAC");
         this.gas = (GasControlDevice) dm.get("GAS");
         this.tmp = (TMPControlDevice) dm.get("TMP");
         this.needle = dm.get("NEEDLEVALVE");
     }
 
-    public boolean isCoreDevice(String name) {
+    public static boolean isCoreDevice(String name) {
         switch (name) {
             case "VARIAC":
             case "TMP":

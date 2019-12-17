@@ -179,10 +179,10 @@ public class DeviceManager {
         // discovering new devices is not that important, after all
         Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 2);
         try {
-            //while (!Thread.interrupted()) {
-            queryIdentifyAll(semaphore);
-            Thread.sleep(5000);
-            //}
+            while (!Thread.interrupted()) {
+                queryIdentifyAll(semaphore);
+                Thread.sleep(10000);
+            }
         } catch (InterruptedException e) {
         }
 
@@ -297,12 +297,15 @@ public class DeviceManager {
                             portList.remove(p);
                             pB.closePort();
                             portList.remove(pB);
+                            arduinoMap.put(new NullSerialDevice(p, "<bt n/c>"));
+                            arduinoMap.put(new NullSerialDevice(pB, "<bt n/c>"));
                             i--;
                         } else {
                             // remove the one that doesn't work
                             System.out.println("  - removing bt input port " + wrongOne[0].getSystemPortName());
                             wrongOne[0].closePort();
                             portList.remove(wrongOne[0]);
+                            arduinoMap.put(new NullSerialDevice(wrongOne[0], "<bt input>"));
                         }
                     }
                 }
@@ -402,17 +405,25 @@ public class DeviceManager {
     }
 
     public void register(SerialDevice sd) {
-        // find a unique name 
-        String name = sd.name;
-        int count = 2;
-        while (arduinoMap.get(name) != null) {
-            name = sd.name + count;
-            count++;
+        if (!CoreDevices.isCoreDevice(sd.name)) {
+            // find a unique name 
+            String name = sd.name;
+            int count = 2;
+            while (arduinoMap.get(name) != null) {
+                name = sd.name + count;
+                count++;
+            }
+            sd.name = name;
         }
-        sd.name = name;
 
         // register in the map
         arduinoMap.put(sd);
+        
+        // if this is core, update the CoreDevices
+        if (CoreDevices.isCoreDevice(sd.name)) {
+            cd.refresh();
+        }
+
     }
 
     public void unregister(SerialDevice sd) {
@@ -439,6 +450,9 @@ public class DeviceManager {
 
                 register(sd);
                 System.out.println("  -- new Arduino connected: " + sd.name + " (" + sd.originalName + ", function: " + sd.function + "), on: " + port.getSystemPortName() + msg);
+                if (WebServer.dl != null) {
+                    sd.autoStatusOn();
+                }
             }
         }
     }
