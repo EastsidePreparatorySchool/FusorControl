@@ -99,6 +99,15 @@ void setVoltage(int volts, bool emergency) {
 
     if (!emergency) {
       fusorDelay(10);
+
+      // emergency shutdown
+      if (fusorVariableUpdated("emergency_zero")) {
+        bool shutdownNow = fusorGetBoolVariable("emergency_zero");
+        if (shutdownNow) {
+          zeroVoltage();
+          while (true); // we don't do anything after that.
+        }
+      }
     }
   }
 
@@ -151,7 +160,7 @@ void updateAll() {
     bool shutdownNow = fusorGetBoolVariable("emergency_zero");
     if (shutdownNow) {
       zeroVoltage();
-      while (true); // we don't do anything after that. 
+      while (true); // we don't do anything after that.
     }
   }
 
