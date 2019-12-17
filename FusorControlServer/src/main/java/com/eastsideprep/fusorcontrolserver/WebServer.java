@@ -98,11 +98,21 @@ public class WebServer {
             System.out.println("Received Variac Set " + variacValue);
             if (cd.variac.setVoltage(variacValue)) {
                 return "set value as " + req.queryParams("value");
+            } else {
+                halt("Variac control failed");
             }
-            halt ("Variac control failed");
             return "";
         });
-
+        get("/variac_stop", (req, res) -> {
+            int value = Integer.parseInt(req.queryParams("value"));
+            System.out.println("Received Variac Stop " + value);
+            if (cd.variac.set("stop", value)) {
+                return "variac stop " + (value == 0 ? "(emergency)" : "(regular)");
+            } else {
+                halt("Variac control failed");
+            }
+            return "";
+        });
         //number of cameras streaming
         get("/numcameras", (req, res) -> {
             return Integer.toString(cs.numCameras);
@@ -113,7 +123,7 @@ public class WebServer {
             if (cd.tmp.setOn()) {
                 return "turned on TMP";
             }
-            halt(500,"TMP control failed");
+            halt(500, "TMP control failed");
             return "";
         });
 
@@ -121,7 +131,7 @@ public class WebServer {
             if (cd.tmp.setOff()) {
                 return "turned off TMP";
             }
-            halt(500,"TMP control failed");
+            halt(500, "TMP control failed");
             return "";
         });
 
@@ -131,9 +141,9 @@ public class WebServer {
             if (this.cd.needle.set("needlevalve", value)) {
                 System.out.println("needle valve success");
                 return "set needle valve value as " + value;
-            }   
+            }
             System.out.println("needle valve fail");
-            halt(500,"set needle valve failed");
+            halt(500, "set needle valve failed");
             return "";
         });
 
@@ -142,7 +152,7 @@ public class WebServer {
             if (cd.gas.setOpen()) {
                 return "set solenoid to open";
             }
-            halt(500,"set solenoid failed");
+            halt(500, "set solenoid failed");
             return "";
 
         });
@@ -151,7 +161,7 @@ public class WebServer {
             if (cd.gas.setClosed()) {
                 return "set solenoid to closed";
             } else {
-                halt(500,"set solenoid faild");
+                halt(500, "set solenoid faild");
                 return "";
             }
         });

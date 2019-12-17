@@ -22,9 +22,7 @@ void setup() {
   fusorAddVariable("input_volts", FUSOR_VARTYPE_INT);
   fusorAddVariable("potentiometer", FUSOR_VARTYPE_INT);
   fusorAddVariable("pot_adc", FUSOR_VARTYPE_INT);
-  fusorAddVariable("emergency_zero", FUSOR_VARTYPE_BOOL);
-
-  fusorSetBoolVariable("emergency_zero", false);
+  fusorAddVariable("stop", FUSOR_VARTYPE_INT);
 
   // stepper control for varaic
   pinMode(PUL, OUTPUT);
@@ -57,58 +55,89 @@ int voltsToPot(int volts) {
 void setVoltage(int volts, bool emergency) {
   int pot;
   int targetPot = voltsToPot(volts);
-  if (volts > MAXVOLTS) return;
-  int dif;
+  int diff;
+
+  if (volts > MAXVOLTS || volts < 0) return;
+
+  int maxtime = 20000;
 
   FUSOR_LED_ON();
   digitalWrite(ENA, LOW);
   digitalWrite(REL, HIGH);
 
   pot = analogRead(POT);
-  dif = targetPot - pot;
+  diff = targetPot - pot;
 
   long start = millis();
-  while ( abs(dif) > 10 ) {
-    // make sure do not spend forever in here
-    if (millis() - start > 3000) {
-      break;
-    }
+  while (abs(diff) > 5) {
+    while (abs(diff) > 5) {
+      // make sure do not spend forever in here
+      if (millis() - start > maxtime) {
+        break;
+      }
 
-    digitalWrite(DIR, (dif < 0) ? LOW : HIGH);
+      // set direction and pulse the stepper
+      digitalWrite(DIR, (diff < 0) ? LOW : HIGH);
+      digitalWrite(PUL, HIGH);
+      delayMicroseconds(200);
+      digitalWrite(PUL, LOW);
+      delayMicroseconds(200);
 
-    digitalWrite(PUL, HIGH);
-    // no fusorDelay..() here, can't afford to make this too long
-    delayMicroseconds(200);
-    digitalWrite(PUL, LOW);
-    // no fusorDelay..() here, can't afford to make this too long
-    delayMicroseconds(200);
-    // now we can take a little breath, use fusorDelay..()
+      if (emergency) {
+        fusorDelayMicroseconds(1);
+      } else {
+        // try to delay it to something like 5V/s
+        fusorDelay(5);
+      }
+      // check where we are
+      pot = analogRead(POT);
+      diff = targetPot - pot;
 
-    pot = analogRead(POT);
-    dif = targetPot - pot;
+      if (abs(diff) <= 1)break;
 
-    // update so the client can keep track
-    fusorSetIntVariable("pot_adc", pot);
-    fusorSetIntVariable("potentiometer", potToVolts(pot));
+      // update so the client can keep track
+      fusorSetIntVariable("pot_adc", pot);
+      fusorSetIntVariable("potentiometer", potToVolts(pot));
 
-    // try to delay it to something like 5V/s
-    // needs testing
-    // math is like this: Needs to be 25x slower than without delay
-    // time in loop without delay = 400us (see above)
-    // time in loop needs to be around 10ms
-
-    if (!emergency) {
-      fusorDelay(10);
-
-      // emergency shutdown
-      if (fusorVariableUpdated("emergency_zero")) {
-        bool shutdownNow = fusorGetBoolVariable("emergency_zero");
-        if (shutdownNow) {
-          zeroVoltage();
-          while (true); // we don't do anything after that.
+      if (!emergency) {
+        // non-emergency stop
+        if (fusorVariableUpdated("stop")) {
+          int value = fusorGetIntVariable("stop");
+          if (value < 0) {
+            // soft stop, say we are done and get out of here
+            pot = analogRead(POT);
+            volts = potToVolts(pot);
+            fusorSetIntVariable("input_volts", volts);
+            digitalWrite(ENA, HIGH);
+            digitalWrite(REL, LOW);
+            FUSOR_LED_OFF(); return;
+          } else if (value == 0) {
+            // emergency stop and zero fast
+            zeroVoltage();
+            fusorSetIntVariable("input_volts", 0);
+            return;
+          }
+          // we don't do anything after that.
+        }
+        // changed min about target?
+        if (fusorVariableUpdated("input_volts")) {
+          volts = fusorGetIntVariable("input_volts");
+          targetPot = voltsToPot(volts);
+          diff = targetPot - pot;
         }
       }
+      // also play back to client
+      fusorSetIntVariable("input_volts", volts);
     }
+
+    // make sure do not spend forever in here
+    if (millis() - start > maxtime) {
+      break;
+    }
+    fusorDelay(1000);
+    // check where we are
+    pot = analogRead(POT);
+    diff = targetPot - pot;
   }
 
   //fusorSendResponse("after loop");
@@ -156,11 +185,12 @@ void updateAll() {
   // put our current potentiometer reading into "potentiometer"
 
   // emergency shutdown
-  if (fusorVariableUpdated("emergency_zero")) {
-    bool shutdownNow = fusorGetBoolVariable("emergency_zero");
-    if (shutdownNow) {
+  if (fusorVariableUpdated("stop")) {
+    int value = fusorGetIntVariable("stop");
+    if (value == 0) {
       zeroVoltage();
-      while (true); // we don't do anything after that.
+      fusorSetIntVariable("input_volts", 0);
+      return;
     }
   }
 
@@ -169,6 +199,11 @@ void updateAll() {
     volts = fusorGetIntVariable("input_volts");
     setVoltage(volts, false); // in non-emergency mode
   }
+
+  // update input volts to get constant status line in display
+  // could be done differently, see issue on github
+  volts = fusorGetIntVariable("input_volts"); // could have been changed during setVoltage()
+  fusorSetIntVariable("input_volts", volts);
 
   pot = analogRead(POT);
   volts = potToVolts(pot);

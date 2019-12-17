@@ -38,8 +38,12 @@
                         <h3>Variac Input Voltage: </h3>
                         <input id="variacValue" min="0" max="140" step="1" size="10" value="0" type="number" onchange="variac(this.value)">
                         <button onclick="variac(document.getElementById('variacValue').value)" id="variacButton">Set</button>
+                        <button onclick="variac_stop(-1)" id="variacStop">Stop</button>
+                        <button onclick="variac(0)" id="variacZero">Zero</button>
+                        <br>
+                        <br>
+                        <button onclick="variac_stop(0)" id="variacStopNow">Emergency Stop!</button>
                     </div>
-                    <br>
                     <div>
                         <h3>Solenoid Valve:</h3>
                         <button id="solon" class="button" style="width: 40%; background-color: #39a82a;"
@@ -52,7 +56,6 @@
                         <button onclick="needleValve(document.getElementById('needleValue').value)" id="needleButton">Set</button>
                     </div>
 
-                    <br>
                     <br>
                     <button class="button"
                             onclick="window.open('cameras.html', 'popup_window', 'width=1920,height=1040'); return false;"
