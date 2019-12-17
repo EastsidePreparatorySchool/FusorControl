@@ -1,6 +1,5 @@
 package com.eastsideprep.fusorcontrolserver;
 
-
 public class FusorControlServer {
 
     // debug section
@@ -9,6 +8,8 @@ public class FusorControlServer {
     private static WebServer serv;
 
     public static void main(String[] args) {
+//        TessWrapper.test();
+//        System.exit(0);
 
         config = Config.readConfig();
         serv = new WebServer();

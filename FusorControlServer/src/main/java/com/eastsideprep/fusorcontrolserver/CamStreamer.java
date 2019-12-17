@@ -75,7 +75,7 @@ public class CamStreamer {
         tesseract = new Tesseract();
         tesseract.setDatapath("tessdata");
         tesseract.setLanguage("letsgodigital");
-        
+
         tw = new TessWrapper();
         tw.init();
     }
@@ -116,6 +116,10 @@ public class CamStreamer {
 
                         extractNumber(image, millis, sd);
 
+                        if (FusorControlServer.config.saveProcessedVideo) {
+                            image = TessWrapper.prepImage(image);
+                        }
+
                         image.getGraphics().drawString(Double.toString(secs), 10, 20);
                         image.getGraphics().drawString(file.getName(), 10, size.height - 10);
                         writer.encodeVideo(0, image, System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
@@ -141,9 +145,12 @@ public class CamStreamer {
     }
 
     void extractNumber(BufferedImage image, long millis, SerialDevice sd) {
-   
-        //String s = tesseract.doOCR(image);
-        String s = tw.extract(image);
+
+        TessWrapper.Result result = tw.extract(image);
+        if (result.confidence < 70) {
+            return;
+        }
+        String s = result.text;
 
         if (s != null && s.length() > 0) {
             String log = "{\"device\":\"" + sd.name + "\",\"data\":{";
@@ -154,13 +161,21 @@ public class CamStreamer {
             // removes non-printable characters from Unicode
             s = s.replaceAll("\\p{C}", "");
             s = s.trim();
-            log += "\"raw\":{\"value\":\"" + s + "\",\"vartime\":" + millis + "}";
 
-            double d = 0;
+            String sRaw = s;
+            if (s.startsWith(".")) {
+                s = "0" + s;
+            }
+
+            log += "\"raw\":{\"value\":\"" + sRaw + "\",\"vartime\":" + millis + "}";
+            log += ",\"confidence\":{\"value\":" + result.confidence + ",\"vartime\":" + millis + "}";
+
+            double d;
             try {
                 d = Double.parseDouble(s);
                 log += ",\"double\":{\"value\":" + d + ",\"vartime\":" + millis + "}";
             } catch (Exception e) {
+                return;
             }
             log += ",\"devicetime\":" + millis;
 

@@ -18,7 +18,8 @@ public class Config {
     public boolean superVerbose = false;
     public boolean noBlueTooth = false;
     public String logPath = null;
-    public long cmdTimeOut = 200;
+    public long cmdTimeOut = 300;
+    public boolean saveProcessedVideo = true;
 
     private static Gson gson = new Gson();
 
