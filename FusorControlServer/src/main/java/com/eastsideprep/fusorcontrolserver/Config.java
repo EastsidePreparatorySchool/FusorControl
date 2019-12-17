@@ -17,7 +17,7 @@ public class Config {
     public boolean verbose = false;
     public boolean superVerbose = false;
     public boolean noBlueTooth = false;
-    public String logPath = null;
+    public String logPath = "logs";
     public long cmdTimeOut = 300;
 
     private static Gson gson = new Gson();

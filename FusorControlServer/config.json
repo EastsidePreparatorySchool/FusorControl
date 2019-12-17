@@ -1,1 +1,1 @@
-{"fakeCoreDevices":true,"noLog":false,"logFreq":10,"includeCoreStatus":true,"verbose":false,"superVerbose":false,"noBlueTooth":false,"cmdTimeOut":300}
+{"fakeCoreDevices":true,"noLog":false,"logFreq":10,"includeCoreStatus":true,"verbose":false,"superVerbose":false,"noBlueTooth":false,"logPath":"d:\\FusorExperiments\\logs","cmdTimeOut":300}
