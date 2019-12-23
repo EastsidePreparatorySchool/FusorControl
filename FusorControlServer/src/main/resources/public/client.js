@@ -317,8 +317,8 @@ function updateViz(dataArray, startTime) {
             varTime = Math.max(varTime, 0);
             var secs = Math.round(varTime * 10) / 10000;
 
+            maxTime = Math.max(maxTime, secs);
             if (liveServer) {
-                maxTime = Math.max(maxTime, secs);
                 if (!vizFrozen) {
                     chart.axisX[0].set("viewportMinimum", Math.max(maxTime - 60, 0));
                     chart.axisX[0].set("viewportMaximum", Math.max(maxTime, 60));
@@ -333,6 +333,11 @@ function updateViz(dataArray, startTime) {
             }
         }
     }
+    if (!liveServer) {
+        chart.axisX[0].set("viewportMinimum", 0);
+        chart.axisX[0].set("viewportMaximum", maxTime);
+    }
+
     chart.render();
 }
 
