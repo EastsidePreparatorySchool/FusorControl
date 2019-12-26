@@ -1,4 +1,4 @@
-package com.eastsideprep.fusorcontrolserver;
+package com.eastsideprep.serialdevice;
 
 import com.fazecast.jSerialComm.SerialPort;
 import java.util.ArrayList;

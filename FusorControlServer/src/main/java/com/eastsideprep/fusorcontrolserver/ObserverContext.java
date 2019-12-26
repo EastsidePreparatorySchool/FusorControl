@@ -9,10 +9,8 @@ package com.eastsideprep.fusorcontrolserver;
  *
  * @author gmein
  */
-public class HVHighsideSensor extends SerialDevice {
-
-    HVHighsideSensor(SerialDevice sd) {
-        super(sd);
+public class ObserverContext extends Context{
+    ObserverContext(String login) {
+        super(login);
     }
-
 }

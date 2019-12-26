@@ -1,5 +1,9 @@
-package com.eastsideprep.fusorcontrolserver;
+package com.eastsideprep.cameras;
 
+import com.eastsideprep.fusorcontrolserver.FusorControlServer;
+import com.eastsideprep.serialdevice.DeviceManager;
+import com.eastsideprep.serialdevice.NullSerialDevice;
+import com.eastsideprep.serialdevice.SerialDevice;
 import com.github.sarxos.webcam.Webcam;
 import com.github.sarxos.webcam.WebcamDiscoveryService;
 import com.github.sarxos.webcam.WebcamStreamer;
@@ -29,7 +33,7 @@ public class CamStreamer {
     private TessWrapper tw;
     private DeviceManager dm;
 
-    CamStreamer(DeviceManager dm) {
+    public CamStreamer(DeviceManager dm) {
         cams.clear();
         List<Webcam> camList = Webcam.getWebcams();
         int count = 0;
@@ -185,7 +189,7 @@ public class CamStreamer {
         }
     }
 
-    void startRecording(String filePrefix, long baseTime) {
+    public void startRecording(String filePrefix, long baseTime) {
         int i = 0;
         stopRecording = false;
         for (Webcam cam : this.cams) {
@@ -194,7 +198,7 @@ public class CamStreamer {
         }
     }
 
-    void stopRecording() {
+    public void stopRecording() {
         System.out.print("Stopping camera recording ...");
         stopRecording = true;
         for (Thread t : camThreads) {

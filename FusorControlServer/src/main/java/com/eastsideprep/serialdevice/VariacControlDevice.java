@@ -1,4 +1,4 @@
-package com.eastsideprep.fusorcontrolserver;
+package com.eastsideprep.serialdevice;
 
 public class VariacControlDevice extends SerialDevice {
     

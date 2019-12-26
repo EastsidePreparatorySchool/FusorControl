@@ -1,6 +1,11 @@
 package com.eastsideprep.fusorcontrolserver;
 
+import com.eastsideprep.cameras.CamStreamer;
+import com.eastsideprep.serialdevice.DeviceManager;
+import com.eastsideprep.serialdevice.CoreDevices;
+import javax.servlet.MultipartConfigElement;
 import static spark.Spark.*;
+import spark.staticfiles.StaticFilesConfiguration;
 
 public class WebServer {
 
@@ -13,9 +18,71 @@ public class WebServer {
     }
 
     public void init() {
+        // housekeeping routes and filters
+        port(80);
+
+        post("/login", (req, res) -> login(req, res));
+        post("/logout", (req, res) -> logout(req, res));
+        get("/protected/name", (req, res) -> getName(req, res));
+
+        // HTML pages use this to switch to the "expired" page
+        get("/protected/checktimeout", (req, res) -> {
+            Context ctx = getContextFromSession(req.session());
+            if (ctx == null || ctx.checkExpired()) {
+                System.out.println("filter: expired");
+                internalLogout(req);
+                return "expired";
+            }
+            return "alive";
+        });
+
+        // liveness check - this actually governs expiration
+        before((req, res) -> {
+//            System.out.println("filter: timer alive?" + req.url());
+            Context ctx = getContextFromSession(req.session());
+            if (ctx != null && ctx.checkExpired()) {
+                internalLogout(req);
+                res.redirect("/expired.html");
+            }
+        });
+
+        before("/protected/*", (req, res) -> {
+//            System.out.println("filter: /protected/*");
+            if (req.session().attribute("context") == null) {
+                System.out.println("unauthorized " + req.url());
+                res.redirect("/unauthorized.html");
+            }
+        });
+        before("/protected/admin/*", (req, res) -> {
+//            System.out.println("filter: /protected/admin/*");
+            Context ctx = getContextFromSession(req.session());
+            if (ctx == null || !ctx.isAdmin) {
+                System.out.println("unauthorized " + req.url());
+                res.redirect("/unauthorized.html");
+            }
+        });
+        
+        // liveness timer - this keeps the context alive for valid pages and requests
+        before((req, res) -> {
+            Context ctx = getContextFromSession(req.session());
+            if (ctx != null) {
+                if (!req.url().endsWith("/protected/checktimeout")) {
+//                    System.out.println("timer reset from URL: " + req.url());
+                    ctx.updateTimer();
+                }
+            }
+        });
+
+        // Static files filter is LAST
+        StaticFilesConfiguration staticHandler = new StaticFilesConfiguration();
+        staticHandler.configure("/static");
+        before((request, response) -> staticHandler.consume(request.raw(), response.raw()));
+
+        //
+        // setup all that fusor stuff
+        //
         dm = new DeviceManager();
         cs = new CamStreamer(dm);
-        // initialize the connections to all serial devices
         cd = dm.init();
 
         // get the most important devices for our UI. If not present, halt. 
@@ -24,30 +91,6 @@ public class WebServer {
             throw new IllegalArgumentException("missing core devices after dm.init()");
         }
         cd.variac.setVoltage(0);
-
-//        dl = new DataLogger();
-//        try {
-//            dl.init(dm);
-//        } catch (IOException ex) {
-//            System.out.println("DataLogger:Exception on init:" + ex);
-//        }
-        port(80); //switch to 80 for regular use
-        //sets default public location
-        staticFiles.location("/public");
-
-        before("*", (req, res) -> {
-            // do not change this list without explicit approval from Mr. Mein!!!!
-            if (!(req.ip().equals("10.20.82.127") // GMEIN's LAPTOP
-                    || req.ip().equals("0:0:0:0:0:0:0:1")// LOCALHOST
-                    || req.ip().equals("10.20.87.181"))) // fusor control laptop
-            {
-                System.out.print("incoming from " + req.ip() + ": " + req.url());
-                System.out.println(" ... denied.");
-                throw halt(401, "Not authorized.");
-            }
-            //System.out.print("incoming from " + req.ip()+": "+req.url());
-            //System.out.println(" ... allowed.");
-        });
 
         //these set all the commands that are going to be sent from the client
         get("/", (req, res) -> "<h1><a href='index.html'>Go to index.html</a></h1>");
@@ -99,7 +142,7 @@ public class WebServer {
             if (cd.variac.setVoltage(variacValue)) {
                 return "set value as " + req.queryParams("value");
             }
-            halt ("Variac control failed");
+            halt("Variac control failed");
             return "";
         });
 
@@ -113,7 +156,7 @@ public class WebServer {
             if (cd.tmp.setOn()) {
                 return "turned on TMP";
             }
-            halt(500,"TMP control failed");
+            halt(500, "TMP control failed");
             return "";
         });
 
@@ -121,7 +164,7 @@ public class WebServer {
             if (cd.tmp.setOff()) {
                 return "turned off TMP";
             }
-            halt(500,"TMP control failed");
+            halt(500, "TMP control failed");
             return "";
         });
 
@@ -131,9 +174,9 @@ public class WebServer {
             if (this.cd.needle.set("needlevalve", value)) {
                 System.out.println("needle valve success");
                 return "set needle valve value as " + value;
-            }   
+            }
             System.out.println("needle valve fail");
-            halt(500,"set needle valve failed");
+            halt(500, "set needle valve failed");
             return "";
         });
 
@@ -142,7 +185,7 @@ public class WebServer {
             if (cd.gas.setOpen()) {
                 return "set solenoid to open";
             }
-            halt(500,"set solenoid failed");
+            halt(500, "set solenoid failed");
             return "";
 
         });
@@ -151,7 +194,7 @@ public class WebServer {
             if (cd.gas.setClosed()) {
                 return "set solenoid to closed";
             } else {
-                halt(500,"set solenoid faild");
+                halt(500, "set solenoid faild");
                 return "";
             }
         });
@@ -187,4 +230,68 @@ public class WebServer {
             return s;
         });
     }
+
+    // housekeeping:
+    private static String login(spark.Request req, spark.Response res) {
+        MultipartConfigElement multipartConfigElement = new MultipartConfigElement(System.getProperty("java.io.tmpdir"));
+        req.raw().setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
+
+        String login = req.queryParams("login");
+        Context ctx = new Context(login);
+
+        System.out.println("\"" + login + "\"");
+        if (req.ip().equals("10.20.82.127") // GMEIN's LAPTOP
+                || req.ip().equals("0:0:0:0:0:0:0:1")) {// LOCALHOST
+            System.out.println("login: Admin: " + login);
+            ctx.isAdmin = true;
+            res.redirect("protected/admin/index.html");
+        } else {
+            res.redirect("protected/status.html");
+        }
+
+        ctx.name = login;
+        ctx.id = 0;
+        req.session().attribute("context", ctx);
+
+//    if (ctx.db.queryName (ctx) 
+//        .equals("unknown")) {
+//            internalLogout(req);
+//        res.redirect("login.html");
+//        return "";
+//    }
+        System.out.println("login: " + login);
+        return "ok";
+    }
+
+    private static void internalLogout(spark.Request req) {
+        if (req.session().attribute("context") != null) {
+            Context ctx = getContextFromSession(req.session());
+            req.session().attribute("context", null);
+            System.out.println("logged off.");
+        }
+    }
+
+    private static String logout(spark.Request req, spark.Response res) {
+        internalLogout(req);
+        res.redirect("login.html");
+
+        return "ok";
+    }
+
+    public static String getName(spark.Request req, spark.Response res) {
+        Context ctx = getReqCtx(req);
+        return ctx.name;
+    }
+
+    // this can be called even when there is no context
+    private static Context getContextFromSession(spark.Session s) {
+        Context ctx = s.attribute("context");
+        return ctx;
+    }
+
+    // this should only be called when we know there is a context in the session
+    private static Context getReqCtx(spark.Request req) {
+        return getContextFromSession(req.session());
+    }
+
 }

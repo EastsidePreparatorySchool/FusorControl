@@ -1,5 +1,13 @@
-package com.eastsideprep.fusorcontrolserver;
+package com.eastsideprep.serialdevice;
 
+import com.eastsideprep.fusorcontrolserver.DataLogger;
+import com.eastsideprep.fusorcontrolserver.FusorControlServer;
+import com.eastsideprep.serialdevice.CoreDevices;
+import com.eastsideprep.serialdevice.TMPControlDevice;
+import com.eastsideprep.serialdevice.SerialDeviceMap;
+import com.eastsideprep.serialdevice.NullSerialDevice;
+import com.eastsideprep.serialdevice.SerialDevice;
+import com.eastsideprep.serialdevice.VariacControlDevice;
 import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
@@ -488,7 +496,7 @@ public class DeviceManager {
         return sd;
     }
 
-    void getAllStatus() {
+    public void getAllStatus() {
         ArrayList<SerialDevice> devices = arduinoMap.getAllDevices();
         for (SerialDevice sd : devices) {
             //System.out.println("Sending GETALL to "+name);
@@ -497,21 +505,21 @@ public class DeviceManager {
 
     }
 
-    void autoStatusOn() {
+    public void autoStatusOn() {
         ArrayList<SerialDevice> devices = arduinoMap.getAllDevices();
         for (SerialDevice sd : devices) {
             sd.autoStatusOn();
         }
     }
 
-    void autoStatusOff() {
+    public void autoStatusOff() {
         ArrayList<SerialDevice> devices = arduinoMap.getAllDevices();
         for (SerialDevice sd : devices) {
             sd.autoStatusOff();
         }
     }
 
-    String readStatusResults(boolean includeCore) {
+    public String readStatusResults(boolean includeCore) {
         ArrayList<SerialDevice> devices = this.getAllDevices();
         String status = "";
         devices.sort((a, b) -> ((cd.isCoreDevice(b.name) ? 1 : 0) - (cd.isCoreDevice(a.name) ? 1 : 0)));

@@ -1,4 +1,6 @@
-package com.eastsideprep.fusorcontrolserver;
+package com.eastsideprep.serialdevice;
+
+import com.eastsideprep.serialdevice.SerialDevice;
 
 public class TMPControlDevice extends SerialDevice {
 

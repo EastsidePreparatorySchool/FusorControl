@@ -1,14 +1,15 @@
-package com.eastsideprep.fusorcontrolserver;
+package com.eastsideprep.serialdevice;
 
+import com.eastsideprep.fusorcontrolserver.FusorControlServer;
 import com.fazecast.jSerialComm.*;
 import java.io.IOException;
 import java.io.OutputStream;
 
 public class SerialDevice {
 
-    String name;
-    String originalName;
-    String function;
+    public String name;
+    public String originalName;
+    public String function;
     private OutputStream os;
     SerialPort port;
     private String lastStatus;

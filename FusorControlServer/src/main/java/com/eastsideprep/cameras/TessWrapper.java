@@ -1,4 +1,4 @@
-package com.eastsideprep.fusorcontrolserver;
+package com.eastsideprep.cameras;
 
 import com.sun.jna.Pointer;
 import com.sun.jna.StringArray;

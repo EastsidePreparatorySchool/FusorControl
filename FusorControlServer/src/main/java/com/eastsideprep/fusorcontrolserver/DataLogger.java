@@ -1,5 +1,8 @@
 package com.eastsideprep.fusorcontrolserver;
 
+import com.eastsideprep.cameras.CamStreamer;
+import com.eastsideprep.serialdevice.DeviceManager;
+import com.eastsideprep.serialdevice.SerialDevice;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
