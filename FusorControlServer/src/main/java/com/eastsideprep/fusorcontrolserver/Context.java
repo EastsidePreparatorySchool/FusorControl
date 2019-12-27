@@ -16,13 +16,15 @@ public class Context {
     int id;
     String name;
     long timeLastSeen;
+    WebServer ws;
 
-    Context(String login) {
+    Context(String login, WebServer ws) {
         this.login = login;
         this.id = 0;
         this.name = null;
         this.timeLastSeen = System.currentTimeMillis();
         this.isAdmin = false;
+        this.ws = ws;
     }
 
     void updateTimer() {
