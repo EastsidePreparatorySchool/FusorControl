@@ -144,7 +144,7 @@ createViz();
 //
 
 if (liveServer) {
-    initStatus();
+    //initStatus();
 } else {
     testData = fullData;
     if (testData.length > 0) {
