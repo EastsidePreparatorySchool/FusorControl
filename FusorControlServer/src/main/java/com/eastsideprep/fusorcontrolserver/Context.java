@@ -23,7 +23,6 @@ public class Context {
         this.id = 0;
         this.name = null;
         this.timeLastSeen = System.currentTimeMillis();
-        this.isAdmin = false;
         this.ws = ws;
     }
 

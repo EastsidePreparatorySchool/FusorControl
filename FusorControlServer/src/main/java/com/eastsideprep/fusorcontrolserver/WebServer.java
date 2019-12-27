@@ -49,16 +49,17 @@ public class WebServer {
         });
 
         before("/protected/*", (req, res) -> {
-//            System.out.println("filter: /protected/*");
-            if (req.session().attribute("context") == null) {
+            // System.out.println("filter: /protected/*");
+            Context ctx = getContextFromSession(req.session());
+            if (ctx == null || !(ctx instanceof ObserverContext)) {
                 System.out.println("unauthorized " + req.url());
                 res.redirect("/unauthorized.html");
             }
         });
         before("/protected/admin/*", (req, res) -> {
-//            System.out.println("filter: /protected/admin/*");
+            // System.out.println("filter: /protected/admin/*");
             Context ctx = getContextFromSession(req.session());
-            if (ctx == null || !ctx.isAdmin) {
+            if (ctx == null || !(ctx instanceof AdminContext)) {
                 System.out.println("unauthorized " + req.url());
                 res.redirect("/unauthorized.html");
             }
@@ -69,7 +70,7 @@ public class WebServer {
             Context ctx = getContextFromSession(req.session());
             if (ctx != null) {
                 if (!req.url().endsWith("/protected/checktimeout")) {
-//                    System.out.println("timer reset from URL: " + req.url());
+                    // System.out.println("timer reset from URL: " + req.url());
                     ctx.updateTimer();
                 }
             }
@@ -77,7 +78,7 @@ public class WebServer {
 
         // Static files filter is LAST
         StaticFilesConfiguration staticHandler = new StaticFilesConfiguration();
-        staticHandler.configure("/static");
+        staticHandler.configure("/public");
         before((request, response) -> staticHandler.consume(request.raw(), response.raw()));
 
         //chatter control
@@ -116,16 +117,18 @@ public class WebServer {
         // anybody logged in can call these
         //
         get("/protected/getstatus", (req, res) -> getObserverCtx(req).getStatusRoute());
+        get("/protected/numcameras", (req, res) -> Integer.toString(cs.numCameras));
 
         //
         // Admin routes
         // need to be logged in as admin to call these
         //
         get("/protected/admin/kill", (req, res) -> getAdminCtx(req).killRoute());
-        get("/protected/admin/startlog", (req, res) -> getAdminCtx(req).startLogRoute());
+        get("/protected/admin/startlog", (req, res) -> {
+            return getAdminCtx(req).startLogRoute();
+        });
         get("/protected/admin/stoplog", (req, res) -> getAdminCtx(req).stopLogRoute());
         get("/protected/admin/variac", (req, res) -> getAdminCtx(req).variacRoute(req));
-        get("/protected/admin/numcameras", (req, res) -> Integer.toString(cs.numCameras));
         get("/protected/admin/tmpOn", (req, res) -> getAdminCtx(req).tmpOnRoute());
         get("/protected/admin/tmpOff", (req, res) -> getAdminCtx(req).tmpOffRoute());
         get("/protected/admin/needleValve", (req, res) -> getAdminCtx(req).needleValveRoute(req));
@@ -146,13 +149,16 @@ public class WebServer {
         Context ctx = new Context(login, WebServer.instance);
 
         System.out.println("\"" + login + "\"");
-        if (req.ip().equals("10.20.82.127") // GMEIN's LAPTOP
-                || req.ip().equals("0:0:0:0:0:0:0:1")) {// LOCALHOST
+        if ((req.ip().equals("10.20.82.127") /* GMEIN's LAPTOP */
+                || req.ip().equals("0:0:0:0:0:0:0:1") /* LOCALHOST */)
+                && login.equalsIgnoreCase("gmein")) {
             System.out.println("login: Admin: " + login);
+            ctx = new AdminContext(login, instance);
             ctx.isAdmin = true;
             res.redirect("protected/admin/index.html");
         } else {
-            res.redirect("protected/status.html");
+            ctx = new ObserverContext(login, instance);
+            res.redirect("protected/index.html");
         }
 
         ctx.name = login;

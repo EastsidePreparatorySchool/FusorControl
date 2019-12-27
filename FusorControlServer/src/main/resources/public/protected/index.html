@@ -21,16 +21,16 @@
 
                     <div>
                         <h3>Turbo Pump: </h3>
-                        <button id="tmpon" class="button" style="width: 40%; background-color: #39a82a;"
+                        <button disabled id="tmpon" class="button" style="width: 40%; background-color: #39a82a;"
                                 onclick="tmpOn()">On</button>
-                        <button id="tmpoff" class="button"
+                        <button disabled id="tmpoff" class="button"
                                 style="width: 40%; border:2px solid black; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif"
                                 onclick="tmpOff()">Off</button>
                     </div>
                     <br>
                     <div>
                         <h3>Variac Input Voltage: </h3>
-                        <input id="variacValue" min="0" max="140" step="1" size="10" value="0" type="number" onchange="variac(this.value)">
+                        <input disabled id="variacValue" min="0" max="140" step="1" size="10" value="0" type="number" onchange="variac(this.value)">
                         <button onclick="" disabled id="variacButton">Set</button>
                     </div>
                     <br>
@@ -43,7 +43,7 @@
                                 onclick="" disabled>Closed</button>
                         <h3>Needle valve: </h3>
                         <input id="needleValue" disabled min="0" max="100" step="1" size="10" value="0" type="number"  onchange="needleValve(this.value)" >
-                        <button onclick="" id="needleButton">Set</button>
+                        <button disabled onclick="" id="needleButton">Set</button>
                     </div>
 
                     <br>

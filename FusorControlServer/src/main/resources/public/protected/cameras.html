@@ -65,9 +65,9 @@
 
             <img id="cam1" style="width:40%;height:40%;display:none;padding:0%" src="">
             <img id="cam2" style="width:40%;height:40%;display:none;padding:0%" src=""> 
-            
+
             <br>
-            
+
             <img id="cam3" style="width:40%;height:40%;display:none;padding:0%" src="">
             <img id="cam4" style="width:40%;height:40%;display:none;padding:0%" src="">
             <!-- <div style="clear:both" class="line"></div> -->
@@ -78,53 +78,53 @@
             enableCameras();
 
             function enableCameras() {
-            request({ url: "/numcameras", method: "GET" })
-            .then(data => {
-            // yes: make the display visible and set the url
-            var numCameras = Number(data);       // got number from server
-            numCameras = Math.min(numCameras, 4); // 4 cameras max
-            for (var i = 1; i <= numCameras; i++) {
-            var cam = document.getElementById("cam" + i);
-            cam.style.display = "inline";
-            cam.src = window.location.origin + ":45" + (i + 66) + "/mjpg";
-            }
-            })
-            .catch(error => {
-            console.log("camera error: " + error);
-            });
+                request({url: "/protected/numcameras", method: "GET"})
+                        .then(data => {
+                            // yes: make the display visible and set the url
+                            var numCameras = Number(data);       // got number from server
+                            numCameras = Math.min(numCameras, 4); // 4 cameras max
+                            for (var i = 1; i <= numCameras; i++) {
+                                var cam = document.getElementById("cam" + i);
+                                cam.style.display = "inline";
+                                cam.src = window.location.origin + ":45" + (i + 66) + "/mjpg";
+                            }
+                        })
+                        .catch(error => {
+                            console.log("camera error: " + error);
+                        });
             }
 
 
             //new request & xmlRequest function (spark stuff (this has nothing to do with spark. this is just http. GM.))
             function request(obj) {
-            return new Promise((resolve, reject) => {
-            let xhr = new XMLHttpRequest();
-            xhr.open(obj.method || "GET", obj.url);
+                return new Promise((resolve, reject) => {
+                    let xhr = new XMLHttpRequest();
+                    xhr.open(obj.method || "GET", obj.url);
 
-            xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-            resolve(xhr.response);
-            } else {
-            reject(xhr.statusText);
-            }
-            };
-            xhr.onerror = () => reject(xhr.statusText);
+                    xhr.onload = () => {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            resolve(xhr.response);
+                        } else {
+                            reject(xhr.statusText);
+                        }
+                    };
+                    xhr.onerror = () => reject(xhr.statusText);
 
-            xhr.send(obj.body);
-            });
+                    xhr.send(obj.body);
+                });
             }
 
 
             function xmlRequest(verb, url) {
-            var xhr = new XMLHttpRequest();
-            xhr.open(verb || "GET", url, true);
-            xhr.onload = () => {
-            console.log(xhr.response);
-            };
-            xhr.onerror = () => {
-            console.log("error: " + statusText);
-            };
-            xhr.send();
+                var xhr = new XMLHttpRequest();
+                xhr.open(verb || "GET", url, true);
+                xhr.onload = () => {
+                    console.log(xhr.response);
+                };
+                xhr.onerror = () => {
+                    console.log("error: " + statusText);
+                };
+                xhr.send();
             }
         </script>
     </body>

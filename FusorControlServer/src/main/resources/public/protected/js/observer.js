@@ -589,6 +589,7 @@ var startTime;
 
 
 if (!liveServer) {
+
     testData = fullData;
     if (testData.length > 0) {
         startTime = testData[0]["servertime"];
