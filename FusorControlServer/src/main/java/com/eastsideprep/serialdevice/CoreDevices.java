@@ -1,13 +1,6 @@
 package com.eastsideprep.serialdevice;
 
 //
-
-import com.eastsideprep.serialdevice.TMPControlDevice;
-import com.eastsideprep.serialdevice.NullSerialDevice;
-import com.eastsideprep.serialdevice.SerialDevice;
-import com.eastsideprep.serialdevice.VariacControlDevice;
-
-// this class is just a collection object for the most important devices. used by webserver.
 //
 public class CoreDevices {
 

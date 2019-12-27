@@ -2,12 +2,6 @@ package com.eastsideprep.serialdevice;
 
 import com.eastsideprep.fusorcontrolserver.DataLogger;
 import com.eastsideprep.fusorcontrolserver.FusorControlServer;
-import com.eastsideprep.serialdevice.CoreDevices;
-import com.eastsideprep.serialdevice.TMPControlDevice;
-import com.eastsideprep.serialdevice.SerialDeviceMap;
-import com.eastsideprep.serialdevice.NullSerialDevice;
-import com.eastsideprep.serialdevice.SerialDevice;
-import com.eastsideprep.serialdevice.VariacControlDevice;
 import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;

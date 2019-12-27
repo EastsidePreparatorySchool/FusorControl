@@ -5,8 +5,6 @@
  */
 package com.eastsideprep.serialdevice;
 
-import com.eastsideprep.serialdevice.SerialDevice;
-
 /**
  *
  * @author gmein

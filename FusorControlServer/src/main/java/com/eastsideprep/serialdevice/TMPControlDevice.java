@@ -1,7 +1,5 @@
 package com.eastsideprep.serialdevice;
 
-import com.eastsideprep.serialdevice.SerialDevice;
-
 public class TMPControlDevice extends SerialDevice {
 
     public TMPControlDevice(SerialDevice sd) {

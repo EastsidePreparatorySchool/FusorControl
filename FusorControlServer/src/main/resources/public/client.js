@@ -390,7 +390,7 @@ function updateStatus(data, raw, startTime) {
 
 function getStatus() {
     // for the real thing: web request to server
-    request({url: "/getstatus", method: "GET"})
+    request({url: "/protected/getstatus", method: "GET"})
             .then(raw => {
                 data = JSON.parse(raw);
                 updateStatus(data, raw, logStart);
@@ -406,7 +406,7 @@ function getStatus() {
 
 //this kills the server (needs testing)
 function kill() {
-    request({url: "/kill", method: "GET"})
+    request({url: "/protected/admin/kill", method: "GET"})
             .then(data => {
                 console.log(data);
             })
@@ -418,7 +418,7 @@ function kill() {
 //start a new log
 function startLog() {
     console.log("startlog");
-    request({url: "/startlog", method: "GET"})
+    request({url: "/protected/admin/startlog", method: "GET"})
             .then(data => {
                 console.log(data);
                 initStatus();
@@ -434,7 +434,7 @@ function stopLog() {
     console.log("stoplog");
     stopStatus();
     selectButton("stopLog", "startLog");
-    request({url: "/stoplog", method: "GET"})
+    request({url: "/protected/admin/stoplog", method: "GET"})
             .then(data => {
                 console.log(data);
             })
@@ -448,7 +448,7 @@ function variac(num) {
     var variacValue = num;
     console.log(num);
     try {
-        request({url: "/variac?value=" + variacValue, method: "GET"})
+        request({url: "/protected/admin/variac?value=" + variacValue, method: "GET"})
                 .then(data => {
                     console.log(data);
                 })
@@ -463,7 +463,7 @@ function variac(num) {
 //control needle valve
 function needleValve(num) {
     console.log("needleValve set:" + num);
-    request({url: "/needleValve?value=" + num, method: "GET"})
+    request({url: "/protected/admin/needleValve?value=" + num, method: "GET"})
             .then(data => {
                 console.log(data);
             })
@@ -475,7 +475,7 @@ function needleValve(num) {
 //control tmp
 function tmpOn() {
     try {
-        request({url: "/tmpOn", method: "GET"})
+        request({url: "/protected/admin/tmpOn", method: "GET"})
                 .then(data => {
                     console.log(data);
                     selectButton("tmpon", "tmpoff");
@@ -490,7 +490,7 @@ function tmpOn() {
 
 function tmpOff() {
     try {
-        request({url: "/tmpOff", method: "GET"})
+        request({url: "/protected/admin/tmpOff", method: "GET"})
                 .then(data => {
                     console.log(data);
                     selectButton("tmpoff", "tmpon");
@@ -506,7 +506,7 @@ function tmpOff() {
 //control the solenoid
 function SolenoidOn() {
     try {
-        request({url: "/solenoidOn", method: "GET"})
+        request({url: "/protected/admin/solenoidOn", method: "GET"})
                 .then(data => {
                     console.log(data);
                     selectButton("solon", "soloff");
@@ -521,7 +521,7 @@ function SolenoidOn() {
 
 function SolenoidOff() {
     try {
-        request({url: "/solenoidOff", method: "GET"})
+        request({url: "/protected/admin/solenoidOff", method: "GET"})
                 .then(data => {
                     console.log(data);
                     selectButton("soloff", "solon");

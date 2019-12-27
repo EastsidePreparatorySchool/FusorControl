@@ -1,7 +1,5 @@
 package com.eastsideprep.serialdevice;
 
-import com.eastsideprep.serialdevice.SerialDevice;
-
 public class GasControlDevice extends SerialDevice {
 
     GasControlDevice(SerialDevice sd) {
