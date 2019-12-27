@@ -130,7 +130,7 @@ public class DeviceManager {
     }
 
     public void recordStatus(SerialDevice sd, long time, String data) {
-        WebLog.staticAddLogEntry(new FusorWebLogEntry(sd.name, Long.toString(time), data));
+        WebLog.staticAddLogEntry(new FusorWebLogEntry(sd.name, time, data));
         String status = DataLogger.makeLogResponse(sd, time, data);
         sd.setStatus(status);
     }
@@ -204,16 +204,18 @@ public class DeviceManager {
         register(sd);
         recordStatus(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis));
 
-        System.out.println(heartbeatDeviceText(0,0));
+        System.out.println(heartbeatDeviceText(0, 0));
         Thread.currentThread().setPriority(Thread.NORM_PRIORITY + 2);
         try {
             while (!Thread.interrupted()) {
                 Thread.sleep(1000);
                 millis = System.currentTimeMillis();
+                recordStatus(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis - 1));
                 recordStatus(sd, System.currentTimeMillis(), heartbeatDeviceText(1, millis));
-                recordStatus(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis+1));
+                recordStatus(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis + 1));
             }
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
+            System.out.println("Exception in heartbear thread: "+e);
         }
     }
 

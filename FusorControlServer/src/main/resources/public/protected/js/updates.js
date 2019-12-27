@@ -24,16 +24,19 @@ function updateStatus(data, raw, startTime) {
 }
 
 
+var globalData;
 function getStatus() {
     // for the real thing: web request to server
     request({url: "/protected/getstatus", method: "GET"})
             .then(raw => {
+                globalData = data;
                 data = JSON.parse(raw);
                 updateStatus(data, raw, logStart);
                 //console.log(data);
             })
             .catch(error => {
                 console.log("getstatus error: " + error);
+                console.log(data)
                 //console.log("stopping status requests to server");
                 stopStatus();
                 selectButton("stopLog", "startLog");

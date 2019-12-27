@@ -7,6 +7,10 @@ package com.eastsideprep.fusorcontrolserver;
 
 import static com.eastsideprep.fusorcontrolserver.WebServer.dl;
 import static com.eastsideprep.fusorcontrolserver.WebServer.dm;
+import com.eastsideprep.fusorweblog.FusorWebLogEntry;
+import com.eastsideprep.weblog.WebLogEntry;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,7 +34,22 @@ public class ObserverContext extends Context {
             } catch (InterruptedException ex) {
             }
         }
-        String s = dm.readStatusResults(FusorControlServer.config.includeCoreStatus);
+        ArrayList<WebLogEntry> list = this.ws.log.getNewItems(obs);
+        StringBuilder sb = new StringBuilder();
+        sb.ensureCapacity(10000);
+        sb.append("[");
+
+        for (WebLogEntry e : list) {
+            FusorWebLogEntry fe = (FusorWebLogEntry) e;
+            sb.append(DataLogger.makeLogResponse(fe.device, fe.serverTime, fe.data));
+            sb.append(",\n");
+        }
+
+        sb.append("{\"status_complete\":\"");
+        sb.append(((new Date()).toInstant().toString()));
+        sb.append("\"}]");
+        String s = sb.toString();
+        
         if (FusorControlServer.config.superVerbose) {
             System.out.println("  Status:" + s);
         }

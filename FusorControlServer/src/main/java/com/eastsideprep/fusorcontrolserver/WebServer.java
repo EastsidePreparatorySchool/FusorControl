@@ -63,7 +63,7 @@ public class WebServer {
             }
             // make sure everyone here has a log observer
             if (ctx.obs == null) {
-                log.addObserver(ctx.name);
+                ctx.obs = log.addObserver(ctx.name);
             }
         });
         before("/protected/admin/*", (req, res) -> {
@@ -76,7 +76,7 @@ public class WebServer {
             }
             // make sure everyone here has a log observer
             if (ctx.obs == null) {
-                log.addObserver(ctx.name);
+                ctx.obs = log.addObserver(ctx.name);
             }
         });
 

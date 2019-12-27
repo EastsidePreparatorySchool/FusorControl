@@ -11,11 +11,12 @@ import com.eastsideprep.weblog.WebLogEntry;
  * @author gmein
  */
 public class FusorWebLogEntry extends WebLogEntry {
-    String device;
-    String serverTime;
-    String data;
-    
-    public FusorWebLogEntry(String device, String serverTime, String data) {
+
+    public String device;
+    public long serverTime;
+    public String data;
+
+    public FusorWebLogEntry(String device, long serverTime, String data) {
         this.device = device;
         this.serverTime = serverTime;
         this.data = data;

@@ -8,7 +8,7 @@ var vizFrozen = false;
 
 
 var vizChannels = {
-    'heartbeat.beat': {name: 'Heartbeat', variable: 'beat', min: 0, max: 2},
+    'heartbeat.beat': {name: 'Heartbeat', variable: 'beat', min: 0, max: 5},
     'TMP.tmp': {name: 'TMP status', variable: 'tmp', min: 0, max: 1},
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', variable: 'pump_freq', min: 0, max: 1250},
     'TMP.pump_curr_amps': {name: 'TMP current (A)', variable: 'pump_curr_amps', min: 0, max: 2.5},

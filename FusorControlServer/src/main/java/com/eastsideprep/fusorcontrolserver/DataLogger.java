@@ -24,6 +24,10 @@ public class DataLogger {
 
     }
 
+    public static String makeLogResponse(String device, long time, String response) {
+        return "{\"device\":\"" + device + "\",\"data\":" + response + ",\"servertime\":" + time + "}";
+
+    }
     public void init(DeviceManager dm, CamStreamer cs) throws IOException {
         this.dm = dm;
 

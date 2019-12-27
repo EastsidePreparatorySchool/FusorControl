@@ -49,7 +49,7 @@ public class AdminContext extends ObserverContext {
                 System.out.println("startLog IO exception: " + ex);
             }
             
-            WebServer.log.clear(new FusorWebLogState(), new FusorWebLogEntry("<reset>", Long.toString(System.currentTimeMillis()), ""));
+            WebServer.log.clear(new FusorWebLogState(), new FusorWebLogEntry("<reset>", System.currentTimeMillis(), "{}"));
             
             dm.autoStatusOn();
             System.out.println("New log started");

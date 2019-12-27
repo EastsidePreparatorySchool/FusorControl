@@ -12,7 +12,6 @@ import com.eastsideprep.weblog.WebLogObserver;
  * @author gmein
  */
 public class Context {
-    int messagesSeen;
     String login;
     boolean isAdmin;
     int id;
