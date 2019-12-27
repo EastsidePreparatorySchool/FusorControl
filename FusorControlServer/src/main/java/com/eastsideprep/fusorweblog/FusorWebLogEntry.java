@@ -4,7 +4,6 @@
  */
 package com.eastsideprep.fusorweblog;
 
-import java.util.ArrayList;
 import com.eastsideprep.weblog.WebLogEntry;
 
 /**
@@ -12,8 +11,13 @@ import com.eastsideprep.weblog.WebLogEntry;
  * @author gmein
  */
 public class FusorWebLogEntry extends WebLogEntry {
-
-  
-
- 
+    String device;
+    String serverTime;
+    String data;
+    
+    public FusorWebLogEntry(String device, String serverTime, String data) {
+        this.device = device;
+        this.serverTime = serverTime;
+        this.data = data;
+    }
 }

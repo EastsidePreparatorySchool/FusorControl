@@ -145,6 +145,7 @@ createViz();
 
 if (liveServer) {
     //initStatus();
+    localStorage.setItem("fusor_client", "admin");
 } else {
     testData = fullData;
     if (testData.length > 0) {

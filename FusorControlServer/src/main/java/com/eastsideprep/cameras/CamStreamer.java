@@ -157,7 +157,7 @@ public class CamStreamer {
         String s = result.text;
 
         if (s != null && s.length() > 0) {
-            String log = "{\"device\":\"" + sd.name + "\",\"data\":{";
+            String log = "{";
             //System.out.println("Recognized: " + s);
             s = s.replaceAll("[^\\x00-\\x7F]", "");
             // erases all the ASCII control characters
@@ -183,8 +183,8 @@ public class CamStreamer {
             }
             log += ",\"devicetime\":" + millis;
 
-            log += "},\"servertime\":" + millis + "}";
-            sd.setStatus(log);
+            log += "}";
+            dm.recordStatus(sd, millis, log);
             //System.out.println("OCR: " + log);
         }
     }

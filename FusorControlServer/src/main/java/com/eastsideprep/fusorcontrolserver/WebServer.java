@@ -1,8 +1,10 @@
 package com.eastsideprep.fusorcontrolserver;
 
 import com.eastsideprep.cameras.CamStreamer;
+import com.eastsideprep.fusorweblog.FusorWebLogState;
 import com.eastsideprep.serialdevice.DeviceManager;
 import com.eastsideprep.serialdevice.CoreDevices;
+import com.eastsideprep.weblog.WebLog;
 import javax.servlet.MultipartConfigElement;
 import static spark.Spark.*;
 import spark.staticfiles.StaticFilesConfiguration;
@@ -14,6 +16,8 @@ public class WebServer {
     static DeviceManager dm;
     static CoreDevices cd;
     static DataLogger dl;
+    static FusorWebLogState state;
+    static WebLog log;
 
     public WebServer() {
         instance = this;
@@ -25,12 +29,12 @@ public class WebServer {
 
         post("/login", (req, res) -> login(req, res));
         post("/logout", (req, res) -> logout(req, res));
-        get("/protected/name", (req, res) -> getName(req, res));
+        get("/clienttype", (req, res) -> getClientType(req, res));
 
         // HTML pages use this to switch to the "expired" page
         get("/protected/checktimeout", (req, res) -> {
             Context ctx = getContextFromSession(req.session());
-            if (ctx == null || ctx.checkExpired()) {
+            if (ctx == null || (ctx.checkExpired() && !(ctx instanceof AdminContext))) {
                 System.out.println("filter: expired");
                 internalLogout(req);
                 return "expired";
@@ -38,13 +42,14 @@ public class WebServer {
             return "alive";
         });
 
-        // liveness check - this actually governs expiration
         before((req, res) -> {
 //            System.out.println("filter: timer alive?" + req.url());
             Context ctx = getContextFromSession(req.session());
-            if (ctx != null && ctx.checkExpired()) {
+            // liveness check - this actually governs expiration
+            if (ctx != null && !(ctx instanceof AdminContext) && ctx.checkExpired()) {
                 internalLogout(req);
                 res.redirect("/expired.html");
+                return;
             }
         });
 
@@ -54,6 +59,11 @@ public class WebServer {
             if (ctx == null || !(ctx instanceof ObserverContext)) {
                 System.out.println("unauthorized " + req.url());
                 res.redirect("/unauthorized.html");
+                return;
+            }
+            // make sure everyone here has a log observer
+            if (ctx.obs == null) {
+                log.addObserver(ctx.name);
             }
         });
         before("/protected/admin/*", (req, res) -> {
@@ -62,6 +72,11 @@ public class WebServer {
             if (ctx == null || !(ctx instanceof AdminContext)) {
                 System.out.println("unauthorized " + req.url());
                 res.redirect("/unauthorized.html");
+                return;
+            }
+            // make sure everyone here has a log observer
+            if (ctx.obs == null) {
+                log.addObserver(ctx.name);
             }
         });
 
@@ -95,6 +110,8 @@ public class WebServer {
         //
         // setup all that fusor stuff
         //
+        state = new FusorWebLogState();
+        log = new WebLog(state);
         dm = new DeviceManager();
         cs = new CamStreamer(dm);
         cd = dm.init();
@@ -146,7 +163,7 @@ public class WebServer {
         req.raw().setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
 
         String login = req.queryParams("login");
-        Context ctx = new Context(login, WebServer.instance);
+        Context ctx;
 
         System.out.println("\"" + login + "\"");
         if ((req.ip().equals("10.20.82.127") /* GMEIN's LAPTOP */
@@ -158,6 +175,7 @@ public class WebServer {
             res.redirect("protected/admin/index.html");
         } else {
             ctx = new ObserverContext(login, instance);
+            System.out.println("login: Observer: " + login);
             res.redirect("protected/index.html");
         }
 
@@ -190,9 +208,17 @@ public class WebServer {
         return "ok";
     }
 
-    public static String getName(spark.Request req, spark.Response res) {
-        Context ctx = getCtx(req);
-        return ctx.name;
+    public static String getClientType(spark.Request req, spark.Response res) {
+        Context ctx = getContextFromSession(req.session());
+        if (ctx == null) {
+            return "invalid";
+        } else if (ctx instanceof ObserverContext) {
+            return "observer";
+        } else if (ctx instanceof AdminContext) {
+            return "admin";
+        } else {
+            return "invalid";
+        }
     }
 
     // this can be called even when there is no context

@@ -5,6 +5,8 @@
  */
 package com.eastsideprep.fusorcontrolserver;
 
+import com.eastsideprep.weblog.WebLogObserver;
+
 /**
  *
  * @author gmein
@@ -17,6 +19,7 @@ public class Context {
     String name;
     long timeLastSeen;
     WebServer ws;
+    WebLogObserver obs;
 
     Context(String login, WebServer ws) {
         this.login = login;

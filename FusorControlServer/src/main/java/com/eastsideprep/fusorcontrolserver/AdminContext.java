@@ -9,6 +9,8 @@ import static com.eastsideprep.fusorcontrolserver.WebServer.cd;
 import static com.eastsideprep.fusorcontrolserver.WebServer.cs;
 import static com.eastsideprep.fusorcontrolserver.WebServer.dl;
 import static com.eastsideprep.fusorcontrolserver.WebServer.dm;
+import com.eastsideprep.fusorweblog.FusorWebLogEntry;
+import com.eastsideprep.fusorweblog.FusorWebLogState;
 import java.io.IOException;
 import static spark.Spark.halt;
 import static spark.Spark.stop;
@@ -46,6 +48,9 @@ public class AdminContext extends ObserverContext {
             } catch (IOException ex) {
                 System.out.println("startLog IO exception: " + ex);
             }
+            
+            WebServer.log.clear(new FusorWebLogState(), new FusorWebLogEntry("<reset>", Long.toString(System.currentTimeMillis()), ""));
+            
             dm.autoStatusOn();
             System.out.println("New log started");
             return "log started";

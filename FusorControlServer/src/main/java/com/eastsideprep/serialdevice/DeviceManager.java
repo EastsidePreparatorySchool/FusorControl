@@ -2,6 +2,8 @@ package com.eastsideprep.serialdevice;
 
 import com.eastsideprep.fusorcontrolserver.DataLogger;
 import com.eastsideprep.fusorcontrolserver.FusorControlServer;
+import com.eastsideprep.fusorweblog.FusorWebLogEntry;
+import com.eastsideprep.weblog.WebLog;
 import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
@@ -22,6 +24,7 @@ public class DeviceManager {
     //
     private SerialDeviceMap arduinoMap = new SerialDeviceMap();
     private Thread queryThread;
+    private Thread heartbeatThread;
     // keep track of partial messages
     private HashMap<SerialPort, String> bufferState = new HashMap<>();
     private CoreDevices cd;
@@ -110,8 +113,10 @@ public class DeviceManager {
             SerialDevice sd = this.arduinoMap.get(port);
             if (sd != null) {
                 String status = response.substring(SerialDevice.FUSOR_STATUS.length() + 1);
-                status = DataLogger.makeLogResponse(sd, time, status);
-                sd.setStatus(status);
+                recordStatus(sd, time, status);
+//                WebLog.staticAddLogEntry(new FusorWebLogEntry(sd.name, Long.toString(time), status));
+//                status = DataLogger.makeLogResponse(sd, time, status);
+//                sd.setStatus(status);
             }
         } else {
             SerialDevice sd = this.arduinoMap.get(port);
@@ -122,6 +127,12 @@ public class DeviceManager {
                 sd.setConfirmation(response);
             }
         }
+    }
+
+    public void recordStatus(SerialDevice sd, long time, String data) {
+        WebLog.staticAddLogEntry(new FusorWebLogEntry(sd.name, Long.toString(time), data));
+        String status = DataLogger.makeLogResponse(sd, time, data);
+        sd.setStatus(status);
     }
 
     public CoreDevices init() {
@@ -165,14 +176,44 @@ public class DeviceManager {
         } catch (InterruptedException ex) {
         }
 
+        heartbeatThread = new Thread(() -> heartbeat());
+        heartbeatThread.start();
+
         return cd;
     }
 
     public void shutdown() {
         try {
-            queryThread.interrupt();
-            queryThread.join(1000);
+            this.queryThread.interrupt();
+            this.heartbeatThread.interrupt();
+            this.queryThread.join(1500);
+            this.heartbeatThread.join(1500);
         } catch (Exception ex) {
+        }
+    }
+
+    private String heartbeatDeviceText(int val, long millis) {
+        return "{\"beat\":{\"value\":" + val + ",\"vartime\":" + millis + "},"
+                + "\"logsize\":{\"value\":" + WebLog.instance.getLogSize() + ",\"vartime\":" + millis + "},"
+                + "\"devicetime\":" + millis + "}";
+    }
+
+    private void heartbeat() {
+        SerialDevice sd = new NullSerialDevice("heartbeat");
+        long millis = System.currentTimeMillis();
+        register(sd);
+        recordStatus(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis));
+
+        System.out.println(heartbeatDeviceText(0,0));
+        Thread.currentThread().setPriority(Thread.NORM_PRIORITY + 2);
+        try {
+            while (!Thread.interrupted()) {
+                Thread.sleep(1000);
+                millis = System.currentTimeMillis();
+                recordStatus(sd, System.currentTimeMillis(), heartbeatDeviceText(1, millis));
+                recordStatus(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis+1));
+            }
+        } catch (InterruptedException e) {
         }
     }
 

@@ -21,7 +21,7 @@ public class WebLog {
     private final Lock rlock;
     private final Lock wlock;
 
-    private final WebLogState state;
+    private WebLogState state;
     private ArrayList<WebLogEntry> log = new ArrayList<>();
     private final LinkedList<WebLogObserver> observers = new LinkedList<>();
 
@@ -29,13 +29,40 @@ public class WebLog {
     private int end = 0;
     private int minRead = 0;
     private final int COLLAPSE_THRESHOLD = 1000;
-    public int turnsCompleted = 0;
+    public static WebLog instance;
 
     public WebLog(WebLogState state) {
         rlock = rwl.readLock();
         wlock = rwl.writeLock();
         this.state = state;
         state.setLog(this);
+        WebLog.instance = this;
+    }
+
+    public void clear(WebLogState resetState, WebLogEntry resetEntry) {
+        wlock.lock();
+        try {
+            log = new ArrayList<>();
+            start = 0;
+            end = 0;
+            minRead = 0;
+            state = resetState;
+            state.setLog(this);
+            
+            resetObservers();
+
+            if (resetEntry != null) {
+                addLogEntry(resetEntry);
+            }
+        } finally {
+            wlock.unlock();
+        }
+
+//        printLogInfo("AE");
+    }
+
+    public static void staticAddLogEntry(WebLogEntry item) {
+        WebLog.instance.addLogEntry(item);
     }
 
     public void addLogEntry(WebLogEntry item) {
@@ -211,6 +238,15 @@ public class WebLog {
     public void removeStaleObservers() {
         synchronized (observers) {
             observers.removeIf((o) -> o.isStale());
+        }
+    }
+
+    // todo: we will need to give the client a signal that things have changed
+    public void resetObservers() {
+        synchronized (observers) {
+            for (WebLogObserver obs : observers) {
+                obs.maxRead = 0;
+            }
         }
     }
 

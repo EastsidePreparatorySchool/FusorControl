@@ -2,6 +2,38 @@
 
 <html>
     <head>
-        <meta http-equiv="refresh" content="0; URL=/login.html" />
     </head>
+    <body>
+        <script type="text/javascript" src="common.js"></script>
+        <script type="text/javascript">
+            // first, see if we remember this user on the client
+            var client = localStorage.getItem("fusor_client");
+            console.log("sessionStorage client: " + client);
+
+            if (client === undefined) {
+                // if we don't know what kind of user this is, ask the server
+                try {
+                    request({url: "/clienttype", method: "GET"})
+                            .then(data => {
+                                client = data;
+                                console.log("server session client: " + client);
+                            })
+                            .catch(error => {
+                                console.log("error: " + error);
+                            });
+                } catch (error) {
+                    console.log("Error: " + error);
+                }
+            }
+
+            // now direct them to the proper place
+            if (client === "admin") {
+                location.assign("/protected/admin/index.html");
+            } else if (client === "observer") {
+                location.assign("/protected/index.html");
+            } else {
+                location.assign("/login.html");
+            }
+        </script>
+    </body>
 </html>

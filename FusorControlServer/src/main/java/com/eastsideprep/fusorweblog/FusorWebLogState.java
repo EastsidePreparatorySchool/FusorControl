@@ -47,12 +47,12 @@ public class FusorWebLogState   implements WebLogState {
 
     // the log uses this to compact itself into the state
     @Override
-    public void addEntry(WebLogEntry ge) {
+    public void addEntry(WebLogEntry e) {
        FusorWebLogEntry tge = null;
        try {
-           tge = (FusorWebLogEntry) ge;
-       } catch (Exception e) {
-           System.err.println("GameState: Invalid log entry added to state");
+           tge = (FusorWebLogEntry) e;
+       } catch (Exception ex) {
+           System.err.println("WebLogState: Invalid log entry added to state: "+ex);
            return;
        }
        entries++;
