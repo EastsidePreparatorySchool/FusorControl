@@ -1,0 +1,96 @@
+//
+// fusor common client code
+//
+
+
+
+//
+// HTML utilities
+//
+
+function selectButton(select, unselect) {
+    document.getElementById(unselect).style.border = "none";
+    document.getElementById(select).style.border = "2px solid black";
+}
+
+function enableButton(button) {
+    document.getElementById(button).disabled = false;
+}
+
+function disableButton(button) {
+    document.getElementById(button).disabled = true;
+}
+
+//
+// promise-style request and underlying XmlRequest
+//
+
+function request(obj) {
+    return new Promise((resolve, reject) => {
+        let xhr = new XMLHttpRequest();
+        xhr.open(obj.method || "GET", obj.url);
+        xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(xhr.response);
+            } else {
+                reject(xhr.statusText);
+            }
+        };
+        xhr.onerror = () => reject(xhr.statusText);
+        xhr.send(obj.body);
+    });
+}
+
+
+function xmlRequest(verb, url) {
+    var xhr = new XMLHttpRequest();
+    xhr.open(verb || "GET", url, true);
+    xhr.onload = () => {
+        console.log(xhr.response);
+    };
+    xhr.onerror = () => {
+        console.log("error: " + xhr.statusText);
+    };
+    xhr.send();
+}
+
+
+//
+// timeout/logout
+//
+
+function checkTimeout() {
+    //output ("checking liveness");
+    request({url: "/protected/checktimeout", method: "get"})
+            .then(data => {
+                //output(data);
+            })
+            .catch(error => {
+                location.assign("/expired.html");
+            });
+
+}
+
+function logout() {
+    request({url: "/logout", method: "post"})
+            .then(data => {
+                //output(data);
+                location.assign("/login.html");
+
+            })
+            .catch(error => {
+                location.assign("/login.html");
+            });
+
+}
+
+function enableTimeout() {
+    if (!(location.href.toLowerCase().endsWith("login.html") || location.href.toLowerCase().endsWith("expired.html"))) {
+        setInterval(checkTimeout, 1000);
+    }
+}
+
+
+
+
+        
