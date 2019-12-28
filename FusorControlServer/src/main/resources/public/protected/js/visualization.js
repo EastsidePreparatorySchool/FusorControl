@@ -74,7 +74,7 @@ function createViz() {
         data: vizData,
         rangeChanging: function (e) {
             vizFrozen = (e.trigger !== "reset");
-        }
+        },
     };
     for (var channel in vizChannels) {
         var dataSeries = {
@@ -98,7 +98,7 @@ function updateViz(dataArray, batchStartTime) {
         var data = dataArray[i];
         var devicename = data["device"];
         var devicedata = data["data"];
-        
+
         if (devicename === "<reset>") {
             for (var channel in vizChannels) {
                 var vc = vizChannels[channel];
@@ -109,6 +109,10 @@ function updateViz(dataArray, batchStartTime) {
                 vc.offset = undefined;
             }
             continue;
+        }
+
+        if (devicename === "comment") {
+            console.log(devicedata["observer"] + "(" + devicedata["ip"] + "," + data["servertime"] + "): " + devicedata["text"]);
         }
 
         for (var variable in devicedata) {
@@ -180,7 +184,7 @@ function openTab(evt, tabName) {
     }
 
     // Show the current tab, and add an "active" class to the button that opened the tab
-    document.getElementById(tabName).style.display = "block";
+    document.getElementById(tabName).style.display = "inline-block";
     if (evt !== null) {
         evt.currentTarget.className += " active";
     }

@@ -7,12 +7,14 @@ package com.eastsideprep.fusorcontrolserver;
 
 import static com.eastsideprep.fusorcontrolserver.WebServer.dl;
 import static com.eastsideprep.fusorcontrolserver.WebServer.dm;
+import static com.eastsideprep.fusorcontrolserver.WebServer.instance;
 import com.eastsideprep.fusorweblog.FusorWebLogEntry;
 import com.eastsideprep.weblog.WebLogEntry;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.MultipartConfigElement;
 
 /**
  *
@@ -36,7 +38,7 @@ public class ObserverContext extends Context {
         }
         ArrayList<WebLogEntry> list = obs.getNewItems();
         if (FusorControlServer.config.superVerbose) {
-            System.out.println("Obs: "+obs+", updates: " + list.size());
+            System.out.println("Obs: " + obs + ", updates: " + list.size());
         }
         StringBuilder sb = new StringBuilder();
         sb.ensureCapacity(10000);
@@ -58,4 +60,24 @@ public class ObserverContext extends Context {
         }
         return s;
     }
+
+    String comment(spark.Request req) {
+        MultipartConfigElement multipartConfigElement = new MultipartConfigElement(System.getProperty("java.io.tmpdir"));
+        req.raw().setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
+
+        StringBuilder sb = new StringBuilder(500);
+        sb.append("{");
+        sb.append("\"observer\":\"");
+        sb.append(this.name);
+        sb.append("\",\"ip\":\"");
+        sb.append(req.ip());
+        sb.append("\",\"text\":\"");
+        sb.append(req.queryParams("text"));
+        sb.append("\"}");
+        
+        dm.recordStatus("comment", System.currentTimeMillis(), sb.toString());
+
+        return "ok";
+    }
+
 }

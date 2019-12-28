@@ -15,7 +15,7 @@
             <h1 style="font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 200%;">
                 Fusor Observation
             </h1>
-       
+
             <div>
                 <div style="width:24%; padding:2%; float:left">
 
@@ -65,13 +65,16 @@
                         </textarea>
                     </div>
 
-                    <div id="chart_info" class="tabcontent" style="width:100; height:100%; ">
-                        <div id="chartContainer" style="width:100%; height:100%;">
-                            
-                        </div>
+                    <div id="chart_info" class="tabcontent" style="width:100%;height:inherit">
+                            <div id="chartContainer" style="width:100%;height:inherit">
+                            </div>
                     </div>
-
-
+                    <div>
+                        <form method="post" action="postmessage" onsubmit="return comment(this);">
+                            <input style="width:90%" autofocus type="text" name="text" placeholder="type a comment ..." required="required" />
+                            <button style="width:8%" type="submit" class="button">Send</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

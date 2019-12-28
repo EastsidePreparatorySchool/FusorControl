@@ -113,7 +113,7 @@ public class DeviceManager {
             SerialDevice sd = this.arduinoMap.get(port);
             if (sd != null) {
                 String status = response.substring(SerialDevice.FUSOR_STATUS.length() + 1);
-                recordStatus(sd, time, status);
+                recordStatusForDevice(sd, time, status);
 //                WebLog.staticAddLogEntry(new FusorWebLogEntry(sd.name, Long.toString(time), status));
 //                status = DataLogger.makeLogResponse(sd, time, status);
 //                sd.setStatus(status);
@@ -129,11 +129,13 @@ public class DeviceManager {
         }
     }
 
-    public void recordStatus(SerialDevice sd, long time, String data) {
-        WebLog.staticAddLogEntry(new FusorWebLogEntry(sd.name, time, data));
-        //String status = DataLogger.makeLogResponse(sd, time, data);
-        //sd.setStatus(status);
-        //System.out.println("Recorded status for "+sd.name+" "+System.currentTimeMillis());
+    public void recordStatusForDevice(SerialDevice sd, long time, String data) {
+        recordStatus(sd.name, time, data);
+    }
+
+    public void recordStatus(String device, long time, String data) {
+        WebLog.staticAddLogEntry(new FusorWebLogEntry(device, time, data));
+        //System.out.println("Recorded status for "+device+" "+System.currentTimeMillis());
     }
 
     public CoreDevices init() {
@@ -203,7 +205,7 @@ public class DeviceManager {
         SerialDevice sd = new NullSerialDevice("heartbeat");
         long millis = System.currentTimeMillis();
         register(sd);
-        recordStatus(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis));
+        recordStatusForDevice(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis));
 
         //System.out.println(heartbeatDeviceText(0, 0));
         Thread.currentThread().setPriority(Thread.NORM_PRIORITY + 2);
@@ -211,12 +213,12 @@ public class DeviceManager {
             while (!Thread.interrupted()) {
                 Thread.sleep(1000);
                 millis = System.currentTimeMillis();
-                recordStatus(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis - 1));
-                recordStatus(sd, System.currentTimeMillis(), heartbeatDeviceText(1, millis));
-                recordStatus(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis + 1));
+                recordStatusForDevice(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis - 1));
+                recordStatusForDevice(sd, System.currentTimeMillis(), heartbeatDeviceText(1, millis));
+                recordStatusForDevice(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis + 1));
             }
         } catch (Exception e) {
-            System.out.println("Exception in heartbeat thread: "+e);
+            System.out.println("Exception in heartbeat thread: " + e);
         }
     }
 
@@ -573,7 +575,6 @@ public class DeviceManager {
 //        status = "[" + status + "{\"status\":\"complete: " + ((new Date()).toInstant().toString()) + "\"}]";
 //        return status;
 //    }
-
     static private int getPortNumber(SerialPort p) {
         int result;
         try {

@@ -184,7 +184,7 @@ public class CamStreamer {
             log += ",\"devicetime\":" + millis;
 
             log += "}";
-            dm.recordStatus(sd, millis, log);
+            dm.recordStatusForDevice(sd, millis, log);
             //System.out.println("OCR: " + log);
         }
     }

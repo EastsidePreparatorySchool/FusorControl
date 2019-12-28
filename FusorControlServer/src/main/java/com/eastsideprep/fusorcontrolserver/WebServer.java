@@ -126,7 +126,6 @@ public class WebServer {
         //
         // routes
         //
-        //these set all the commands that are going to be sent from the client
         get("/", (req, res) -> "<h1><a href='index.html'>Go to index.html</a></h1>");
 
         //
@@ -135,6 +134,7 @@ public class WebServer {
         //
         get("/protected/getstatus", (req, res) -> getObserverCtx(req).getStatusRoute());
         get("/protected/numcameras", (req, res) -> Integer.toString(cs.numCameras));
+        post("/protected/comment", (req, res) -> getObserverCtx(req).comment(req));
 
         //
         // Admin routes

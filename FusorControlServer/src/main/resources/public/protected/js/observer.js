@@ -3,12 +3,27 @@
 //
 
 
+function comment(data) {
+    request({url: "/protected/comment", method: "POST", body: new FormData(data)})
+            .then(data => {
+            })
+            .catch(error => {
+                console.log("Error: " + error);
+            });
+    return false;
+}
+
+
 //
 // init code
 //
 
 openTab(null, "chart_info");
 createViz();
+
+
+
+
 //
 // for local testing: read next line from data file
 //

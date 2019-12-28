@@ -34,7 +34,7 @@ function getStatus() {
             })
             .catch(error => {
                 console.log("getstatus error: " + error);
-                console.log(data);
+                console.log(globalData);
                 //console.log("stopping status requests to server");
                 stopStatus();
                 selectButton("stopLog", "startLog");
