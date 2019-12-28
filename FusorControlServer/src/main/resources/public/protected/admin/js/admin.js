@@ -149,11 +149,9 @@ if (liveServer) {
 } else {
     testData = fullData;
     if (testData.length > 0) {
-        startTime = testData[0]["servertime"];
+        console.log("length of test data: " + testData.length);
+        updateStatus(testData, null, testData[0]["servertime"]);
     }
-    console.log("length of test data: " + testData.length);
-
-    updateStatus(testData, null, startTime);
 }
 
 

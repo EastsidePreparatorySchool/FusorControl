@@ -93,11 +93,23 @@ function createViz() {
 }
 
 
-function updateViz(dataArray, startTime) {
+function updateViz(dataArray, batchStartTime) {
     for (var i = 0; i < dataArray.length; i++) {
         var data = dataArray[i];
         var devicename = data["device"];
         var devicedata = data["data"];
+        
+        if (devicename === "<reset>") {
+            for (var channel in vizChannels) {
+                var vc = vizChannels[channel];
+                vc.dataSeries.dataPoints = [];
+                maxTime = 0;
+                startTime = undefined;
+                logstart = undefined;
+                vc.offset = undefined;
+            }
+            continue;
+        }
 
         for (var variable in devicedata) {
             var vc = vizChannels[devicename + "." + variable];

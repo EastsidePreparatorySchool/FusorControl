@@ -34,7 +34,10 @@ public class ObserverContext extends Context {
             } catch (InterruptedException ex) {
             }
         }
-        ArrayList<WebLogEntry> list = this.ws.log.getNewItems(obs);
+        ArrayList<WebLogEntry> list = obs.getNewItems();
+        if (FusorControlServer.config.superVerbose) {
+            System.out.println("Obs: "+obs+", updates: " + list.size());
+        }
         StringBuilder sb = new StringBuilder();
         sb.ensureCapacity(10000);
         sb.append("[");
@@ -49,7 +52,7 @@ public class ObserverContext extends Context {
         sb.append(((new Date()).toInstant().toString()));
         sb.append("\"}]");
         String s = sb.toString();
-        
+
         if (FusorControlServer.config.superVerbose) {
             System.out.println("  Status:" + s);
         }

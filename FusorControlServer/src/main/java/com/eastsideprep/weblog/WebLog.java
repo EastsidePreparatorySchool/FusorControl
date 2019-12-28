@@ -105,7 +105,7 @@ public class WebLog {
         } finally {
             wlock.unlock();
         }
-        printLogInfo("AO");
+        //printLogInfo("AO");
         return obs;
     }
 
@@ -124,7 +124,7 @@ public class WebLog {
             observers.remove(obs);
             updateMinRead();
         }
-        printLogInfo("RO");
+        //printLogInfo("RO");
         collapseRead();
     }
 

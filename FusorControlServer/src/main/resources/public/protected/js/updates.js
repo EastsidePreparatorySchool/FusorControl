@@ -4,12 +4,10 @@
 
 var statusTimer = null;
 var logStart = undefined;
-var liveServer = window.location.href.startsWith("http");
+var startTime = undefined;
 var maxTime = 0;
-var startTime;
 
-
-
+var liveServer = window.location.href.startsWith("http");
 
 
 function updateStatus(data, raw, startTime) {
@@ -36,7 +34,7 @@ function getStatus() {
             })
             .catch(error => {
                 console.log("getstatus error: " + error);
-                console.log(data)
+                console.log(data);
                 //console.log("stopping status requests to server");
                 stopStatus();
                 selectButton("stopLog", "startLog");
@@ -47,6 +45,7 @@ function getStatus() {
 
 function initStatus() {
     logStart = undefined;
+    startTime = undefined;
     maxTime = 0;
     if (statusTimer === null) {
         console.log("now receiving status");
@@ -64,30 +63,9 @@ function stopStatus() {
 
 
 
-//
-// init code
-//
-
-openTab(null, "chart_info");
-createViz();
-//
-// for local testing: read next line from data file
-//
-
-testDta = fullData;
-var startTime;
 
 
-if (!liveServer) {
 
-    testData = fullData;
-    if (testData.length > 0) {
-        startTime = testData[0]["servertime"];
-    }
-    console.log("length of test data: " + testData.length);
-
-    updateStatus(testData, null, startTime);
-}
 
 
 

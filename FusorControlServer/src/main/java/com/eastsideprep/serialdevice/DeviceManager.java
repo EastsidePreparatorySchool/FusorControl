@@ -131,8 +131,9 @@ public class DeviceManager {
 
     public void recordStatus(SerialDevice sd, long time, String data) {
         WebLog.staticAddLogEntry(new FusorWebLogEntry(sd.name, time, data));
-        String status = DataLogger.makeLogResponse(sd, time, data);
-        sd.setStatus(status);
+        //String status = DataLogger.makeLogResponse(sd, time, data);
+        //sd.setStatus(status);
+        //System.out.println("Recorded status for "+sd.name+" "+System.currentTimeMillis());
     }
 
     public CoreDevices init() {
@@ -204,7 +205,7 @@ public class DeviceManager {
         register(sd);
         recordStatus(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis));
 
-        System.out.println(heartbeatDeviceText(0, 0));
+        //System.out.println(heartbeatDeviceText(0, 0));
         Thread.currentThread().setPriority(Thread.NORM_PRIORITY + 2);
         try {
             while (!Thread.interrupted()) {
@@ -215,7 +216,7 @@ public class DeviceManager {
                 recordStatus(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis + 1));
             }
         } catch (Exception e) {
-            System.out.println("Exception in heartbear thread: "+e);
+            System.out.println("Exception in heartbeat thread: "+e);
         }
     }
 
@@ -556,22 +557,22 @@ public class DeviceManager {
         }
     }
 
-    public String readStatusResults(boolean includeCore) {
-        ArrayList<SerialDevice> devices = this.getAllDevices();
-        String status = "";
-        devices.sort((a, b) -> ((cd.isCoreDevice(b.name) ? 1 : 0) - (cd.isCoreDevice(a.name) ? 1 : 0)));
-        for (SerialDevice sd : devices) {
-            if ((includeCore || !cd.isCoreDevice(sd.name))) {
-                String s = sd.getLastStatus();
-                if (s != null) {
-                    status += s + ",\n";
-                }
-            }
-        }
-
-        status = "[" + status + "{\"status\":\"complete: " + ((new Date()).toInstant().toString()) + "\"}]";
-        return status;
-    }
+//    public String readStatusResults(boolean includeCore) {
+//        ArrayList<SerialDevice> devices = this.getAllDevices();
+//        String status = "";
+//        devices.sort((a, b) -> ((cd.isCoreDevice(b.name) ? 1 : 0) - (cd.isCoreDevice(a.name) ? 1 : 0)));
+//        for (SerialDevice sd : devices) {
+//            if ((includeCore || !cd.isCoreDevice(sd.name))) {
+//                String s = sd.getLastStatus();
+//                if (s != null) {
+//                    status += s + ",\n";
+//                }
+//            }
+//        }
+//
+//        status = "[" + status + "{\"status\":\"complete: " + ((new Date()).toInstant().toString()) + "\"}]";
+//        return status;
+//    }
 
     static private int getPortNumber(SerialPort p) {
         int result;
