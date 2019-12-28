@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Fusor Control Console</title>
+        <title>Fusor Console</title>
         <link rel="stylesheet" href="client_styles.css">
     </head>
     <body>
         <div class="grid-container">
-            <div class="fheader">Fusor Observation Console</div>
+            <div class="fheader">
+                Fusor Console 
+            </div>
             <div class="fcontrol">
                 <button style="width:19.5%" disabled id="startLog" class="btn btn-primary btn-large" onclick="startLog()">Start logging</button>
                 <button id="stopLog" disabled class="btn btn-primary btn-large" style="width:19.5%;border:2px solid black" onclick="stopLog()">Stop logging</button>
@@ -18,22 +20,47 @@
                 <div>
                     <h3>Primary Control Devices</h3>
                     <br>
-                    TMP: <span id="TMP">off</span><br>
-                    Variac Input Voltage: <span id="variacValue">0</span><br>
-                    Solenoid Valve: <span id="solenoid">closed</span><br>
-                    Needle valve: <span id="needle">closed</span><br>
+
+                    TMP:<br>
+                    <button class="btn btn-primary btn-large" id="tmpon" style="width: 48%; background-color: #39a82a;" onclick="tmpOn()">On</button>
+                    <button class="btn btn-primary btn-large" id="tmpoff" 
+                            style="width: 48%; border:2px solid black; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif"
+                            onclick="tmpOff()">Off</button>
+                    <br>
+                    <br>
+
+                    Variac Input Voltage:<br>
+                    <input style="width:48%;" id="variacValue" min="0" max="140" step="1" size="10" value="0" type="number" onchange="variac(this.value)">
+                    <button style="width:48%;" class="btn btn-primary btn-large" onclick="variac(document.getElementById('variacValue').value)" id="variacButton">Set</button>
+                    <br>
+                    <br>
+
+                    Solenoid Valve:<br>
+                    <button class="btn btn-primary btn-large" id="solon" style="width: 48%; background-color: #39a82a;" onclick="SolenoidOn()">Open</button>
+                    <button class="btn btn-primary btn-large" id="soloff" 
+                            style="border:2px solid black;width: 48%; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;"
+                            onclick="SolenoidOff()">Closed</button>
+                    <br>
+                    <br>
+
+                    Needle Valve:<br>
+                    <input style="width:48%;" id="needleValue" min="0" max="100" step="1" size="10" value="0" type="number"  onchange="needleValve(this.value)" >
+                    <button style="width:48%;" class="btn btn-primary btn-large" onclick="needleValve(document.getElementById('needleValue').value)" id="needleButton">Set</button>
                 </div>
+
             </div>  
             <div class="fchart">
                 <div id="chartContainer">
                 </div>
             </div>
             <div class="ftext">
-                <textarea id="data" rows="17" style="width:100%; height:100%; white-space: nowrap; overflow: auto;font-size:smaller; font-family: 'Courier New', Courier, monospace;">
-                </textarea>
+                <p id="data" style="margin: 0px; overflow-y:scroll; width:100%; height:100%; white-space: nowrap; overflow-x: hidden;font-size:smaller;font-family: 'Courier New', Courier, monospace;"></p>
+
+<!--                <textarea id="data" rows="17" style="width:100%; height:100%; white-space: nowrap; overflow: auto;font-size:smaller; font-family: 'Courier New', Courier, monospace;">
+                </textarea>-->
             </div>
             <div class="fchat">
-                    <p id="chat" style="margin: 0px; overflow-y:scroll; width:100%; height:100%; white-space: nowrap; overflow-x: hidden;font-size:smaller;"></p>
+                <p id="chat" style="margin: 0px; overflow-y:scroll; width:100%; height:100%; white-space: nowrap; overflow-x: hidden;font-size:smaller;"></p>
             </div>
             <div class="fcameras">
                 <button class="btn btn-primary btn-block btn-large"  onclick="window.open('cameras.html', 'popup_window', 'width=1920,height=1040'); return false;">Cameras</button>

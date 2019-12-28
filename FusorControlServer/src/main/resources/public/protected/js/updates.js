@@ -13,9 +13,10 @@ var liveServer = window.location.href.startsWith("http");
 function updateStatus(data, raw, startTime) {
     if (data !== null) {
 
-        document.getElementById("data").value = infoFromData(data, startTime);
+        document.getElementById("data").innerText = infoFromData(data, startTime);
         if (raw !== null) {
-            document.getElementById("data").value += "\n\n" + raw;
+            document.getElementById("data").innerHTML += "<br><br>";
+            document.getElementById("data").innerText += raw;
         }
         updateViz(data, startTime);
     }
