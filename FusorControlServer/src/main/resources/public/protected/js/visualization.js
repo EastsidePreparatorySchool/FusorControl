@@ -100,6 +100,7 @@ function updateViz(dataArray, batchStartTime) {
         var devicedata = data["data"];
 
         if (devicename === "<reset>") {
+            // restart visualization with fresh log data
             for (var channel in vizChannels) {
                 var vc = vizChannels[channel];
                 vc.dataSeries.dataPoints = [];
@@ -112,7 +113,9 @@ function updateViz(dataArray, batchStartTime) {
         }
 
         if (devicename === "comment") {
-            console.log(devicedata["observer"] + "(" + devicedata["ip"] + "," + data["servertime"] + "): " + devicedata["text"]);
+            // display chat comment - see comment.js
+            displayComment(devicedata["observer"], data["servertime"], devicedata["text"]);
+            continue;
         }
 
         for (var variable in devicedata) {
@@ -168,27 +171,7 @@ function updateViz(dataArray, batchStartTime) {
     chart.render();
 }
 
-function openTab(evt, tabName) {
-    // Declare all variables
-    var i, tabcontent, tablinks;
-    // Get all elements with class="tabcontent" and hide them
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-    }
 
-    // Get all elements with class="tablinks" and remove the class "active"
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-
-    // Show the current tab, and add an "active" class to the button that opened the tab
-    document.getElementById(tabName).style.display = "inline-block";
-    if (evt !== null) {
-        evt.currentTarget.className += " active";
-    }
-}
 
 
 

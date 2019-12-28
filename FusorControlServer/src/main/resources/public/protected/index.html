@@ -1,81 +1,48 @@
 <!DOCTYPE html>
 <html>
-
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>Fusor control</title>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"  crossorigin="anonymous">
-        <link rel="stylesheet" href="/CSS/client_styles.css">
+        <title>Fusor Control Console</title>
+        <link rel="stylesheet" href="client_styles.css">
     </head>
-
     <body>
-        <div class="container">
-            <h1 style="font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-size: 200%;">
-                Fusor Observation
-            </h1>
-
-            <div>
-                <div style="width:24%; padding:2%; float:left">
-
-                    <div>
-                        <h3>Turbomolecular Pump: </h3>
-                        <button disabled id="tmpon" class="button" style="width: 40%; background-color: #39a82a;"
-                                onclick="tmpOn()">On</button>
-                        <button disabled id="tmpoff" class="button"
-                                style="width: 40%; border:2px solid black; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif"
-                                onclick="tmpOff()">Off</button>
-                    </div>
+        <div class="grid-container">
+            <div class="fheader">Fusor Observation Console</div>
+            <div class="fcontrol">
+                <button style="width:19.5%" disabled id="startLog" class="btn btn-primary btn-large" onclick="startLog()">Start logging</button>
+                <button id="stopLog" disabled class="btn btn-primary btn-large" style="width:19.5%;border:2px solid black" onclick="stopLog()">Stop logging</button>
+                <button style="width:19.5%" disabled class="btn btn-primary btn-large" onclick="getStatus()">Get status</button>
+                <button style="width:19.5%" id="loadLog" class="btn btn-primary btn-large" onclick="loadLog()">Load log ...</button>
+                <button disabled class="btn btn-primary btn-large" style="width:19.5%;background-color: #f64072;" onclick="kill()"><b>Stop Server</b></button>
+            </div>
+            <div class="fdevices" style="text-align: left">
+                <div>
+                    <h3>Primary Control Devices</h3>
                     <br>
-                    <div>
-                        <h3>Variac Input Voltage: </h3>
-                        <input disabled id="variacValue" min="0" max="140" step="1" size="10" value="0" type="number" onchange="variac(this.value)">
-                    </div>
-                    <br>
-                    <div>
-                        <h3>Solenoid Valve:</h3>
-                        <button id="solon" class="button" style="width: 40%; background-color: #39a82a;"
-                                onclick="" disabled>Open</button>
-                        <button id="soloff" class="button"
-                                style="border:2px solid black;width: 40%; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;"
-                                onclick="" disabled>Closed</button>
-                        <h3>Needle valve: </h3>
-                        <input id="needleValue" disabled min="0" max="100" step="1" size="10" value="0" type="number"  onchange="needleValve(this.value)" >
-                    </div>
-
-                    <br>
-                    <br>
-                    <button class="button"
-                            onclick="window.open('cameras.html', 'popup_window', 'width=1920,height=1040'); return false;"
-                            style="width: 80%; background-color: #39a82a;">
-                        Cameras
-                    </button>
+                    TMP: <span id="TMP">off</span><br>
+                    Variac Input Voltage: <span id="variacValue">0</span><br>
+                    Solenoid Valve: <span id="solenoid">closed</span><br>
+                    Needle valve: <span id="needle">closed</span><br>
                 </div>
-
-                <div style="width:76%; height:90%; padding:2%; float:left">
-                    <div class="tab">
-                        <button class="tablinks active" onclick="openTab(event, 'text_info')">Text</button>
-                        <button class="tablinks" onclick="openTab(event, 'chart_info')">Chart</button>
-                    </div>
-
-                    <!-- Tab content -->
-                    <div id="text_info" class="tabcontent" style="width:100%; height:100%; ">
-                        <textarea id="data" rows="22" style="width:100%; height:100%; white-space: nowrap; overflow: auto;font-size:smaller; font-family: 'Courier New', Courier, monospace;">
-                        </textarea>
-                    </div>
-
-                    <div id="chart_info" class="tabcontent" style="width:100%;height:inherit">
-                            <div id="chartContainer" style="width:100%;height:inherit">
-                            </div>
-                    </div>
-                    <div>
-                        <form method="post" action="postmessage" onsubmit="return comment(this);">
-                            <input style="width:90%" autofocus type="text" name="text" placeholder="type a comment ..." required="required" />
-                            <button style="width:8%" type="submit" class="button">Send</button>
-                        </form>
-                    </div>
+            </div>  
+            <div class="fchart">
+                <div id="chartContainer">
                 </div>
+            </div>
+            <div class="ftext">
+                <textarea id="data" rows="17" style="width:100%; height:100%; white-space: nowrap; overflow: auto;font-size:smaller; font-family: 'Courier New', Courier, monospace;">
+                </textarea>
+            </div>
+            <div class="fchat">
+                    <p id="chat" style="margin: 0px; overflow-y:scroll; width:100%; height:100%; white-space: nowrap; overflow-x: hidden;font-size:smaller;"></p>
+            </div>
+            <div class="fcameras">
+                <button class="btn btn-primary btn-block btn-large"  onclick="window.open('cameras.html', 'popup_window', 'width=1920,height=1040'); return false;">Cameras</button>
+            </div>
+            <div class="finput">
+                <form method="post" onsubmit="return submitComment(this);">
+                    <input id="comment" style="width:90%" autofocus type="text" name="text" placeholder="type a comment ..." required="required" />
+                    <button class="btn btn-primary btn-large" style="width:8%" type="submit">Send</button>
+                </form>
             </div>
         </div>
 
@@ -86,7 +53,7 @@
         <script type="text/javascript" src="/protected/js/textinfo.js"></script>
         <script type="text/javascript" src="/protected/js/visualization.js"></script>
         <script type="text/javascript" src="/protected/js/updates.js"></script>
+        <script type="text/javascript" src="/protected/js/comment.js"></script>
         <script type="text/javascript" src="/protected/js/observer.js"></script>
     </body>
-
 </html>
