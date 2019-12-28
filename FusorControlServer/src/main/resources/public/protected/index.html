@@ -12,9 +12,9 @@
             <div class="fcontrol">
                 <button style="width:19.5%" disabled id="startLog" class="btn btn-primary btn-large" onclick="startLog()">Start logging</button>
                 <button id="stopLog" disabled class="btn btn-primary btn-large" style="width:19.5%;border:2px solid black" onclick="stopLog()">Stop logging</button>
-                <button style="width:19.5%" disabled class="btn btn-primary btn-large" onclick="getStatus()">Get status</button>
+                <button id="getStatus" style="width:19.5%" disabled class="btn btn-primary btn-large" onclick="getStatus()">Get status</button>
                 <button style="width:19.5%" id="loadLog" class="btn btn-primary btn-large" onclick="loadLog()">Load log ...</button>
-                <button disabled class="btn btn-primary btn-large" style="width:19.5%;background-color: #f64072;" onclick="kill()"><b>Stop Server</b></button>
+                <button id="kill" disabled class="btn btn-primary btn-large" style="width:19.5%;background-color: #f64072;" onclick="kill()"><b>Stop Server</b></button>
             </div>
             <div class="fdevices" style="text-align: left">
                 <div>
@@ -22,30 +22,30 @@
                     <br>
 
                     TMP:<br>
-                    <button class="btn btn-primary btn-large" id="tmpon" style="width: 48%; background-color: #39a82a;" onclick="tmpOn()">On</button>
-                    <button class="btn btn-primary btn-large" id="tmpoff" 
+                    <button disabled class="btn btn-primary btn-large" id="tmpon" style="width: 48%; background-color: #39a82a;" onclick="tmpOn()">On</button>
+                    <button disabled class="btn btn-primary btn-large" id="tmpoff" 
                             style="width: 48%; border:2px solid black; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif"
                             onclick="tmpOff()">Off</button>
                     <br>
                     <br>
 
                     Variac Input Voltage:<br>
-                    <input style="width:48%;" id="variacValue" min="0" max="140" step="1" size="10" value="0" type="number" onchange="variac(this.value)">
-                    <button style="width:48%;" class="btn btn-primary btn-large" onclick="variac(document.getElementById('variacValue').value)" id="variacButton">Set</button>
+                    <input disabled style="width:48%;" id="variacValue" min="0" max="140" step="1" size="10" value="0" type="number" onchange="variac(this.value)">
+                    <button disabled id="variacButton" style="width:48%;" class="btn btn-primary btn-large" onclick="variac(document.getElementById('variacValue').value)" >Set</button>
                     <br>
                     <br>
 
                     Solenoid Valve:<br>
-                    <button class="btn btn-primary btn-large" id="solon" style="width: 48%; background-color: #39a82a;" onclick="SolenoidOn()">Open</button>
-                    <button class="btn btn-primary btn-large" id="soloff" 
+                    <button disabled class="btn btn-primary btn-large" id="solon" style="width: 48%; background-color: #39a82a;" onclick="SolenoidOn()">Open</button>
+                    <button disabled class="btn btn-primary btn-large" id="soloff" 
                             style="border:2px solid black;width: 48%; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;"
                             onclick="SolenoidOff()">Closed</button>
                     <br>
                     <br>
 
                     Needle Valve:<br>
-                    <input style="width:48%;" id="needleValue" min="0" max="100" step="1" size="10" value="0" type="number"  onchange="needleValve(this.value)" >
-                    <button style="width:48%;" class="btn btn-primary btn-large" onclick="needleValve(document.getElementById('needleValue').value)" id="needleButton">Set</button>
+                    <input disabled style="width:48%;" id="needleValue" min="0" max="100" step="1" size="10" value="0" type="number"  onchange="needleValve(this.value)" >
+                    <button disabled style="width:48%;" id="needleButton" class="btn btn-primary btn-large" onclick="needleValve(document.getElementById('needleValue').value)" >Set</button>
                 </div>
 
             </div>  
@@ -55,9 +55,6 @@
             </div>
             <div class="ftext">
                 <p id="data" style="margin: 0px; overflow-y:scroll; width:100%; height:100%; white-space: nowrap; overflow-x: hidden;font-size:smaller;font-family: 'Courier New', Courier, monospace;"></p>
-
-<!--                <textarea id="data" rows="17" style="width:100%; height:100%; white-space: nowrap; overflow: auto;font-size:smaller; font-family: 'Courier New', Courier, monospace;">
-                </textarea>-->
             </div>
             <div class="fchat">
                 <p id="chat" style="margin: 0px; overflow-y:scroll; width:100%; height:100%; white-space: nowrap; overflow-x: hidden;font-size:smaller;"></p>
@@ -81,6 +78,7 @@
         <script type="text/javascript" src="/protected/js/visualization.js"></script>
         <script type="text/javascript" src="/protected/js/updates.js"></script>
         <script type="text/javascript" src="/protected/js/comment.js"></script>
+        <script type="text/javascript" src="/protected/js/admin.js"></script>
         <script type="text/javascript" src="/protected/js/observer.js"></script>
     </body>
 </html>

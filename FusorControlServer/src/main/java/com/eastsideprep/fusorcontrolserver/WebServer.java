@@ -165,14 +165,14 @@ public class WebServer {
         String login = req.queryParams("login");
         Context ctx;
 
-        System.out.println("\"" + login + "\"");
+        //System.out.println("\"" + login + "\"");
         if ((req.ip().equals("10.20.82.127") /* GMEIN's LAPTOP */
                 || req.ip().equals("0:0:0:0:0:0:0:1") /* LOCALHOST */)
                 && login.equalsIgnoreCase("gmein")) {
             System.out.println("login: Admin: " + login);
             ctx = new AdminContext(login, instance);
             ctx.isAdmin = true;
-            res.redirect("protected/admin/index.html");
+            res.redirect("protected/index.html");
         } else {
             ctx = new ObserverContext(login, instance);
             System.out.println("login: Observer: " + login);
@@ -189,7 +189,7 @@ public class WebServer {
 //        res.redirect("login.html");
 //        return "";
 //    }
-        System.out.println("login: " + login);
+        //System.out.println("login: " + login);
         return "ok";
     }
 
@@ -212,10 +212,10 @@ public class WebServer {
         Context ctx = getContextFromSession(req.session());
         if (ctx == null) {
             return "invalid";
-        } else if (ctx instanceof ObserverContext) {
-            return "observer";
         } else if (ctx instanceof AdminContext) {
             return "admin";
+        } else if (ctx instanceof ObserverContext) {
+            return "observer";
         } else {
             return "invalid";
         }

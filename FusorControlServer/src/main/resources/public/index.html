@@ -17,6 +17,15 @@
                             .then(data => {
                                 client = data;
                                 console.log("server session client: " + client);
+                                // now direct them to the proper place
+                                localStorage.setItem("fusor_client", client);
+                                if (client === "admin") {
+                                    location.assign("/protected/index.html");
+                                } else if (client === "observer") {
+                                    location.assign("/protected/index.html");
+                                } else {
+                                    location.assign("/login.html");
+                                }
                             })
                             .catch(error => {
                                 console.log("error: " + error);
@@ -27,8 +36,9 @@
             }
 
             // now direct them to the proper place
+            localStorage.setItem("fusor_client", client);
             if (client === "admin") {
-                location.assign("/protected/admin/index.html");
+                location.assign("/protected/index.html");
             } else if (client === "observer") {
                 location.assign("/protected/index.html");
             } else {

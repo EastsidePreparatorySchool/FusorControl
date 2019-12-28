@@ -3,6 +3,19 @@
 //
 
 
+function enableAdminControls() {
+    var adminControls = [
+        "startLog", "stopLog", "getStatus", "kill",
+        "tmpon", "tmpoff", "variacValue", "variacButton",
+        "solon", "soloff", "needleValue", "needleButton"
+    ];
+    
+    for (var i = 0; i < adminControls.length; i++) {
+        document.getElementById(adminControls[i]).disabled = false;
+    }
+}
+
+
 //this kills the server (needs testing)
 function kill() {
     request({url: "/protected/admin/kill", method: "GET"})
@@ -132,28 +145,6 @@ function SolenoidOff() {
         console.log("Error: " + error);
     }
 }
-
-//
-// init code
-//
-
-openTab(null, "chart_info");
-createViz();
-//
-// for local testing: read next line from data file
-//
-
-if (liveServer) {
-    //initStatus();
-    localStorage.setItem("fusor_client", "admin");
-} else {
-    testData = fullData;
-    if (testData.length > 0) {
-        console.log("length of test data: " + testData.length);
-        updateStatus(testData, null, testData[0]["servertime"]);
-    }
-}
-
 
 
 

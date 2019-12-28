@@ -6,6 +6,31 @@
 // init code
 //
 
+
+//
+// enable admin controls if appropriate
+//
+var isAdmin = false;
+request({url: "/clienttype", method: "GET"})
+        .then(data => {
+            isAdmin = (data === "admin");
+            console.log("server session client: " + data);
+            if (isAdmin) {
+                enableAdminControls();
+            }
+        })
+        .catch(error => {
+            console.log("error: " + error);
+        });
+
+
+window.addEventListener('beforeunload', function (event) {
+    localStorage.setItem("fusor_client", undefined);
+});
+
+
+
+
 createViz();
 
 
