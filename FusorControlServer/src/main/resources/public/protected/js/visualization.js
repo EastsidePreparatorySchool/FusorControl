@@ -127,7 +127,7 @@ function updateViz(dataArray, batchStartTime) {
         // now add important variables to display
         // see declaration of vizChannels above to see what is included
         //
-        
+
         for (var variable in devicedata) {
             var vc = vizChannels[devicename + "." + variable];
             if (vc === undefined) {
@@ -168,8 +168,12 @@ function updateViz(dataArray, batchStartTime) {
             //console.log("x: "+varTime+" y: "+percent)
 
             dataSeries.dataPoints.push({x: secs, y: percent, value: value});
-            while (dataSeries.dataPoints.length > 100000) {
-                dataSeries.dataPoints.shift();
+            
+            // in live view, constrain ourselves to 1200 data points per series - should work out to two minutes
+            if (liveServer) {
+                while (dataSeries.dataPoints.length > (devicename === "Heartbeat"?30:600)) {
+                    dataSeries.dataPoints.shift();
+                }
             }
         }
     }

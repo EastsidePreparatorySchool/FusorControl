@@ -6,6 +6,7 @@ var statusTimer = null;
 var logStart = undefined;
 var startTime = undefined;
 var maxTime = 0;
+var updateInterval = 100;
 
 var liveServer = true;
 
@@ -32,6 +33,7 @@ function getStatus() {
                     globalData = data;
                     data = JSON.parse(raw);
                     updateStatus(data, raw, logStart);
+                    setTimeout(getStatus, updateInterval);
                 }
                 //console.log(data);
             })
@@ -49,19 +51,13 @@ function getStatus() {
 function initStatus() {
     resetViz();
     liveServer = true;
-    if (statusTimer === null) {
-        console.log("now receiving status");
-        statusTimer = setInterval(getStatus, 1000); //per every 1 second
-    }
+    getStatus();
+    console.log("now receiving status");
 }
 
 function stopStatus() {
-    if (statusTimer !== null) {
-        console.log("now no longer receiving status");
-        clearInterval(statusTimer);
-        statusTimer = null;
-    }
-    liveServer = false;;
+    liveServer = false;
+    console.log("now no longer receiving status");
 }
 
 
