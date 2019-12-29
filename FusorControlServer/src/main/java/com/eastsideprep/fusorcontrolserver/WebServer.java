@@ -57,7 +57,7 @@ public class WebServer {
             // System.out.println("filter: /protected/*");
             Context ctx = getContextFromSession(req.session());
             if (ctx == null || !(ctx instanceof ObserverContext)) {
-                System.out.println("unauthorized " + req.url());
+                //System.out.println("unauthorized " + req.url());
                 res.redirect("/unauthorized.html");
                 return;
             }
@@ -70,7 +70,7 @@ public class WebServer {
             // System.out.println("filter: /protected/admin/*");
             Context ctx = getContextFromSession(req.session());
             if (ctx == null || !(ctx instanceof AdminContext)) {
-                System.out.println("unauthorized " + req.url());
+                //System.out.println("unauthorized " + req.url());
                 res.redirect("/unauthorized.html");
                 return;
             }

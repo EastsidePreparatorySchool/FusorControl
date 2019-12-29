@@ -21,18 +21,18 @@ public class FusorWebLogState   implements WebLogState {
     private WebLog log;
     public int entries;
     public boolean forUpdates;
-    private FusorWebLogEntry lastGameState;
-
+    private ArrayList<FusorWebLogEntry> list;
  
 
     // what the console uses initially, 
     // and what "copy" uses internally
     public FusorWebLogState() {
+        list = new ArrayList<>();
     }
 
     // this is for clients who want to compact a set of log entries after getting them
     public FusorWebLogState(boolean forUpdates) {
-        this.forUpdates = forUpdates; //purpose of the state, whether to record kills or just drop the alien
+        this.forUpdates = forUpdates; //purpose of the state, whether to record events or just provide current state
     }
 
     // this is used by the log to hand a new copy to a client
@@ -40,7 +40,11 @@ public class FusorWebLogState   implements WebLogState {
     public WebLogState copy() {
         FusorWebLogState copy = new FusorWebLogState();
 
-        // deep-copy information
+        // deep-copy information (don't need to copy items in list, they are read-only from here
+        
+        for (FusorWebLogEntry e:list) {
+            copy.addEntry(e);
+        }
         
         return copy;
     }
@@ -55,6 +59,7 @@ public class FusorWebLogState   implements WebLogState {
            System.err.println("WebLogState: Invalid log entry added to state: "+ex);
            return;
        }
+       list.add(tge);
        entries++;
     }
 
@@ -68,7 +73,9 @@ public class FusorWebLogState   implements WebLogState {
     @Override
     public ArrayList<WebLogEntry> getCompactedEntries() {
         ArrayList<WebLogEntry> result = new ArrayList<>();
-        
+        for (FusorWebLogEntry e:list) {
+            result.add(e);
+        }
         return result;
     }
 
