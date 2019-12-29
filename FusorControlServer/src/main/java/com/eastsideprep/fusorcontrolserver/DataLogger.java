@@ -4,6 +4,7 @@ import com.eastsideprep.cameras.CamStreamer;
 import com.eastsideprep.fusorweblog.FusorWebLogEntry;
 import com.eastsideprep.serialdevice.DeviceManager;
 import com.eastsideprep.serialdevice.SerialDevice;
+import com.eastsideprep.weblog.WebLog;
 import com.eastsideprep.weblog.WebLogEntry;
 import com.eastsideprep.weblog.WebLogObserver;
 import java.io.File;
@@ -73,14 +74,21 @@ public class DataLogger {
         }
     }
 
-    void loggerThreadLoop() {
-        // priority a little below normal, so that web requests come first
-        Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 1);
+    private String heartbeatDeviceText(int val, long millis) {
+        return "{\"beat\":{\"value\":" + val + ",\"vartime\":" + millis + "},"
+                + "\"logsize\":{\"value\":" + WebLog.instance.getLogSize() + ",\"vartime\":" + millis + "},"
+                + "\"devicetime\":" + millis + "}";
+    }
 
+    void loggerThreadLoop() {
         WebLogObserver obs = WebServer.log.addObserver("<logger thread>");
         try {
             while (!Thread.interrupted()) {
-                Thread.sleep(1000 / FusorControlServer.config.logFreq);
+                Thread.sleep(1000);
+
+                long millis = System.currentTimeMillis();
+                dm.recordStatus("Heartbeat", millis, heartbeatDeviceText(1, millis));
+
                 StringBuilder sb = new StringBuilder();
                 sb.ensureCapacity(10000);
                 getNewLogEntries(obs, sb);

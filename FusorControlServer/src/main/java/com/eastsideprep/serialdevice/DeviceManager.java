@@ -24,7 +24,6 @@ public class DeviceManager {
     //
     private SerialDeviceMap arduinoMap = new SerialDeviceMap();
     private Thread queryThread;
-    private Thread heartbeatThread;
     // keep track of partial messages
     private HashMap<SerialPort, String> bufferState = new HashMap<>();
     private CoreDevices cd;
@@ -179,49 +178,18 @@ public class DeviceManager {
         } catch (InterruptedException ex) {
         }
 
-        heartbeatThread = new Thread(() -> heartbeat());
-        heartbeatThread.start();
-
         return cd;
     }
 
     public void shutdown() {
         try {
             this.queryThread.interrupt();
-            this.heartbeatThread.interrupt();
             this.queryThread.join(1500);
-            this.heartbeatThread.join(1500);
         } catch (Exception ex) {
         }
     }
 
-    private String heartbeatDeviceText(int val, long millis) {
-        return "{\"beat\":{\"value\":" + val + ",\"vartime\":" + millis + "},"
-                + "\"logsize\":{\"value\":" + WebLog.instance.getLogSize() + ",\"vartime\":" + millis + "},"
-                + "\"devicetime\":" + millis + "}";
-    }
-
-    private void heartbeat() {
-        SerialDevice sd = new NullSerialDevice("heartbeat");
-        long millis = System.currentTimeMillis();
-        register(sd);
-        recordStatusForDevice(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis));
-
-        //System.out.println(heartbeatDeviceText(0, 0));
-        Thread.currentThread().setPriority(Thread.NORM_PRIORITY + 2);
-        try {
-            while (!Thread.interrupted()) {
-                Thread.sleep(1000);
-                millis = System.currentTimeMillis();
-                recordStatusForDevice(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis - 1));
-                recordStatusForDevice(sd, System.currentTimeMillis(), heartbeatDeviceText(1, millis));
-                recordStatusForDevice(sd, System.currentTimeMillis(), heartbeatDeviceText(0, millis + 1));
-            }
-        } catch (Exception e) {
-            System.out.println("Exception in heartbeat thread: " + e);
-        }
-    }
-
+ 
     private void queryThreadLoop(Object semaphore) {
         // thread priority below web server and also below logger thread
         // discovering new devices is not that important, after all
