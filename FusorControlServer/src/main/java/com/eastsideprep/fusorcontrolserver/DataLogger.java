@@ -1,8 +1,11 @@
 package com.eastsideprep.fusorcontrolserver;
 
 import com.eastsideprep.cameras.CamStreamer;
+import com.eastsideprep.fusorweblog.FusorWebLogEntry;
 import com.eastsideprep.serialdevice.DeviceManager;
 import com.eastsideprep.serialdevice.SerialDevice;
+import com.eastsideprep.weblog.WebLogEntry;
+import com.eastsideprep.weblog.WebLogObserver;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -17,7 +20,7 @@ public class DataLogger {
     private DeviceManager dm;
     private String logPath;
     private CamStreamer cs;
-    private long baseTime; 
+    private long baseTime;
 
     public static String makeLogResponse(SerialDevice sd, long time, String response) {
         return "{\"device\":\"" + sd.name + "\",\"data\":" + response + ",\"servertime\":" + time + "}";
@@ -28,6 +31,7 @@ public class DataLogger {
         return "{\"device\":\"" + device + "\",\"data\":" + response + ",\"servertime\":" + time + "}";
 
     }
+
     public void init(DeviceManager dm, CamStreamer cs) throws IOException {
         this.dm = dm;
 
@@ -46,7 +50,7 @@ public class DataLogger {
             this.baseTime = System.currentTimeMillis();
             open(fileName, ts);
             this.cs = cs;
-            cs.startRecording(fileName+"_cam_", this.baseTime);
+            cs.startRecording(fileName + "_cam_", this.baseTime);
 
             // and go
             loggerThread = new Thread(() -> loggerThreadLoop());
@@ -58,11 +62,11 @@ public class DataLogger {
         try {
             // stop the camera
             cs.stopRecording();
-            
+
             // stop the logger thread
             loggerThread.interrupt();
             loggerThread.join(500);
-            
+
             // flush and close the log file
             close();
         } catch (Exception ex) {
@@ -72,13 +76,51 @@ public class DataLogger {
     void loggerThreadLoop() {
         // priority a little below normal, so that web requests come first
         Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 1);
+
+        WebLogObserver obs = WebServer.log.addObserver("<logger thread>");
         try {
             while (!Thread.interrupted()) {
-                //dm.getAllStatus();
                 Thread.sleep(1000 / FusorControlServer.config.logFreq);
-                logAll();
+                StringBuilder sb = new StringBuilder();
+                sb.ensureCapacity(10000);
+                getNewLogEntries(obs, sb);
+                String s = sb.toString();
+                if (s != null && s.length() > 0) {
+                    try {
+                        write(s);
+                    } catch (IOException ex) {
+                        System.out.println("DataLogger:write:ioexception: " + ex);
+                    }
+                }
             }
         } catch (InterruptedException e) {
+        }
+    }
+
+    static String getNewLogEntryBatch(WebLogObserver obs) {
+        StringBuilder sb = new StringBuilder();
+        sb.ensureCapacity(10000);
+        sb.append("[");
+
+        getNewLogEntries(obs, sb);
+
+        sb.append("{\"status_complete\":\"");
+        sb.append(((new Date()).toInstant().toString()));
+        sb.append("\"}]");
+
+        return sb.toString();
+    }
+
+    static void getNewLogEntries(WebLogObserver obs, StringBuilder sb) {
+        ArrayList<WebLogEntry> list = obs.getNewItems();
+        if (FusorControlServer.config.superVerbose) {
+            System.out.println("Obs: " + obs + ", updates: " + list.size());
+        }
+
+        for (WebLogEntry e : list) {
+            FusorWebLogEntry fe = (FusorWebLogEntry) e;
+            sb.append(DataLogger.makeLogResponse(fe.device, fe.serverTime, fe.data));
+            sb.append(",\n");
         }
     }
 
@@ -101,7 +143,7 @@ public class DataLogger {
         return logPath + "fusor-" + ts.replace(":", "-").replace(".", "-");
     }
 
-    private void open(String filePrefix,  String ts) throws IOException {
+    private void open(String filePrefix, String ts) throws IOException {
         String fileFullName = filePrefix + ".json";
         writer = new FileWriter(fileFullName);
         writer.append("{\"base-timestamp\":" + this.baseTime + ",\"instant\":\"" + ts + "\",\"log\":[\n");
@@ -110,7 +152,6 @@ public class DataLogger {
 
     private void write(String element) throws IOException {
         writer.append(element);
-        writer.append(",\n");
         writer.flush();
     }
 

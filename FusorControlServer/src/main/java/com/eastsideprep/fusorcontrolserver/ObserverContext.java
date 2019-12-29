@@ -36,24 +36,8 @@ public class ObserverContext extends Context {
             } catch (InterruptedException ex) {
             }
         }
-        ArrayList<WebLogEntry> list = obs.getNewItems();
-        if (FusorControlServer.config.superVerbose) {
-            System.out.println("Obs: " + obs + ", updates: " + list.size());
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.ensureCapacity(10000);
-        sb.append("[");
 
-        for (WebLogEntry e : list) {
-            FusorWebLogEntry fe = (FusorWebLogEntry) e;
-            sb.append(DataLogger.makeLogResponse(fe.device, fe.serverTime, fe.data));
-            sb.append(",\n");
-        }
-
-        sb.append("{\"status_complete\":\"");
-        sb.append(((new Date()).toInstant().toString()));
-        sb.append("\"}]");
-        String s = sb.toString();
+        String s = DataLogger.getNewLogEntryBatch(obs);
 
         if (FusorControlServer.config.superVerbose) {
             System.out.println("  Status:" + s);
