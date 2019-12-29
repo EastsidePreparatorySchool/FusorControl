@@ -2,10 +2,6 @@
 // fusor main observer code
 //
 
-//
-// init code
-//
-
 
 //
 // enable admin controls if appropriate
@@ -16,7 +12,8 @@ request({url: "/clienttype", method: "GET"})
             isAdmin = (data === "admin");
             console.log("server session client: " + data);
             if (isAdmin) {
-                enableAdminControls();
+                enableAdminControls(true);
+                startLog();
             }
         })
         .catch(error => {
@@ -24,36 +21,36 @@ request({url: "/clienttype", method: "GET"})
         });
 
 
+//
+// erase the admin/observer thing before closing the window
+//
+
 window.addEventListener('beforeunload', function (event) {
     localStorage.setItem("fusor_client", undefined);
 });
 
 
+function loadLog() {
+    stopStatus();
+    updateStatus(fullData, null, fullData[0]["servertime"]);
+    document.getElementById("loadLog").innerText = "Live View";
+    document.getElementById("loadLog").onclick = displayLiveData;
+    enableAdminControls(false);
+}
+
+function displayLiveData() {
+    initStatus();
+    document.getElementById("loadLog").innerText = "Load Log";
+    document.getElementById("loadLog").onclick = loadLog;
+    enableAdminControls(true);
+}
+
+//
+// init code
+//
 
 
 createViz();
-
-
-
-
-//
-// for local testing: read next line from data file
-//
-
-
-
-if (liveServer) {
-    initStatus();
-    localStorage.setItem("fusor_client", "observer");
-} else {
-    testData = fullData;
-    if (testData.length > 0) {
-        console.log("length of test data: " + testData.length);
-        updateStatus(testData, null, testData[0]["servertime"]);
-    }
-}
-
-
-
+displayLiveData();
 
         

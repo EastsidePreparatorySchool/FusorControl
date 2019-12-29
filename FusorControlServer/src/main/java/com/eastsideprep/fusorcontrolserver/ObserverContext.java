@@ -28,7 +28,7 @@ public class ObserverContext extends Context {
 
     String getStatusRoute() {
         //System.out.println("/getstatus");
-        if (dl == null) {
+        if (dl == null && this.isAdmin) {
             System.out.println("  logging inactive, poking bears ...");
             dm.getAllStatus();
             try {

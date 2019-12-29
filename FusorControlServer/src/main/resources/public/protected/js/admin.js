@@ -3,7 +3,9 @@
 //
 
 
-function enableAdminControls() {
+function enableAdminControls(enable) {
+    // references global var "isAdmin"
+    
     var adminControls = [
         "startLog", "stopLog", "getStatus", "kill",
         "tmpon", "tmpoff", "variacValue", "variacButton",
@@ -11,7 +13,7 @@ function enableAdminControls() {
     ];
     
     for (var i = 0; i < adminControls.length; i++) {
-        document.getElementById(adminControls[i]).disabled = false;
+        document.getElementById(adminControls[i]).disabled = (!isAdmin) || (!enable);
     }
 }
 

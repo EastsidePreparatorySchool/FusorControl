@@ -7,7 +7,7 @@ var logStart = undefined;
 var startTime = undefined;
 var maxTime = 0;
 
-var liveServer = window.location.href.startsWith("http");
+var liveServer = true;
 
 
 function updateStatus(data, raw, startTime) {
@@ -28,9 +28,11 @@ function getStatus() {
     // for the real thing: web request to server
     request({url: "/protected/getstatus", method: "GET"})
             .then(raw => {
-                globalData = data;
-                data = JSON.parse(raw);
-                updateStatus(data, raw, logStart);
+                if (liveServer) {
+                    globalData = data;
+                    data = JSON.parse(raw);
+                    updateStatus(data, raw, logStart);
+                }
                 //console.log(data);
             })
             .catch(error => {
@@ -45,9 +47,8 @@ function getStatus() {
 
 
 function initStatus() {
-    logStart = undefined;
-    startTime = undefined;
-    maxTime = 0;
+    resetViz();
+    liveServer = true;
     if (statusTimer === null) {
         console.log("now receiving status");
         statusTimer = setInterval(getStatus, 1000); //per every 1 second
@@ -60,6 +61,7 @@ function stopStatus() {
         clearInterval(statusTimer);
         statusTimer = null;
     }
+    liveServer = false;;
 }
 
 

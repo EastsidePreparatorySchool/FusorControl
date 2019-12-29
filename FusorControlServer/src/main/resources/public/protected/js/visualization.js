@@ -74,7 +74,7 @@ function createViz() {
         data: vizData,
         rangeChanging: function (e) {
             vizFrozen = (e.trigger !== "reset");
-        },
+        }
     };
     for (var channel in vizChannels) {
         var dataSeries = {
@@ -93,6 +93,18 @@ function createViz() {
 }
 
 
+function resetViz() {
+    for (var channel in vizChannels) {
+        var vc = vizChannels[channel];
+        vc.dataSeries.dataPoints = [];
+        maxTime = 0;
+        startTime = undefined;
+        logstart = undefined;
+        vc.offset = undefined;
+    }
+    chart.render();
+}
+
 function updateViz(dataArray, batchStartTime) {
     for (var i = 0; i < dataArray.length; i++) {
         var data = dataArray[i];
@@ -101,14 +113,7 @@ function updateViz(dataArray, batchStartTime) {
 
         if (devicename === "<reset>") {
             // restart visualization with fresh log data
-            for (var channel in vizChannels) {
-                var vc = vizChannels[channel];
-                vc.dataSeries.dataPoints = [];
-                maxTime = 0;
-                startTime = undefined;
-                logstart = undefined;
-                vc.offset = undefined;
-            }
+            resetViz();
             continue;
         }
 
@@ -118,6 +123,11 @@ function updateViz(dataArray, batchStartTime) {
             continue;
         }
 
+        //
+        // now add important variables to display
+        // see declaration of vizChannels above to see what is included
+        //
+        
         for (var variable in devicedata) {
             var vc = vizChannels[devicename + "." + variable];
             if (vc === undefined) {
