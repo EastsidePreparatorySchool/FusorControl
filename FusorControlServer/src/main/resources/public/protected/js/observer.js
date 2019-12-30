@@ -35,14 +35,20 @@ function loadLog() {
     updateStatus(fullData, null, fullData[0]["servertime"]);
     document.getElementById("loadLog").innerText = "Live View";
     document.getElementById("loadLog").onclick = displayLiveData;
+    document.getElementById("comment").disabled = true;
+    document.getElementById("commentbutton").disabled = true;
     enableAdminControls(false);
 }
 
 function displayLiveData() {
-    initStatus();
-    document.getElementById("loadLog").innerText = "Load Log";
-    document.getElementById("loadLog").onclick = loadLog;
-    enableAdminControls(true);
+//    initStatus();
+//    document.getElementById("loadLog").innerText = "Load Log";
+//    document.getElementById("loadLog").onclick = loadLog;
+//    document.getElementById("comment").disabled = false;
+//    document.getElementById("commentbutton").disabled = false;
+//    document.getElementById("comment").focus();
+//    enableAdminControls(true);
+    location.reload();
 }
 
 //
@@ -51,6 +57,8 @@ function displayLiveData() {
 
 
 createViz();
-displayLiveData();
+enableAdminControls(true);
+initStatus();
+
 
         
