@@ -25,9 +25,9 @@ request({url: "/clienttype", method: "GET"})
 // erase the admin/observer thing before closing the window
 //
 
-window.addEventListener('beforeunload', function (event) {
-    sessionStorage.setItem("clientID", undefined);
-});
+//window.addEventListener('beforeunload', function (event) {
+//    sessionStorage.setItem("clientID", undefined);
+//});
 
 
 function loadLog() {
