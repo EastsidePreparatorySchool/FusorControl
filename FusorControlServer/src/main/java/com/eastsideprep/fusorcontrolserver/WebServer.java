@@ -5,6 +5,7 @@ import com.eastsideprep.fusorweblog.FusorWebLogState;
 import com.eastsideprep.serialdevice.DeviceManager;
 import com.eastsideprep.serialdevice.CoreDevices;
 import com.eastsideprep.weblog.WebLog;
+import java.util.HashMap;
 import javax.servlet.MultipartConfigElement;
 import static spark.Spark.*;
 import spark.staticfiles.StaticFilesConfiguration;
@@ -96,17 +97,6 @@ public class WebServer {
         staticHandler.configure("/public");
         before((request, response) -> staticHandler.consume(request.raw(), response.raw()));
 
-        //chatter control
-        get("/verbose", (req, res) -> {
-            FusorControlServer.config.verbose = true;
-            return "verbose";
-        });
-
-        get("/quiet", (req, res) -> {
-            FusorControlServer.config.verbose = false;
-            return "quiet";
-        });
-
         //
         // setup all that fusor stuff
         //
@@ -180,16 +170,9 @@ public class WebServer {
         }
 
         ctx.name = login;
-        ctx.id = 0;
+        registerCtx(req, ctx);
         req.session().attribute("context", ctx);
 
-//    if (ctx.db.queryName (ctx) 
-//        .equals("unknown")) {
-//            internalLogout(req);
-//        res.redirect("login.html");
-//        return "";
-//    }
-        //System.out.println("login: " + login);
         return "ok";
     }
 
@@ -227,19 +210,59 @@ public class WebServer {
         return ctx;
     }
 
-    // this should only be called when we know there is a context in the session
+    private static void registerCtx(spark.Request req, Context ctx) {
+        HashMap<String, Context> ctxMap = req.session().attribute("contexts");
+        if (req.session().isNew() || ctxMap == null) {
+            ctxMap = new HashMap<>();
+            req.session().attribute("contexts", ctxMap);
+        }
+
+        String client = req.queryParams("clientID");
+        ctx.clientID = client;
+        if (!ctxMap.containsKey(client)) {
+            System.out.println("New context: " + client);
+        }
+        ctxMap.put(client, ctx);
+    }
+
+    // context helper
     private static Context getCtx(spark.Request req) {
+        HashMap<String, Context> ctxMap = req.session().attribute("contexts");
+        if (req.session().isNew() || ctxMap == null) {
+            ctxMap = new HashMap<>();
+            req.session().attribute("contexts", ctxMap);
+        }
+
+        String client = req.queryParams("clientID");
+        Context ctx = ctxMap.get(client);
+        if (ctx == null) {
+            ctx = new Context(client, WebServer.instance);
+            ctxMap.put(client, ctx);
+        }
+
+        // blow up stale contexts
+        if (ctx.obs != null && ctx.obs.isStale()) {
+            ctx.obs = null;
+//            return null;
+        }
+
+        req.session().maxInactiveInterval(300); // kill this session after 5 minutes of inactivity
+        return ctx;
+    }
+
+    // this should only be called when we know there is a context in the session
+    private static Context getOldCtx(spark.Request req) {
         return getContextFromSession(req.session());
     }
 
     // this should only be called when we know there is a context in the session
     private static ObserverContext getObserverCtx(spark.Request req) {
-        return (ObserverContext) getContextFromSession(req.session());
+        return (ObserverContext) getCtx(req);
     }
 
     // this should only be called when we know there is a context in the session
     private static AdminContext getAdminCtx(spark.Request req) {
-        return (AdminContext) getContextFromSession(req.session());
+        return (AdminContext) getCtx(req);
     }
 
 }

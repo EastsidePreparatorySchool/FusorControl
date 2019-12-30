@@ -28,6 +28,15 @@ function disableButton(button) {
 function request(obj) {
     return new Promise((resolve, reject) => {
         let xhr = new XMLHttpRequest();
+
+        // insert clientID
+        if (obj.url.includes("?")) {
+            obj.url += "&";
+        } else {
+            obj.url += "?";
+        }
+        obj.url += "clientID=" + getClientID();
+
         xhr.open(obj.method || "GET", obj.url);
         xhr.onload = () => {
             if (xhr.status >= 200 && xhr.status < 300) {
@@ -93,7 +102,6 @@ function enableTimeout() {
 //
 // Not used - could be used to make browser tabs have independent logins. See Ephemera project
 // Browser sessionStorage is individual in a window between tabs - but the server session is shared, hence this becomes necessary.
-// Currently we are using localStorage, which is shared between all chrome windows.
 //
 function makeClientID() {
     window.sessionStorage.setItem("clientID", "" + ((new Date()).getTime()) % 100000);

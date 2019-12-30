@@ -26,7 +26,7 @@ request({url: "/clienttype", method: "GET"})
 //
 
 window.addEventListener('beforeunload', function (event) {
-    localStorage.setItem("fusor_client", undefined);
+    sessionStorage.setItem("clientID", undefined);
 });
 
 

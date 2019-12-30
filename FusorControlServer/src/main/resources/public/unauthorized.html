@@ -10,11 +10,10 @@
             You are not authorized to access the web page you requested. You will be returned to the login page in a moment.
         </div>
         <script type="text/javascript">
-            if (localStorage.getItem("fusor_client") !== undefined) {
+            if (sessionStorage.getItem("clientID") === undefined) {
                 location.assign("/login.html");
             }
-            localStorage.setItem("fusor_client", undefined);
-
+            sessionStorage.setItem("clientID", undefined);
         </script>
     </body>
 </html>

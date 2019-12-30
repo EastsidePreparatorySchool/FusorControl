@@ -14,15 +14,14 @@ import com.eastsideprep.weblog.WebLogObserver;
 public class Context {
     String login;
     boolean isAdmin;
-    int id;
     String name;
+    String clientID;
     long timeLastSeen;
     WebServer ws;
     WebLogObserver obs;
 
     Context(String login, WebServer ws) {
         this.login = login;
-        this.id = 0;
         this.name = null;
         this.timeLastSeen = System.currentTimeMillis();
         this.ws = ws;
