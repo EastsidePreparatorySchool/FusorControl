@@ -31,6 +31,7 @@ public class WebServer {
         post("/login", (req, res) -> login(req, res));
         post("/logout", (req, res) -> logout(req, res));
         get("/clienttype", (req, res) -> getClientType(req, res));
+        get("/resetobserver", (req, res) -> resetObserver(req, res));
 
         // HTML pages use this to switch to the "expired" page
         get("/protected/checktimeout", (req, res) -> {
@@ -202,6 +203,12 @@ public class WebServer {
         } else {
             return "invalid";
         }
+    }
+
+   public static String resetObserver(spark.Request req, spark.Response res) {
+        Context ctx = getCtx(req);
+        ctx.obs = null;
+        return "ok";
     }
 
     // this can be called even when there is no context

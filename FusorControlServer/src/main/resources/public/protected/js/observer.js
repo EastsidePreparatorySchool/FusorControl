@@ -4,6 +4,18 @@
 
 
 //
+// reset weblog observer
+//
+request({url: "/resetobserver", method: "GET"})
+        .then(data => {
+        })
+        .catch(error => {
+            console.log("error: " + error);
+        });
+
+
+
+//
 // enable admin controls if appropriate
 //
 var isAdmin = false;
@@ -21,13 +33,7 @@ request({url: "/clienttype", method: "GET"})
         });
 
 
-//
-// erase the admin/observer thing before closing the window
-//
 
-//window.addEventListener('beforeunload', function (event) {
-//    sessionStorage.setItem("clientID", undefined);
-//});
 
 
 function loadLog() {
