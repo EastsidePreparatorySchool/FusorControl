@@ -35,8 +35,10 @@ function loadLog() {
     updateStatus(fullData, null, fullData[0]["servertime"]);
     document.getElementById("loadLog").innerText = "Live View";
     document.getElementById("loadLog").onclick = displayLiveData;
+    document.getElementById("comment").value = "<offline>";
     document.getElementById("comment").disabled = true;
     document.getElementById("commentbutton").disabled = true;
+    document.getElementById("chat").innerText = "<offline>";
     enableAdminControls(false);
 }
 
