@@ -5,8 +5,6 @@
 var vizData = [];
 var chart = null;
 var vizFrozen = false;
-
-
 var vizChannels = {
     'TMP.tmp': {name: 'TMP status', variable: 'tmp', min: 0, max: 1, type: "discrete", datatype: "numeric"},
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', variable: 'pump_freq', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
@@ -24,9 +22,9 @@ var vizChannels = {
     'Heartbeat.beat': {name: 'Heartbeat', variable: 'beat', min: 0, max: 5, type: "momentary", datatype: "numeric"},
     'Comment.text': {name: 'Comment', variable: 'text', min: 0, max: 4, type: "momentary", datatype: "text"},
     'Login.text': {name: 'Login', variable: 'text', min: 0, max: 3, type: "momentary", datatype: "text"},
-    'OCR.text': {name: 'OCR', variable: 'text', min: 0, max: 2, type: "momentary", datatype: "text"}
+    'OCR.text': {name: 'OCR', variable: 'text', min: 0, max: 2, type: "momentary", datatype: "text"},
+    'Command.text': {name: 'Command', variable: 'text', min: 0, max: 2, type: "momentary", datatype: "text"}
 };
-
 function createViz() {
     var options = {
         zoomEnabled: true,
@@ -86,7 +84,6 @@ function createViz() {
             showInLegend: true,
             dataPoints: []
         };
-
         vizData.push(dataSeries);
         vizChannels[channel].dataSeries = dataSeries;
     }
@@ -113,18 +110,17 @@ function updateViz(dataArray) {
         var data = dataArray[i];
         var devicename = data["device"];
         var devicedata = data["data"];
-
         if (devicename === "<reset>") {
-            // restart visualization with fresh log data
+// restart visualization with fresh log data
             resetViz();
             continue;
         }
 
 
-        //
-        // now add important variables to display
-        // see declaration of vizChannels above to see what is included
-        //
+//
+// now add important variables to display
+// see declaration of vizChannels above to see what is included
+//
 
         for (var variable in devicedata) {
             var vc = vizChannels[devicename + "." + variable];
@@ -132,7 +128,6 @@ function updateViz(dataArray) {
                 continue;
             }
             var dataSeries = vc.dataSeries;
-
             // get value for this channel
             var value;
             var percent;
@@ -145,7 +140,7 @@ function updateViz(dataArray) {
                 percent = (Math.abs(value) - vc.min) * 100 / (vc.max - vc.min);
             }
 
-            // get the three relevant timestamps, and do the math
+// get the three relevant timestamps, and do the math
             if (vc.offset === undefined) {
                 var serverTime = Number(data["servertime"]);
                 var deviceTime = Number(devicedata["devicetime"]);
@@ -162,7 +157,6 @@ function updateViz(dataArray) {
             varTime -= vc.offset;
             varTime = Math.max(varTime, 0);
             var secs = Math.round(varTime * 10) / 10000;
-
             maxTime = Math.max(maxTime, secs);
             if (liveServer) {
                 if (!vizFrozen) {
@@ -170,7 +164,7 @@ function updateViz(dataArray) {
                 }
             }
 
-            //console.log("x: "+varTime+" y: "+percent)
+//console.log("x: "+varTime+" y: "+percent)
             addDataPoint(dataSeries, vc.type, secs, percent, value);
         }
     }
@@ -188,12 +182,10 @@ function addDataPoint(dataSeries, type, secs, percent, value) {
             dataSeries.dataPoints.push({x: secs, y: percent, value: value});
             dataSeries.dataPoints.push({x: secs + 0.0001, y: 0, value: 0});
             break;
-
         case "discrete":
             dataSeries.dataPoints.push({x: secs - 0.0001, y: 0, value: 0});
             dataSeries.dataPoints.push({x: secs, y: percent, value: value});
             break;
-
         case "discrete trailing":
             if (dataSeries.dataPoints.length > 0) {
                 var lastPoint = dataSeries.dataPoints[dataSeries.dataPoints.length - 1];
@@ -201,13 +193,12 @@ function addDataPoint(dataSeries, type, secs, percent, value) {
                 dataSeries.dataPoints.push({x: secs, y: 0, value: 0});
             }
             break;
-
         case "continuous":
         default:
             dataSeries.dataPoints.push({x: secs, y: percent, value: value});
             break;
     }
-    // in live view, constrain ourselves to 600 data points per series - should work out to one minute
+// in live view, constrain ourselves to 600 data points per series - should work out to one minute
     if (liveServer) {
         while (dataSeries.dataPoints.length > 600) {
             dataSeries.dataPoints.shift();

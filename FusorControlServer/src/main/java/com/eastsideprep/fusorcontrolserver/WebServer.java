@@ -244,6 +244,7 @@ public class WebServer {
             System.out.println("New context: " + ctx + ", clientID " + client);
         }
         ctxMap.put(client, ctx);
+        ctx.ip = req.ip();
     }
 
     // context helper

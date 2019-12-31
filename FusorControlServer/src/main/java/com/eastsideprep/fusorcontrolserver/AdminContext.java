@@ -26,6 +26,7 @@ public class AdminContext extends ObserverContext {
     }
 
     String killRoute() {
+        logAdminCommand("shutdown");
         if (dl != null) {
             dl.shutdown();
         }
@@ -48,9 +49,9 @@ public class AdminContext extends ObserverContext {
             } catch (IOException ex) {
                 System.out.println("startLog IO exception: " + ex);
             }
-            
+
             WebServer.log.clear(new FusorWebLogState(), new FusorWebLogEntry("<reset>", System.currentTimeMillis(), "{}"));
-            
+
             dm.autoStatusOn();
             System.out.println("New log started");
             return "log started";
@@ -59,6 +60,7 @@ public class AdminContext extends ObserverContext {
     }
 
     String stopLogRoute() {
+        logAdminCommand("stopLog");
         synchronized (ws) {
             if (dl != null) {
                 dm.autoStatusOff();
@@ -74,6 +76,7 @@ public class AdminContext extends ObserverContext {
 
     String variacRoute(spark.Request req) {
         int variacValue = Integer.parseInt(req.queryParams("value"));
+        logAdminCommand("variac:set:" + variacValue);
         System.out.println("Received Variac Set " + variacValue);
         if (cd.variac.setVoltage(variacValue)) {
             return "set value as " + req.queryParams("value");
@@ -82,6 +85,7 @@ public class AdminContext extends ObserverContext {
     }
 
     String tmpOnRoute() {
+        logAdminCommand("TMP on");
         if (cd.tmp.setOn()) {
             return "turned on TMP";
         }
@@ -89,6 +93,7 @@ public class AdminContext extends ObserverContext {
     }
 
     String tmpOffRoute() {
+        logAdminCommand("TMP off");
         if (cd.tmp.setOff()) {
             return "turned off TMP";
         }
@@ -96,6 +101,8 @@ public class AdminContext extends ObserverContext {
     }
 
     String solenoidOnRoute() {
+        logAdminCommand("Solenoid open");
+
         if (cd.gas.setOpen()) {
             return "set solenoid to open";
         }
@@ -103,6 +110,8 @@ public class AdminContext extends ObserverContext {
     }
 
     String solenoidOffRoute() {
+        logAdminCommand("Solenoid closed");
+
         if (cd.gas.setOpen()) {
             return "set solenoid to open";
         }
@@ -111,6 +120,7 @@ public class AdminContext extends ObserverContext {
 
     String needleValveRoute(spark.Request req) {
         int value = Integer.parseInt(req.queryParams("value"));
+        logAdminCommand("Set needle valve:" + value);
         System.out.println("Received needle valve Set " + value);
         if (cd.needle.set("needlevalve", value)) {
             System.out.println("needle valve success");
@@ -118,5 +128,11 @@ public class AdminContext extends ObserverContext {
         }
         System.out.println("needle valve fail");
         throw halt(500, "set needle valve failed");
+    }
+
+    void logAdminCommand(String command) {
+        long millis = System.currentTimeMillis();
+        dm.recordStatus("Command", millis, DataLogger.makeAdminCommandText(this.name, this.ip, command, millis));
+
     }
 }

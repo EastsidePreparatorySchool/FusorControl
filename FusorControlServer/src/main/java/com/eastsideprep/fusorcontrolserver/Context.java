@@ -16,6 +16,7 @@ public class Context {
     boolean isAdmin;
     String name;
     String clientID;
+    String ip;
     long timeLastSeen;
     WebServer ws;
     WebLogObserver obs;

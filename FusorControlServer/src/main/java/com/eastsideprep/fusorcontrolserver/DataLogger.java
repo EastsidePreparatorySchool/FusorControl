@@ -122,6 +122,15 @@ public class DataLogger {
         return DataLogger.closePseudoDeviceEntry(sb, millis);
     }
 
+    static String makeAdminCommandText(String name, String ip, String command, long millis) {
+        StringBuilder sb = DataLogger.startPseudoDeviceEntry(1000);
+        DataLogger.addPseudoDeviceStringVariable(sb, "observer", name, millis);
+        DataLogger.addPseudoDeviceStringVariable(sb, "ip", ip, millis);
+        DataLogger.addPseudoDeviceStringVariable(sb, "text", command, millis);
+        return DataLogger.closePseudoDeviceEntry(sb, millis);
+    }
+    
+    
     static String makeLoginCommandText(String login, String ip, int admin, long millis) {
         StringBuilder sb = DataLogger.startPseudoDeviceEntry(1000);
         DataLogger.addPseudoDeviceStringVariable(sb, "observer", login, millis);
