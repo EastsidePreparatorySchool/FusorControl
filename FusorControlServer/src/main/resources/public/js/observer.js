@@ -28,7 +28,7 @@ request({url: "/client", method: "GET"})
             
             if (isAdmin) {
                 enableAdminControls(true);
-                startLog();
+                //startLog(); // already done on server
             }
             
             document.getElementById("loginInfo").innerText = loginInfo;

@@ -15,9 +15,9 @@
                             console.log("server session client: " + client);
                             // now direct them to the proper place
                             if (client === "admin") {
-                                location.assign("/protected/index.html");
+                                location.assign("/console.html");
                             } else if (client === "observer") {
-                                location.assign("/protected/index.html");
+                                location.assign("/cobsole.html");
                             } else {
                                 location.assign("/login.html");
                             }
@@ -31,9 +31,9 @@
 
             // now direct them to the proper place
             if (client === "admin") {
-                location.assign("/protected/index.html");
+                location.assign("/console.html");
             } else if (client === "observer") {
-                location.assign("/protected/index.html");
+                location.assign("/console.html");
             } else {
                 location.assign("/login.html");
             }

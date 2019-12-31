@@ -9,7 +9,7 @@ function submitLogin(event) {
     fd.append("clientID", getClientID());
     request({url: "/login", method: "POST", body: fd})
             .then(data => {
-                location.assign("/protected/index.html");
+                location.assign("/console.html");
             })
             .catch(error => {
                 console.log("Error: " + error);

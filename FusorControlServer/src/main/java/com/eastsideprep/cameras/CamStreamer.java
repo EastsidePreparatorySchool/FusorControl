@@ -40,6 +40,10 @@ public class CamStreamer {
         int def = 0;
         this.dm = dm;
 
+        if (FusorControlServer.config.noCameras) {
+            return;
+        }
+        
         for (Webcam cam : camList) {
             if (cam == null) {
                 System.out.println("webcam error");
@@ -104,7 +108,7 @@ public class CamStreamer {
         }
 
         // access our fake serial device in case of OCR
-        SerialDevice sd = dm.get(webcam.getName());
+        SerialDevice sd = dm.get("OCR");
 
         // this thread will do its thing until the logger sets the flag
         Thread t = new Thread(() -> {
@@ -166,12 +170,17 @@ public class CamStreamer {
             s = s.replaceAll("\\p{C}", "");
             s = s.trim();
 
+            if ((s.startsWith(".") && s.length() != 4) ||
+                    (!s.startsWith(".") && s.length() != 3)) {
+                return;
+            }
+            
             String sRaw = s;
             if (s.startsWith(".")) {
                 s = "0" + s;
             }
 
-            log += "\"raw\":{\"value\":\"" + sRaw + "\",\"vartime\":" + millis + "}";
+            log += "\"text\":{\"value\":\"" + sRaw + "\",\"vartime\":" + millis + "}";
             log += ",\"confidence\":{\"value\":" + result.confidence + ",\"vartime\":" + millis + "}";
 
             double d;

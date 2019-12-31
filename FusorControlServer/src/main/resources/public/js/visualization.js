@@ -8,22 +8,23 @@ var vizFrozen = false;
 
 
 var vizChannels = {
-    'Heartbeat.beat': {name: 'Heartbeat', variable: 'beat', min: 0, max: 5, type: "momentary"},
-    'TMP.tmp': {name: 'TMP status', variable: 'tmp', min: 0, max: 1, type: "discrete"},
-    'TMP.pump_freq': {name: 'TMP frequency (Hz)', variable: 'pump_freq', min: 0, max: 1250, type: "continuous"},
-    'TMP.pump_curr_amps': {name: 'TMP current (A)', variable: 'pump_curr_amps', min: 0, max: 2.5, type: "continuous"},
-    'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', variable: 'diaphragm_adc', min: 0, max: 110, type: "continuous"},
-    'PIRANI.pirani_adc': {name: 'Fine pressure (adc)', variable: 'pirani_adc', min: 0, max: 1024, type: "continuous"},
-    'VARIAC.input_volts': {name: 'Variac target (V)', variable: 'input_volts', min: 0, max: 130, type: "continuous"},
-    'VARIAC.potentiometer': {name: 'Variac actual (V)', variable: 'potentiometer', min: 0, max: 130, type: "continuous"},
-    'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', variable: 'variac_rms', min: 0, max: 130, type: "continuous"},
-    'HV-LOWSIDE.nst_rms': {name: 'NST RMS (KV)', variable: 'nst_rms', min: 0, max: 15, type: "continuous"},
-    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (KV)', variable: 'cw_avg', min: 0, max: 50, type: "continuous"},
-    'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', variable: 'hs_current_adc', min: 0, max: 50, type: "continuous"},
-    'GC-SERIAL.cps': {name: 'GCW (cps)', variable: 'cps', min: 0, max: 100, type: "discrete trailing"},
-    'PN-JUNCTION.total': {name: 'PNJ (adc)', variable: 'total', min: 0, max: 100, type: "continuous"},
-    'Comment.text': {name: 'Comments', variable: 'text', min: 0, max: 3, type: "momentary"}
-
+    'TMP.tmp': {name: 'TMP status', variable: 'tmp', min: 0, max: 1, type: "discrete", datatype: "numeric"},
+    'TMP.pump_freq': {name: 'TMP frequency (Hz)', variable: 'pump_freq', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
+    'TMP.pump_curr_amps': {name: 'TMP current (A)', variable: 'pump_curr_amps', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
+    'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', variable: 'diaphragm_adc', min: 0, max: 110, type: "continuous", datatype: "numeric"},
+    'PIRANI.pirani_adc': {name: 'Fine pressure (adc)', variable: 'pirani_adc', min: 0, max: 1024, type: "continuous", datatype: "numeric"},
+    'VARIAC.input_volts': {name: 'Variac target (V)', variable: 'input_volts', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'VARIAC.potentiometer': {name: 'Variac actual (V)', variable: 'potentiometer', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', variable: 'variac_rms', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.nst_rms': {name: 'NST RMS (KV)', variable: 'nst_rms', min: 0, max: 15, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (KV)', variable: 'cw_avg', min: 0, max: 50, type: "continuous", datatype: "numeric"},
+    'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', variable: 'hs_current_adc', min: 0, max: 50, type: "continuous", datatype: "numeric"},
+    'GC-SERIAL.cps': {name: 'GCW (cps)', variable: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
+    'PN-JUNCTION.total': {name: 'PNJ (adc)', variable: 'total', min: 0, max: 100, type: "continuous", datatype: "numeric"},
+    'Heartbeat.beat': {name: 'Heartbeat', variable: 'beat', min: 0, max: 5, type: "momentary", datatype: "numeric"},
+    'Comment.text': {name: 'Comment', variable: 'text', min: 0, max: 4, type: "momentary", datatype: "text"},
+    'Login.text': {name: 'Login', variable: 'text', min: 0, max: 3, type: "momentary", datatype: "text"},
+    'OCR.text': {name: 'OCR', variable: 'text', min: 0, max: 2, type: "momentary", datatype: "text"}
 };
 
 function createViz() {
@@ -119,10 +120,6 @@ function updateViz(dataArray) {
             continue;
         }
 
-        if (devicename === "Comment") {
-            // display chat comment - see comment.js
-            displayComment(devicedata["observer"]["value"], data["servertime"], devicedata["text"]["value"]);
-        }
 
         //
         // now add important variables to display
@@ -139,12 +136,10 @@ function updateViz(dataArray) {
             // get value for this channel
             var value;
             var percent;
-            if (devicename === "Comment") {
-                if ( variable !== "text") {
-                    continue;
-                }
-                percent = 33;
-                value = devicedata["observer"]["value"]+":"+devicedata["text"]["value"];
+            if (vc.datatype === "text") {
+                percent = (1 - vc.min) * 100 / (vc.max - vc.min);
+                value = devicedata["observer"]["value"] + ":" + devicedata[variable]["value"];
+                displayComment(devicedata["observer"]["value"], data["servertime"], devicedata["text"]["value"]);
             } else {
                 value = Number(devicedata[variable]["value"]);
                 percent = (Math.abs(value) - vc.min) * 100 / (vc.max - vc.min);

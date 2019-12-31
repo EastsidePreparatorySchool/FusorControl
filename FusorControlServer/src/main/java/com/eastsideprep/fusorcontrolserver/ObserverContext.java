@@ -35,27 +35,13 @@ public class ObserverContext extends Context {
         return s;
     }
 
-    private String makeCommentDeviceText(String observer, String ip, String text, long millis) {
-         StringBuilder sb = DataLogger.startPseudoDeviceEntry(1000);
-        DataLogger.addPseudoDeviceStringVariable(sb, "observer", observer, millis);
-        DataLogger.addPseudoDeviceStringVariable(sb, "ip", ip, millis);
-        DataLogger.addPseudoDeviceStringVariable(sb, "text", text, millis);
-        return DataLogger.closePseudoDeviceEntry(sb, millis);
-    }
-
+  
     String comment(spark.Request req) {
-//        System.out.println(""+req.body());
-        
-//        MultipartConfigElement multipartConfigElement = new MultipartConfigElement(System.getProperty("java.io.tmpdir"));
-//        req.raw().setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
-//        
-//        String body = req.body();
-
         String text = req.queryParams("text");
         String ip = req.ip();
         
         long millis = System.currentTimeMillis();
-        String logText = makeCommentDeviceText(this.name, ip, text, millis);
+        String logText = DataLogger.makeCommentDeviceText(this.name, ip, text, millis);
         
         System.out.println("Comment: "+logText);
         WebServer.dm.recordStatus("Comment", millis, logText);

@@ -1,10 +1,12 @@
 package com.eastsideprep.fusorcontrolserver;
 
 import com.eastsideprep.cameras.CamStreamer;
+import com.eastsideprep.fusorweblog.FusorWebLogEntry;
 import com.eastsideprep.fusorweblog.FusorWebLogState;
 import com.eastsideprep.serialdevice.DeviceManager;
 import com.eastsideprep.serialdevice.CoreDevices;
 import com.eastsideprep.weblog.WebLog;
+import java.io.IOException;
 import java.util.HashMap;
 import javax.servlet.MultipartConfigElement;
 import static spark.Spark.*;
@@ -44,11 +46,6 @@ public class WebServer {
             return "alive";
         });
 
-        // Static files filter is first so we don't have to encode clientIDs in the page requests
-        StaticFilesConfiguration staticHandler = new StaticFilesConfiguration();
-        staticHandler.configure("/public");
-        before((request, response) -> staticHandler.consume(request.raw(), response.raw()));
-
         before((req, res) -> {
 //            System.out.println("filter: timer alive?" + req.url());
             Context ctx = getCtx(req);
@@ -56,7 +53,6 @@ public class WebServer {
             if (ctx != null && !(ctx instanceof AdminContext) && ctx.checkExpired()) {
                 internalLogout(req);
                 res.redirect("/expired.html");
-                return;
             }
         });
 
@@ -106,6 +102,11 @@ public class WebServer {
             }
         });
 
+        // Static files filter is LAST 
+        StaticFilesConfiguration staticHandler = new StaticFilesConfiguration();
+        staticHandler.configure("/public");
+        before((request, response) -> staticHandler.consume(request.raw(), response.raw()));
+
         //
         // setup all that fusor stuff
         //
@@ -114,7 +115,17 @@ public class WebServer {
         dm = new DeviceManager();
         cs = new CamStreamer(dm);
         cd = dm.init();
+        dl = new DataLogger();
+        try {
+            dl.init(dm, cs);
+        } catch (IOException ex) {
+            System.out.println("initial startLog IO exception: " + ex);
+        }
+        WebServer.log.clear(new FusorWebLogState(), new FusorWebLogEntry("<reset>", System.currentTimeMillis(), "{}"));
+        dm.autoStatusOn();
+        System.out.println("New log started");
 
+        
         // get the most important devices for our UI. If not present, halt. 
         if (!cd.complete()) {
             dm.shutdown();
@@ -171,26 +182,27 @@ public class WebServer {
             System.out.println("login: Admin: " + login);
             ctx = new AdminContext(login, instance);
             ctx.isAdmin = true;
-            res.redirect("protected/index.html");
+            res.redirect("/console.html");
         } else {
             ctx = new ObserverContext(login, instance);
             System.out.println("login: Observer: " + login);
-            res.redirect("protected/index.html");
+            res.redirect("/console.html");
         }
 
         ctx.name = login;
         registerCtx(req, ctx);
-        req.session().attribute("context", ctx);
+
+        long millis = System.currentTimeMillis();
+        String logText = DataLogger.makeLoginCommandText(login, req.ip(), ctx.isAdmin ? 1 : 0, millis);
+        WebServer.dm.recordStatus("Login", millis, logText);
 
         return "ok";
     }
 
     private static void internalLogout(spark.Request req) {
-        if (req.session().attribute("context") != null) {
-            Context ctx = getCtx(req);
-            req.session().attribute("context", null);
-            System.out.println("logged off.");
-        }
+        Context ctx = getCtx(req);
+        req.session().attribute("context", null);
+        System.out.println("logged off.");
     }
 
     private static String logout(spark.Request req, spark.Response res) {

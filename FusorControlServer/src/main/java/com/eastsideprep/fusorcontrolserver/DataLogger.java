@@ -107,13 +107,29 @@ public class DataLogger {
         return sb.toString();
     }
 
-    private String heartbeatDeviceText(int val, long millis) {
+    static String heartbeatDeviceText(int val, long millis) {
         StringBuilder sb = startPseudoDeviceEntry(500);
         addPseudoDeviceIntVariable(sb, "beat", val, millis);
         addPseudoDeviceIntVariable(sb, "logsize", WebLog.instance.getLogSize(), millis);
         return closePseudoDeviceEntry(sb, millis);
     }
 
+    static String makeCommentDeviceText(String observer, String ip, String text, long millis) {
+        StringBuilder sb = DataLogger.startPseudoDeviceEntry(1000);
+        DataLogger.addPseudoDeviceStringVariable(sb, "observer", observer, millis);
+        DataLogger.addPseudoDeviceStringVariable(sb, "ip", ip, millis);
+        DataLogger.addPseudoDeviceStringVariable(sb, "text", text, millis);
+        return DataLogger.closePseudoDeviceEntry(sb, millis);
+    }
+
+    static String makeLoginCommandText(String login, String ip, int admin, long millis) {
+        StringBuilder sb = DataLogger.startPseudoDeviceEntry(1000);
+        DataLogger.addPseudoDeviceStringVariable(sb, "observer", login, millis);
+        DataLogger.addPseudoDeviceStringVariable(sb, "ip", ip, millis);
+        DataLogger.addPseudoDeviceIntVariable(sb, "admin", admin, millis);
+        DataLogger.addPseudoDeviceStringVariable(sb, "text", (admin == 1)?"(admin)":"(observer)", millis);
+        return DataLogger.closePseudoDeviceEntry(sb, millis);
+    }
     void loggerThreadLoop() {
         WebLogObserver obs = WebServer.log.addObserver("<logger thread>");
         try {

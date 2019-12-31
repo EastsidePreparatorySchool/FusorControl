@@ -19,6 +19,7 @@ public class Config {
     public String logPath = null;
     public long cmdTimeOut = 300;
     public boolean saveProcessedVideo = true;
+    public boolean noCameras = false;
 
     private static Gson gson = new Gson();
 
