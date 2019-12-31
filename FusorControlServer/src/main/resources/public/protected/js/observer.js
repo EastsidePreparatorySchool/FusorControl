@@ -19,14 +19,19 @@ request({url: "/resetobserver", method: "GET"})
 // enable admin controls if appropriate
 //
 var isAdmin = false;
-request({url: "/clienttype", method: "GET"})
+var loginInfo = "<unknown>";
+request({url: "/client", method: "GET"})
         .then(data => {
-            isAdmin = (data === "admin");
+            isAdmin = (data.endsWith(" (admin)"));
+            loginInfo = data;
             console.log("server session client: " + data);
+            
             if (isAdmin) {
                 enableAdminControls(true);
                 startLog();
             }
+            
+            document.getElementById("loginInfo").innerText = loginInfo;
         })
         .catch(error => {
             console.log("error: " + error);

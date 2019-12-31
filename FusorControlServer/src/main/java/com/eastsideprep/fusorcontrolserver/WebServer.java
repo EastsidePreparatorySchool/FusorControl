@@ -30,7 +30,7 @@ public class WebServer {
 
         post("/login", (req, res) -> login(req, res));
         post("/logout", (req, res) -> logout(req, res));
-        get("/clienttype", (req, res) -> getClientType(req, res));
+        get("/client", (req, res) -> getClient(req, res));
         get("/resetobserver", (req, res) -> resetObserver(req, res));
 
         // HTML pages use this to switch to the "expired" page
@@ -192,14 +192,14 @@ public class WebServer {
         return "ok";
     }
 
-    public static String getClientType(spark.Request req, spark.Response res) {
+    public static String getClient(spark.Request req, spark.Response res) {
         Context ctx = getContextFromSession(req.session());
         if (ctx == null) {
             return "invalid";
         } else if (ctx instanceof AdminContext) {
-            return "admin";
+            return ctx.login + " (admin)";
         } else if (ctx instanceof ObserverContext) {
-            return "observer";
+            return ctx.login + " (observer)";
         } else {
             return "invalid";
         }
