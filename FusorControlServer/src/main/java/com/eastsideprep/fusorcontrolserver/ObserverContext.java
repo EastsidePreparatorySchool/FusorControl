@@ -4,16 +4,6 @@
  * and open the template in the editor.
  */
 package com.eastsideprep.fusorcontrolserver;
-
-import static com.eastsideprep.fusorcontrolserver.WebServer.dl;
-import static com.eastsideprep.fusorcontrolserver.WebServer.dm;
-import static com.eastsideprep.fusorcontrolserver.WebServer.instance;
-import com.eastsideprep.fusorweblog.FusorWebLogEntry;
-import com.eastsideprep.weblog.WebLogEntry;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.MultipartConfigElement;
 
 /**
@@ -28,9 +18,9 @@ public class ObserverContext extends Context {
 
     String getStatusRoute() {
         //System.out.println("/getstatus");
-        if (dl == null && this.isAdmin) {
+        if (WebServer.dl == null && this.isAdmin) {
             System.out.println("  logging inactive, poking bears ...");
-            dm.getAllStatus();
+            WebServer.dm.getAllStatus();
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException ex) {
@@ -45,21 +35,30 @@ public class ObserverContext extends Context {
         return s;
     }
 
-    String comment(spark.Request req) {
-        MultipartConfigElement multipartConfigElement = new MultipartConfigElement(System.getProperty("java.io.tmpdir"));
-        req.raw().setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
+    private String makeCommentDeviceText(String observer, String ip, String text, long millis) {
+         StringBuilder sb = DataLogger.startPseudoDeviceEntry(1000);
+        DataLogger.addPseudoDeviceStringVariable(sb, "observer", observer, millis);
+        DataLogger.addPseudoDeviceStringVariable(sb, "ip", ip, millis);
+        DataLogger.addPseudoDeviceStringVariable(sb, "text", text, millis);
+        return DataLogger.closePseudoDeviceEntry(sb, millis);
+    }
 
-        StringBuilder sb = new StringBuilder(500);
-        sb.append("{");
-        sb.append("\"observer\":\"");
-        sb.append(this.name);
-        sb.append("\",\"ip\":\"");
-        sb.append(req.ip());
-        sb.append("\",\"text\":\"");
-        sb.append(req.queryParams("text"));
-        sb.append("\"}");
+    String comment(spark.Request req) {
+//        System.out.println(""+req.body());
         
-        dm.recordStatus("comment", System.currentTimeMillis(), sb.toString());
+//        MultipartConfigElement multipartConfigElement = new MultipartConfigElement(System.getProperty("java.io.tmpdir"));
+//        req.raw().setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
+//        
+//        String body = req.body();
+
+        String text = req.queryParams("text");
+        String ip = req.ip();
+        
+        long millis = System.currentTimeMillis();
+        String logText = makeCommentDeviceText(this.name, ip, text, millis);
+        
+        System.out.println("Comment: "+logText);
+        WebServer.dm.recordStatus("Comment", millis, logText);
 
         return "ok";
     }

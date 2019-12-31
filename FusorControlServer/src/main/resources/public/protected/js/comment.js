@@ -4,8 +4,9 @@
 
 
 function submitComment(event) {
-    //event.preventDefault();
-    request({url: "/protected/comment", method: "POST", body: new FormData(event)})
+    var fd =  new FormData(event);
+    fd.append("clientID", getClientID());
+    request({url: "/protected/comment", method: "POST", body: fd})
             .then(data => {
             })
             .catch(error => {

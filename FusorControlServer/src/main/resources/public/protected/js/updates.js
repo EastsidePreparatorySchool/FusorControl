@@ -19,7 +19,7 @@ function updateStatus(data, raw, startTime) {
             document.getElementById("data").innerHTML += "<br><br>";
             document.getElementById("data").innerText += raw;
         }
-        updateViz(data, startTime);
+        updateViz(data);
     }
 }
 
@@ -30,8 +30,8 @@ function getStatus() {
     request({url: "/protected/getstatus", method: "GET"})
             .then(raw => {
                 if (liveServer) {
-                    globalData = data;
-                    data = JSON.parse(raw);
+                    globalData = raw;
+                    var data = JSON.parse(raw);
                     updateStatus(data, raw, logStart);
                     setTimeout(getStatus, updateInterval);
                 }

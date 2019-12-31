@@ -35,7 +35,7 @@ public class WebServer {
 
         // HTML pages use this to switch to the "expired" page
         get("/protected/checktimeout", (req, res) -> {
-            Context ctx = getContextFromSession(req.session());
+            Context ctx = getCtx(req);
             if (ctx == null || (ctx.checkExpired() && !(ctx instanceof AdminContext))) {
                 System.out.println("filter: expired");
                 internalLogout(req);
@@ -44,9 +44,14 @@ public class WebServer {
             return "alive";
         });
 
+        // Static files filter is first so we don't have to encode clientIDs in the page requests
+        StaticFilesConfiguration staticHandler = new StaticFilesConfiguration();
+        staticHandler.configure("/public");
+        before((request, response) -> staticHandler.consume(request.raw(), response.raw()));
+
         before((req, res) -> {
 //            System.out.println("filter: timer alive?" + req.url());
-            Context ctx = getContextFromSession(req.session());
+            Context ctx = getCtx(req);
             // liveness check - this actually governs expiration
             if (ctx != null && !(ctx instanceof AdminContext) && ctx.checkExpired()) {
                 internalLogout(req);
@@ -56,10 +61,14 @@ public class WebServer {
         });
 
         before("/protected/*", (req, res) -> {
-            // System.out.println("filter: /protected/*");
-            Context ctx = getContextFromSession(req.session());
+            Context ctx = getCtx(req);
             if (ctx == null || !(ctx instanceof ObserverContext)) {
-                //System.out.println("unauthorized " + req.url());
+                System.out.println("filter: /protected/*");
+                System.out.println("unauthorized " + req.uri());
+                System.out.println("Ctx: " + ctx);
+                if (ctx != null) {
+                    System.out.println("ClientID: " + ctx.clientID);
+                }
                 res.redirect("/unauthorized.html");
                 return;
             }
@@ -69,10 +78,14 @@ public class WebServer {
             }
         });
         before("/protected/admin/*", (req, res) -> {
-            // System.out.println("filter: /protected/admin/*");
-            Context ctx = getContextFromSession(req.session());
+            Context ctx = getCtx(req);
             if (ctx == null || !(ctx instanceof AdminContext)) {
-                //System.out.println("unauthorized " + req.url());
+                System.out.println("filter: /protected/admin/*");
+                System.out.println("unauthorized " + req.uri());
+                System.out.println("Ctx: " + ctx);
+                if (ctx != null) {
+                    System.out.println("ClientID: " + ctx.clientID);
+                }
                 res.redirect("/unauthorized.html");
                 return;
             }
@@ -84,7 +97,7 @@ public class WebServer {
 
         // liveness timer - this keeps the context alive for valid pages and requests
         before((req, res) -> {
-            Context ctx = getContextFromSession(req.session());
+            Context ctx = getCtx(req);
             if (ctx != null) {
                 if (!req.url().endsWith("/protected/checktimeout")) {
                     // System.out.println("timer reset from URL: " + req.url());
@@ -92,11 +105,6 @@ public class WebServer {
                 }
             }
         });
-
-        // Static files filter is LAST
-        StaticFilesConfiguration staticHandler = new StaticFilesConfiguration();
-        staticHandler.configure("/public");
-        before((request, response) -> staticHandler.consume(request.raw(), response.raw()));
 
         //
         // setup all that fusor stuff
@@ -179,7 +187,7 @@ public class WebServer {
 
     private static void internalLogout(spark.Request req) {
         if (req.session().attribute("context") != null) {
-            Context ctx = getContextFromSession(req.session());
+            Context ctx = getCtx(req);
             req.session().attribute("context", null);
             System.out.println("logged off.");
         }
@@ -193,7 +201,7 @@ public class WebServer {
     }
 
     public static String getClient(spark.Request req, spark.Response res) {
-        Context ctx = getContextFromSession(req.session());
+        Context ctx = getCtx(req);
         if (ctx == null) {
             return "invalid";
         } else if (ctx instanceof AdminContext) {
@@ -205,16 +213,10 @@ public class WebServer {
         }
     }
 
-   public static String resetObserver(spark.Request req, spark.Response res) {
+    public static String resetObserver(spark.Request req, spark.Response res) {
         Context ctx = getCtx(req);
         ctx.obs = null;
         return "ok";
-    }
-
-    // this can be called even when there is no context
-    private static Context getContextFromSession(spark.Session s) {
-        Context ctx = s.attribute("context");
-        return ctx;
     }
 
     private static void registerCtx(spark.Request req, Context ctx) {
@@ -227,13 +229,18 @@ public class WebServer {
         String client = req.queryParams("clientID");
         ctx.clientID = client;
         if (!ctxMap.containsKey(client)) {
-            System.out.println("New context: " + client);
+            System.out.println("New context: " + ctx + ", clientID " + client);
         }
         ctxMap.put(client, ctx);
     }
 
     // context helper
     private static Context getCtx(spark.Request req) {
+        if (req.requestMethod().equals("POST")) {
+            MultipartConfigElement multipartConfigElement = new MultipartConfigElement(System.getProperty("java.io.tmpdir"));
+            req.raw().setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
+        }
+
         HashMap<String, Context> ctxMap = req.session().attribute("contexts");
         if (req.session().isNew() || ctxMap == null) {
             ctxMap = new HashMap<>();
@@ -243,8 +250,7 @@ public class WebServer {
         String client = req.queryParams("clientID");
         Context ctx = ctxMap.get(client);
         if (ctx == null) {
-            ctx = new Context(client, WebServer.instance);
-            ctxMap.put(client, ctx);
+            return null;
         }
 
         // blow up stale contexts
@@ -255,11 +261,6 @@ public class WebServer {
 
         req.session().maxInactiveInterval(300); // kill this session after 5 minutes of inactivity
         return ctx;
-    }
-
-    // this should only be called when we know there is a context in the session
-    private static Context getOldCtx(spark.Request req) {
-        return getContextFromSession(req.session());
     }
 
     // this should only be called when we know there is a context in the session

@@ -5,8 +5,9 @@
 
 
 function submitLogin(event) {
-    //event.preventDefault();
-    request({url: "/login?clientID="+getClientID(), method: "POST", body: new FormData(event)})
+    var fd = new FormData(event);
+    fd.append("clientID", getClientID());
+    request({url: "/login", method: "POST", body: fd})
             .then(data => {
                 location.assign("/protected/index.html");
             })

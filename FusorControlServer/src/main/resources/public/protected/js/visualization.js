@@ -21,7 +21,9 @@ var vizChannels = {
     'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (KV)', variable: 'cw_avg', min: 0, max: 50, type: "continuous"},
     'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', variable: 'hs_current_adc', min: 0, max: 50, type: "continuous"},
     'GC-SERIAL.cps': {name: 'GCW (cps)', variable: 'cps', min: 0, max: 100, type: "discrete trailing"},
-    'PN-JUNCTION.total': {name: 'PNJ (adc)', variable: 'total', min: 0, max: 100, type: "continuous"}
+    'PN-JUNCTION.total': {name: 'PNJ (adc)', variable: 'total', min: 0, max: 100, type: "continuous"},
+    'Comment.text': {name: 'Comments', variable: 'text', min: 0, max: 3, type: "momentary"}
+
 };
 
 function createViz() {
@@ -102,10 +104,10 @@ function resetViz() {
         logstart = undefined;
         vc.offset = undefined;
     }
-    chart.render();
+    renderChart();
 }
 
-function updateViz(dataArray, batchStartTime) {
+function updateViz(dataArray) {
     for (var i = 0; i < dataArray.length; i++) {
         var data = dataArray[i];
         var devicename = data["device"];
@@ -117,10 +119,9 @@ function updateViz(dataArray, batchStartTime) {
             continue;
         }
 
-        if (devicename === "comment") {
+        if (devicename === "Comment") {
             // display chat comment - see comment.js
-            displayComment(devicedata["observer"], data["servertime"], devicedata["text"]);
-            continue;
+            displayComment(devicedata["observer"]["value"], data["servertime"], devicedata["text"]["value"]);
         }
 
         //
@@ -136,8 +137,18 @@ function updateViz(dataArray, batchStartTime) {
             var dataSeries = vc.dataSeries;
 
             // get value for this channel
-            var value = Number(devicedata[variable]["value"]);
-            var percent = (Math.abs(value) - vc.min) * 100 / (vc.max - vc.min);
+            var value;
+            var percent;
+            if (devicename === "Comment") {
+                if ( variable !== "text") {
+                    continue;
+                }
+                percent = 33;
+                value = devicedata["observer"]["value"]+":"+devicedata["text"]["value"];
+            } else {
+                value = Number(devicedata[variable]["value"]);
+                percent = (Math.abs(value) - vc.min) * 100 / (vc.max - vc.min);
+            }
 
             // get the three relevant timestamps, and do the math
             if (vc.offset === undefined) {
@@ -160,54 +171,64 @@ function updateViz(dataArray, batchStartTime) {
             maxTime = Math.max(maxTime, secs);
             if (liveServer) {
                 if (!vizFrozen) {
-                    chart.axisX[0].set("viewportMinimum", Math.max(maxTime - 60, 0));
-                    chart.axisX[0].set("viewportMaximum", Math.max(maxTime, 60));
+                    setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
                 }
             }
 
             //console.log("x: "+varTime+" y: "+percent)
-
-            switch (vc.type) {
-                case "momentary":
-                    dataSeries.dataPoints.push({x: secs - 0.0001, y: 0, value: 0});
-                    dataSeries.dataPoints.push({x: secs, y: percent, value: value});
-                    dataSeries.dataPoints.push({x: secs + 0.0001, y: 0, value: 0});
-                    break;
-
-                case "discrete":
-                    dataSeries.dataPoints.push({x: secs - 0.0001, y: 0, value: 0});
-                    dataSeries.dataPoints.push({x: secs, y: percent, value: value});
-                    break;
-
-                case "discrete trailing":
-                    if (dataSeries.dataPoints.length > 0) {
-                        var lastPoint = dataSeries.dataPoints[dataSeries.dataPoints.length - 1];
-                        dataSeries.dataPoints.push({x: lastPoint.x + 0.0001, y: percent, value: value});
-                        dataSeries.dataPoints.push({x: secs, y: 0, value: 0});
-                    }
-                    break;
-
-                case "continuous":
-                default:
-                    dataSeries.dataPoints.push({x: secs, y: percent, value: value});
-                    break;
-            }
-            // in live view, constrain ourselves to 1200 data points per series - should work out to two minutes
-            if (liveServer) {
-                while (dataSeries.dataPoints.length > 600) {
-                    dataSeries.dataPoints.shift();
-                }
-            }
+            addDataPoint(dataSeries, vc.type, secs, percent, value);
         }
     }
     if (!liveServer) {
-        chart.axisX[0].set("viewportMinimum", 0);
-        chart.axisX[0].set("viewportMaximum", maxTime);
+        setViewPort(0, maxTime);
     }
 
-    chart.render();
+    renderChart();
 }
 
+function addDataPoint(dataSeries, type, secs, percent, value) {
+    switch (type) {
+        case "momentary":
+            dataSeries.dataPoints.push({x: secs - 0.0001, y: 0, value: 0});
+            dataSeries.dataPoints.push({x: secs, y: percent, value: value});
+            dataSeries.dataPoints.push({x: secs + 0.0001, y: 0, value: 0});
+            break;
+
+        case "discrete":
+            dataSeries.dataPoints.push({x: secs - 0.0001, y: 0, value: 0});
+            dataSeries.dataPoints.push({x: secs, y: percent, value: value});
+            break;
+
+        case "discrete trailing":
+            if (dataSeries.dataPoints.length > 0) {
+                var lastPoint = dataSeries.dataPoints[dataSeries.dataPoints.length - 1];
+                dataSeries.dataPoints.push({x: lastPoint.x + 0.0001, y: percent, value: value});
+                dataSeries.dataPoints.push({x: secs, y: 0, value: 0});
+            }
+            break;
+
+        case "continuous":
+        default:
+            dataSeries.dataPoints.push({x: secs, y: percent, value: value});
+            break;
+    }
+    // in live view, constrain ourselves to 600 data points per series - should work out to one minute
+    if (liveServer) {
+        while (dataSeries.dataPoints.length > 600) {
+            dataSeries.dataPoints.shift();
+        }
+    }
+}
+
+function setViewPort(min, max) {
+    chart.axisX[0].set("viewportMinimum", min);
+    chart.axisX[0].set("viewportMaximum", max);
+}
+
+
+function renderChart() {
+    chart.render();
+}
 
 
 

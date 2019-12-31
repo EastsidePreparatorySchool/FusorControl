@@ -30,12 +30,14 @@ function request(obj) {
         let xhr = new XMLHttpRequest();
 
         // insert clientID
-        if (obj.url.includes("?")) {
-            obj.url += "&";
-        } else {
-            obj.url += "?";
+        if (obj.method !== "POST") {
+            if (obj.url.includes("?")) {
+                obj.url += "&";
+            } else {
+                obj.url += "?";
+            }
+            obj.url += "clientID=" + getClientID();
         }
-        obj.url += "clientID=" + getClientID();
 
         xhr.open(obj.method || "GET", obj.url);
         xhr.onload = () => {

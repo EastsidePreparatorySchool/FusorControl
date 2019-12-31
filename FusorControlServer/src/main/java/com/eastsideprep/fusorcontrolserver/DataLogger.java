@@ -74,10 +74,44 @@ public class DataLogger {
         }
     }
 
+    static StringBuilder startPseudoDeviceEntry(int size) {
+        StringBuilder sb = new StringBuilder(size);
+        sb.append("{");
+        return sb;
+    }
+
+    static void addPseudoDeviceIntVariable(StringBuilder sb, String var, int val, long varTime) {
+        sb.append("\"");
+        sb.append(var);
+        sb.append("\":{\"value\":");
+        sb.append(val);
+        sb.append(",\"vartime\":");
+        sb.append(varTime);
+        sb.append("},");
+    }
+
+    static void addPseudoDeviceStringVariable(StringBuilder sb, String var, String val, long varTime) {
+        sb.append("\"");
+        sb.append(var);
+        sb.append("\":{\"value\":\"");
+        sb.append(val);
+        sb.append("\",\"vartime\":");
+        sb.append(varTime);
+        sb.append("},");
+    }
+
+    static String closePseudoDeviceEntry(StringBuilder sb, long deviceTime) {
+        sb.append("\"devicetime\":");
+        sb.append(deviceTime);
+        sb.append("}");
+        return sb.toString();
+    }
+
     private String heartbeatDeviceText(int val, long millis) {
-        return "{\"beat\":{\"value\":" + val + ",\"vartime\":" + millis + "},"
-                + "\"logsize\":{\"value\":" + WebLog.instance.getLogSize() + ",\"vartime\":" + millis + "},"
-                + "\"devicetime\":" + millis + "}";
+        StringBuilder sb = startPseudoDeviceEntry(500);
+        addPseudoDeviceIntVariable(sb, "beat", val, millis);
+        addPseudoDeviceIntVariable(sb, "logsize", WebLog.instance.getLogSize(), millis);
+        return closePseudoDeviceEntry(sb, millis);
     }
 
     void loggerThreadLoop() {
