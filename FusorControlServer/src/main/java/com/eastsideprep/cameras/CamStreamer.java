@@ -17,6 +17,9 @@ import java.io.File;
 import com.xuggle.mediatool.IMediaWriter;
 import com.xuggle.mediatool.ToolFactory;
 import com.xuggle.xuggler.IRational;
+import java.awt.AlphaComposite;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -43,22 +46,26 @@ public class CamStreamer {
         if (FusorControlServer.config.noCameras) {
             return;
         }
-        
+
         for (Webcam cam : camList) {
             if (cam == null) {
                 System.out.println("webcam error");
                 return;
             }
 
-            // keep track of it, for recording
-            this.cams.add(cam);
-
             if (cam.getName().startsWith("EasyCamera")) { // built-in, useless camera on FUSOR2 laptop
                 def = 1;
                 continue;
             }
+            if (cam.getName().startsWith("Integrated Camera 0")) { // built-in,  camera on x1-gmein laptop
+                def = 1;
+                continue;
+            }
 
-            SerialDevice sd = new NullSerialDevice(cam.getName());
+            // keep track of it, for recording
+            this.cams.add(cam);
+
+            SerialDevice sd = new NullSerialDevice("OCR");
             dm.register(sd);
 
             Dimension size = WebcamResolution.QVGA.getSize();
@@ -75,7 +82,7 @@ public class CamStreamer {
             count++;
         }
 
-        numCameras = cams.size() - def;
+        numCameras = cams.size();
 
         WebcamDiscoveryService discovery = Webcam.getDiscoveryService();
         discovery.stop();
@@ -120,14 +127,20 @@ public class CamStreamer {
                         long millis = System.currentTimeMillis();
                         double secs = ((millis - baseTime) / 100) / 10.0;
                         BufferedImage image = new BufferedImage(size.width, size.height, BufferedImage.TYPE_3BYTE_BGR);
-                        image.getGraphics().drawImage(webcam.getImage(), 0, 0, null);
+                        Graphics gfx = image.getGraphics();
+                        //Graphics2D gfx = image.createGraphics();
+                        gfx.drawImage(webcam.getImage(), 0, 0, null);
+//                        gfx.setComposite(AlphaComposite.SrcOver.derive(0.1f));
+//                        for (int i = 0; i < 20; i++) {
+//                            gfx.drawImage(webcam.getImage(), 0, i, null);
+//                        }
+//                        gfx.dispose();
 
                         extractNumber(image, millis, sd);
 
                         if (FusorControlServer.config.saveProcessedVideo) {
                             image = TessWrapper.prepImage(image);
                         }
-
                         image.getGraphics().drawString(Double.toString(secs), 10, 20);
                         image.getGraphics().drawString(file.getName(), 10, size.height - 10);
                         writer.encodeVideo(0, image, System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
@@ -155,7 +168,7 @@ public class CamStreamer {
     void extractNumber(BufferedImage image, long millis, SerialDevice sd) {
 
         TessWrapper.Result result = tw.extract(image);
-        if (result.confidence < 70) {
+        if (result.confidence < 30) {
             return;
         }
         String s = result.text;
@@ -170,17 +183,26 @@ public class CamStreamer {
             s = s.replaceAll("\\p{C}", "");
             s = s.trim();
 
-            if ((s.startsWith(".") && s.length() != 4) ||
-                    (!s.startsWith(".") && s.length() != 3)) {
-                return;
-            }
-            
-            String sRaw = s;
+            System.out.println("OCR: " + s);
+            // check if we have an actual number of the right format
             if (s.startsWith(".")) {
+                if (s.length() != 4) {
+                    return;
+                }
+                if (!s.matches("\\.\\d\\d\\d")) {
+                    return;
+                }
                 s = "0" + s;
+            } else {
+                if (s.length() != 3) {
+                    return;
+                }
+                if (!s.matches("\\d\\d\\d")) {
+                    return;
+                }
             }
 
-            log += "\"text\":{\"value\":\"" + sRaw + "\",\"vartime\":" + millis + "}";
+            log += "\"text\":{\"value\":\"" + s + "\",\"vartime\":" + millis + "}";
             log += ",\"confidence\":{\"value\":" + result.confidence + ",\"vartime\":" + millis + "}";
 
             double d;
@@ -188,13 +210,12 @@ public class CamStreamer {
                 d = Double.parseDouble(s);
                 log += ",\"double\":{\"value\":" + d + ",\"vartime\":" + millis + "}";
             } catch (Exception e) {
-                return;
+                //return;
             }
             log += ",\"devicetime\":" + millis;
 
             log += "}";
             dm.recordStatusForDevice(sd, millis, log);
-            //System.out.println("OCR: " + log);
         }
     }
 

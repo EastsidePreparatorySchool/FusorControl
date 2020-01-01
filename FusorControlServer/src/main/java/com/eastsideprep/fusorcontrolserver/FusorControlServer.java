@@ -1,5 +1,7 @@
 package com.eastsideprep.fusorcontrolserver;
 
+import com.eastsideprep.cameras.TessWrapper;
+
 public class FusorControlServer {
 
     // debug section
@@ -8,6 +10,7 @@ public class FusorControlServer {
     private static WebServer serv;
 
     public static void main(String[] args) {
+//        TessWrapper.bytespp = 4;
 //        TessWrapper.test();
 //        System.exit(0);
 

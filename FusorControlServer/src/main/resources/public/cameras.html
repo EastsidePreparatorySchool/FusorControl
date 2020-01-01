@@ -78,7 +78,7 @@
             enableCameras();
 
             function enableCameras() {
-                request({url: "/protected/numcameras", method: "GET"})
+                request({url: "/numcameras", method: "GET"})
                         .then(data => {
                             // yes: make the display visible and set the url
                             var numCameras = Number(data);       // got number from server

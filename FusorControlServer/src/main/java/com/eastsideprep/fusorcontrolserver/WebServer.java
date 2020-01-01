@@ -33,6 +33,7 @@ public class WebServer {
         post("/login", (req, res) -> login(req, res));
         post("/logout", (req, res) -> logout(req, res));
         get("/client", (req, res) -> getClient(req, res));
+        get("/numcameras", (req, res) -> Integer.toString(cs.numCameras));
         get("/resetobserver", (req, res) -> resetObserver(req, res));
 
         // HTML pages use this to switch to the "expired" page
@@ -125,7 +126,6 @@ public class WebServer {
         dm.autoStatusOn();
         System.out.println("New log started");
 
-        
         // get the most important devices for our UI. If not present, halt. 
         if (!cd.complete()) {
             dm.shutdown();
@@ -143,7 +143,6 @@ public class WebServer {
         // anybody logged in can call these
         //
         get("/protected/getstatus", (req, res) -> getObserverCtx(req).getStatusRoute());
-        get("/protected/numcameras", (req, res) -> Integer.toString(cs.numCameras));
         post("/protected/comment", (req, res) -> getObserverCtx(req).comment(req));
 
         //

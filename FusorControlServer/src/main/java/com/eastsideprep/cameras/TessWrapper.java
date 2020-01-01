@@ -33,6 +33,7 @@ public class TessWrapper {
 
     TessAPI api;
     TessAPI.TessBaseAPI handle;
+    static public int bytespp = 3;
 
     public TessWrapper() {
         api = TessAPI.INSTANCE;
@@ -43,27 +44,31 @@ public class TessWrapper {
         StringArray sarray = new StringArray(new String[0]);
         PointerByReference configs = new PointerByReference();
         configs.setPointer(sarray);
-//        int result = api.TessBaseAPIInit1(handle, "tessdata", "eng", TessOcrEngineMode.OEM_DEFAULT, configs, 0);
-        int result = api.TessBaseAPIInit1(handle, "tessdata", "letsgodigital", TessOcrEngineMode.OEM_DEFAULT, configs, 0);
+        int result = api.TessBaseAPIInit1(handle, "tessdata", "eng", TessOcrEngineMode.OEM_DEFAULT, configs, 0);
+//        int result = api.TessBaseAPIInit1(handle, "tessdata", "letsgodigital", TessOcrEngineMode.OEM_DEFAULT, configs, 0);
         System.out.println("TessAPI init:" + result);
         api.TessBaseAPISetPageSegMode(handle, TessAPI.TessPageSegMode.PSM_SINGLE_LINE);
         //api.TessBaseAPISetRectangle(handle, int left, int top, int width, int height);
     }
 
     public Result extract(BufferedImage image) {
-        ByteBuffer buf = ImageIOHelper.convertImageData(image);
-        buf = prepImageBuffer(buf, image.getWidth(), image.getHeight());
+        synchronized (this) {
+            ByteBuffer buf = ImageIOHelper.convertImageData(image);
+            buf = prepImageBuffer(buf, image.getWidth(), image.getHeight());
 
-        api.TessBaseAPISetImage(handle, buf, image.getWidth(), image.getHeight(), 3, image.getWidth() * 3);
-        api.TessBaseAPISetSourceResolution(handle, 70);
-        Pointer text = api.TessBaseAPIGetUTF8Text(handle);
+            api.TessBaseAPISetImage(handle, buf, image.getWidth(), image.getHeight(), 3, image.getWidth() * 3);
+            api.TessBaseAPISetSourceResolution(handle, 70);
+            Pointer text = api.TessBaseAPIGetUTF8Text(handle);
+            // height 8% - 40%, width 15% - 70%
+            //api.TessBaseAPISetRectangle(handle, image.getWidth()*10/100, image.getHeight()*5/100, image.getWidth()*65/100, image.getHeight()*40/100);
 
-        int confidence = api.TessBaseAPIMeanTextConf(handle);
-        String strText = text.getString(0);
-        Result result = new Result(strText, confidence);
+            int confidence = api.TessBaseAPIMeanTextConf(handle);
+            String strText = text.getString(0);
+            Result result = new Result(strText, confidence);
 
-        api.TessDeleteText(text);
-        return result;
+            api.TessDeleteText(text);
+            return result;
+        }
     }
 
     public void shutdown() {
@@ -91,17 +96,31 @@ public class TessWrapper {
 //            System.out.println("");
 //        }
 
-        int cutoff = 175;
+        int cutoff = 225;
 
         ByteBuffer bufNew = ByteBuffer.allocateDirect(buf.limit());
         byte[] bytesDest = new byte[bufNew.limit()];
-        for (int pixel = 0; pixel < width * height; pixel++) {
-            int val;
-            val = Byte.toUnsignedInt(bytes[bytespp * pixel + bytespp - 1]);
-            byte valNew = (byte) (val > cutoff ? 0 : (byte) 255);
-            bytesDest[3 * pixel + 0] = valNew;
-            bytesDest[3 * pixel + 1] = valNew;
-            bytesDest[3 * pixel + 2] = valNew;
+        for (int y = 0; y < height; y++) {
+            int lineStart = y * width * bytespp;
+            int lineStartDest = y * width * 3;
+            for (int pixel = 0; pixel < width; pixel++) {
+                int val;
+                int valHigher = 0;
+                int valLower = 0;
+                int gap = (int)(height*0.02);
+
+                val = Byte.toUnsignedInt(bytes[lineStart + (bytespp * pixel) + bytespp - 1]);
+                if (y > gap) {
+                    valHigher = Byte.toUnsignedInt(bytes[(y - gap) * width * bytespp + (bytespp * pixel) + bytespp - 1]);
+                }
+                if (y < height - gap - 1) {
+                    valLower = Byte.toUnsignedInt(bytes[(y + gap) * width * bytespp + (bytespp * pixel) + bytespp - 1]);
+                }
+                byte valNew = (byte) ((val > cutoff || (valHigher > cutoff && valLower > cutoff)) ? 0 : (byte) 255);
+                bytesDest[lineStartDest + (3 * pixel) + 0] = valNew;
+                bytesDest[lineStartDest + (3 * pixel) + 1] = valNew;
+                bytesDest[lineStartDest + (3 * pixel) + 2] = valNew;
+            }
         }
         bufNew.put(bytesDest);
         bufNew.rewind();

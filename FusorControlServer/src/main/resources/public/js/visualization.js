@@ -22,7 +22,9 @@ var vizChannels = {
     'Heartbeat.beat': {name: 'Heartbeat', variable: 'beat', min: 0, max: 5, type: "momentary", datatype: "numeric"},
     'Comment.text': {name: 'Comment', variable: 'text', min: 0, max: 4, type: "momentary", datatype: "text"},
     'Login.text': {name: 'Login', variable: 'text', min: 0, max: 3, type: "momentary", datatype: "text"},
-    'OCR.text': {name: 'OCR', variable: 'text', min: 0, max: 2, type: "momentary", datatype: "text"},
+    'OCR.text': {name: 'OCR text', variable: 'text', min: 0, max: 1.5, type: "momentary", datatype: "text"},
+    'OCR.confidence': {name: 'OCR confidence', variable: 'confidence', min: 0, max: 200, type: "momentary", datatype: "numeric"},
+    'OCR.double': {name: 'OCR value', variable: 'double', min: 0, max: 1000, type: "momentary", datatype: "numeric"},
     'Command.text': {name: 'Command', variable: 'text', min: 0, max: 2, type: "momentary", datatype: "text"}
 };
 function createViz() {
@@ -111,66 +113,74 @@ function updateViz(dataArray) {
         var devicename = data["device"];
         var devicedata = data["data"];
         if (devicename === "<reset>") {
-// restart visualization with fresh log data
+            // restart visualization with fresh log data
             resetViz();
             continue;
         }
 
-
-//
-// now add important variables to display
-// see declaration of vizChannels above to see what is included
-//
+        //
+        // now add important variables to display
+        // see declaration of vizChannels above to see what is included
+        //
 
         for (var variable in devicedata) {
-            var vc = vizChannels[devicename + "." + variable];
-            if (vc === undefined) {
-                continue;
-            }
-            var dataSeries = vc.dataSeries;
-            // get value for this channel
-            var value;
-            var percent;
-            if (vc.datatype === "text") {
-                percent = (1 - vc.min) * 100 / (vc.max - vc.min);
-                value = devicedata["observer"]["value"] + ":" + devicedata[variable]["value"];
-                displayComment(devicedata["observer"]["value"], data["servertime"], devicedata["text"]["value"]);
-            } else {
-                value = Number(devicedata[variable]["value"]);
-                percent = (Math.abs(value) - vc.min) * 100 / (vc.max - vc.min);
-            }
+            try {
+                var vc = vizChannels[devicename + "." + variable];
+                if (vc === undefined) {
+                    continue;
+                }
+                var dataSeries = vc.dataSeries;
+                // get value for this channel
+                var value;
+                var percent;
+                if (vc.datatype === "text") {
+                    percent = (1 - vc.min) * 100 / (vc.max - vc.min);
+                    if ( devicedata["observer"] !== undefined) {
+                    value = devicedata["observer"]["value"] + ":" + devicedata[variable]["value"];
+                    displayComment(devicedata["observer"]["value"], data["servertime"], devicedata["text"]["value"]);
+                } else {
+                     value = "\""+devicedata[variable]["value"]+"\"";
+                }
+                } else {
+                    value = Number(devicedata[variable]["value"]);
+                    percent = (Math.abs(value) - vc.min) * 100 / (vc.max - vc.min);
+                }
 
 // get the three relevant timestamps, and do the math
-            if (vc.offset === undefined) {
-                var serverTime = Number(data["servertime"]);
-                var deviceTime = Number(devicedata["devicetime"]);
-                if (startTime === undefined) {
-                    startTime = serverTime;
-                    logStart = serverTime;
+                if (vc.offset === undefined) {
+                    var serverTime = Number(data["servertime"]);
+                    var deviceTime = Number(devicedata["devicetime"]);
+                    if (startTime === undefined) {
+                        startTime = serverTime;
+                        logStart = serverTime;
+                    }
+                    var offset = deviceTime - (serverTime - startTime);
+                    if (!isNaN(offset)) {
+                        vc.offset = offset;
+                    }
                 }
-                var offset = deviceTime - (serverTime - startTime);
-                if (!isNaN(offset)) {
-                    vc.offset = offset;
+                var varTime = Number(devicedata[variable]["vartime"]);
+                varTime -= vc.offset;
+                varTime = Math.max(varTime, 0);
+                var secs = Math.round(varTime * 10) / 10000;
+                maxTime = Math.max(maxTime, secs);
+                if (liveServer) {
+                    if (!vizFrozen) {
+                        setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
+                    }
                 }
-            }
-            var varTime = Number(devicedata[variable]["vartime"]);
-            varTime -= vc.offset;
-            varTime = Math.max(varTime, 0);
-            var secs = Math.round(varTime * 10) / 10000;
-            maxTime = Math.max(maxTime, secs);
-            if (liveServer) {
-                if (!vizFrozen) {
-                    setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
-                }
-            }
 
 //console.log("x: "+varTime+" y: "+percent)
-            addDataPoint(dataSeries, vc.type, secs, percent, value);
+                addDataPoint(dataSeries, vc.type, secs, percent, value);
+            } catch (error) {
+                console.log(error);
+            }
         }
     }
     if (!liveServer) {
         setViewPort(0, maxTime);
     }
+
 
     renderChart();
 }
