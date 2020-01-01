@@ -32,6 +32,7 @@ function kill() {
 //start a new log
 function startLog() {
     console.log("startlog");
+    document.getElementById("chat").innerText = "";
     request({url: "/protected/admin/startlog", method: "GET"})
             .then(data => {
                 console.log(data);

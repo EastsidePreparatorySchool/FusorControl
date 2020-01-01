@@ -168,7 +168,7 @@ public class CamStreamer {
     void extractNumber(BufferedImage image, long millis, SerialDevice sd) {
 
         TessWrapper.Result result = tw.extract(image);
-        if (result.confidence < 30) {
+        if (result.confidence < 80) {
             return;
         }
         String s = result.text;
@@ -181,6 +181,7 @@ public class CamStreamer {
             s = s.replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "");
             // removes non-printable characters from Unicode
             s = s.replaceAll("\\p{C}", "");
+            s = s.replaceAll("\\. ", ".");
             s = s.trim();
 
             System.out.println("OCR: " + s);

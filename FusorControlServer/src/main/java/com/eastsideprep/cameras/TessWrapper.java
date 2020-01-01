@@ -58,9 +58,9 @@ public class TessWrapper {
 
             api.TessBaseAPISetImage(handle, buf, image.getWidth(), image.getHeight(), 3, image.getWidth() * 3);
             api.TessBaseAPISetSourceResolution(handle, 70);
+            api.TessBaseAPISetRectangle(handle, image.getWidth()*5/100, image.getHeight()*5/100, image.getWidth()*65/100, image.getHeight()*40/100);
             Pointer text = api.TessBaseAPIGetUTF8Text(handle);
             // height 8% - 40%, width 15% - 70%
-            //api.TessBaseAPISetRectangle(handle, image.getWidth()*10/100, image.getHeight()*5/100, image.getWidth()*65/100, image.getHeight()*40/100);
 
             int confidence = api.TessBaseAPIMeanTextConf(handle);
             String strText = text.getString(0);
@@ -96,7 +96,8 @@ public class TessWrapper {
 //            System.out.println("");
 //        }
 
-        int cutoff = 225;
+        int cutoff = 170;
+        cutoff *= cutoff;
 
         ByteBuffer bufNew = ByteBuffer.allocateDirect(buf.limit());
         byte[] bytesDest = new byte[bufNew.limit()];
@@ -107,14 +108,17 @@ public class TessWrapper {
                 int val;
                 int valHigher = 0;
                 int valLower = 0;
-                int gap = (int)(height*0.02);
+                int gap = (int)(10);
 
                 val = Byte.toUnsignedInt(bytes[lineStart + (bytespp * pixel) + bytespp - 1]);
+                val *= val;
                 if (y > gap) {
                     valHigher = Byte.toUnsignedInt(bytes[(y - gap) * width * bytespp + (bytespp * pixel) + bytespp - 1]);
+                    valHigher *= valHigher;
                 }
                 if (y < height - gap - 1) {
                     valLower = Byte.toUnsignedInt(bytes[(y + gap) * width * bytespp + (bytespp * pixel) + bytespp - 1]);
+                    valLower *= valLower;
                 }
                 byte valNew = (byte) ((val > cutoff || (valHigher > cutoff && valLower > cutoff)) ? 0 : (byte) 255);
                 bytesDest[lineStartDest + (3 * pixel) + 0] = valNew;
