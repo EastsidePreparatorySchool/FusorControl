@@ -34,6 +34,11 @@
                     <button disabled id="variacButton" style="width:48%;" class="btn btn-primary btn-large" onclick="variac(document.getElementById('variacValue').value)" >Set</button>
                     <br>
                     <br>
+                    <button onclick="variac_stop(-1)" id="variacStop">Stop</button>
+                    <button onclick="variac(0)" id="variacZero">Zero</button>
+                    <br>
+                    <br>
+                    <button onclick="variac_stop(0)" id="variacStopNow">Emergency Stop!</button>
 
                     Solenoid Valve:<br>
                     <button disabled class="btn btn-primary btn-large" id="solon" style="width: 48%; background-color: #39a82a;" onclick="SolenoidOn()">Open</button>

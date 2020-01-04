@@ -15,6 +15,9 @@ import java.io.IOException;
 import static spark.Spark.halt;
 import static spark.Spark.stop;
 
+
+ 
+
 /**
  *
  * @author gmein
@@ -82,6 +85,16 @@ public class AdminContext extends ObserverContext {
             return "set value as " + req.queryParams("value");
         }
         throw halt("Variac control failed");
+    }
+
+    String variacStop(spark.Request req) {
+        int value = Integer.parseInt(req.queryParams("value"));
+        System.out.println("Received Variac Stop " + value);
+        if (cd.variac.set("stop", value)) {
+            return "variac stop " + (value == 0 ? "(emergency)" : "(regular)");
+        } else {
+            throw halt("Variac stop failed");
+        }
     }
 
     String tmpOnRoute() {

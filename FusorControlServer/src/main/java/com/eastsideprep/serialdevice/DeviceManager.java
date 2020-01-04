@@ -2,6 +2,7 @@ package com.eastsideprep.serialdevice;
 
 import com.eastsideprep.fusorcontrolserver.DataLogger;
 import com.eastsideprep.fusorcontrolserver.FusorControlServer;
+import com.eastsideprep.fusorcontrolserver.WebServer;
 import com.eastsideprep.fusorweblog.FusorWebLogEntry;
 import com.eastsideprep.weblog.WebLog;
 import com.fazecast.jSerialComm.SerialPort;

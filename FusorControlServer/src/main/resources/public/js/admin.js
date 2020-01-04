@@ -75,6 +75,23 @@ function variac(num) {
     }
 }
 
+function variac_stop(num) {
+    var variacValue = num;
+    console.log("variac stop:",num);
+    try {
+        request({url: "/variac_stop?value=" + variacValue, method: "GET"})
+                .then(data => {
+                    console.log(data);
+                })
+                .catch(error => {
+                    console.log("error: " + error);
+                });
+    } catch (error) {
+        console.log("Error: " + error);
+    }
+}
+
+
 //control needle valve
 function needleValve(num) {
     console.log("needleValve set:" + num);
