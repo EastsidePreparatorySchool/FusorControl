@@ -9,7 +9,8 @@ function enableAdminControls(enable) {
     var adminControls = [
         "startLog", "stopLog", "getStatus", "kill",
         "tmpon", "tmpoff", "variacValue", "variacButton",
-        "solon", "soloff", "needleValue", "needleButton"
+        "solon", "soloff", "needleValue", "needleButton",
+        "variacStop", "variacZero", "variacZeroNow"
     ];
     
     for (var i = 0; i < adminControls.length; i++) {
