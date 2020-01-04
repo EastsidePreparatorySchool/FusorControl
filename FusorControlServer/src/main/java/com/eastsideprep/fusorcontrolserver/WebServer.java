@@ -18,9 +18,10 @@ public class WebServer {
     static CamStreamer cs;
     static DeviceManager dm;
     static CoreDevices cd;
-    static DataLogger dl;
+    public static DataLogger dl;
     static FusorWebLogState state;
     static WebLog log;
+
 
     public WebServer() {
         instance = this;
@@ -155,6 +156,7 @@ public class WebServer {
         });
         get("/protected/admin/stoplog", (req, res) -> getAdminCtx(req).stopLogRoute());
         get("/protected/admin/variac", (req, res) -> getAdminCtx(req).variacRoute(req));
+        get("/protected/admin/variac_stop", (req, res) -> getAdminCtx(req).variacStop(req));
         get("/protected/admin/tmpOn", (req, res) -> getAdminCtx(req).tmpOnRoute());
         get("/protected/admin/tmpOff", (req, res) -> getAdminCtx(req).tmpOffRoute());
         get("/protected/admin/needleValve", (req, res) -> getAdminCtx(req).needleValveRoute(req));
