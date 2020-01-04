@@ -105,7 +105,7 @@ public class TessWrapper {
             int lineStart = y * width * bytespp;
             int lineStartDest = y * width * 3;
             for (int pixel = 0; pixel < width; pixel++) {
-                int val;
+                int val;    
                 int valHigher = 0;
                 int valLower = 0;
                 int gap = (int)(10);
