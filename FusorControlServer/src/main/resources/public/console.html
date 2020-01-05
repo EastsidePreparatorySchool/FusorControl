@@ -13,7 +13,7 @@
                 <button style="width:19.5%" disabled id="startLog" class="btn btn-primary btn-large" onclick="startLog()">Start New Log</button>
                 <button id="stopLog" disabled class="btn btn-primary btn-large" style="width:19.5%;border:2px solid black" onclick="stopLog()">Stop Logging</button>
                 <button id="getStatus" style="width:19.5%" disabled class="btn btn-primary btn-large" onclick="getStatus()">Get Status</button>
-                <button style="width:19.5%" id="loadLog" class="btn btn-primary btn-large" onclick="loadLog()">Load Log ...</button>
+                <button style="width:19.5%" id="loadLog" class="btn btn-primary btn-large" onclick="getLogs()">Load Log ...</button>
                 <button id="kill" disabled class="btn btn-primary btn-large" style="width:19.5%;background-color: #f64072;" onclick="kill()"><b>Stop Server</b></button>
             </div>
             <div class="fdevices" style="text-align: left">
@@ -58,7 +58,7 @@
                 <div id="chartContainer">
                 </div>
             </div>
-            <div class="ftext">
+            <div class="ftext" style="overflow-y:hidden">
                 <p id="data" style="margin: 0px; overflow-y:scroll; width:100%; height:100%; white-space: nowrap; overflow-x: hidden;font-size:smaller;font-family: 'Courier New', Courier, monospace;"></p>
             </div>
             <div class="fchat">
@@ -72,6 +72,10 @@
                     <input autocomplete="off"  id="comment" style="width:90%" autofocus type="text" name="text" placeholder="type a comment ..." required="required" />
                     <button id="commentbutton" class="btn btn-primary btn-large" style="width:8%" type="submit">Send</button>
                 </form>
+            </div>
+            <div id="filesdiv" style="display:none;position:absolute; left:25%; width:50%; top:25%; height:50%; background-color: rgba(9, 39, 86, 0.8);">
+                <p id="files" style="margin: 0px; overflow-y:scroll; width:100%; height:100%; white-space: nowrap; overflow-x: hidden;font-size:smaller;">
+                </p>
             </div>
         </div>
 

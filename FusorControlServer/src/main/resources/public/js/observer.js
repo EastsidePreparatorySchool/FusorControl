@@ -25,12 +25,12 @@ request({url: "/client", method: "GET"})
             isAdmin = (data.endsWith(" (admin)"));
             loginInfo = data;
             console.log("server session client: " + data);
-            
+
             if (isAdmin) {
                 enableAdminControls(true);
                 //startLog(); // already done on server
             }
-            
+
             document.getElementById("loginInfo").innerText = loginInfo;
         })
         .catch(error => {
@@ -38,12 +38,58 @@ request({url: "/client", method: "GET"})
         });
 
 
+//
+// get list of log files
+//
+
+function getLogs() {
+    request({url: "/protected/getlogfilenames", method: "GET"})
+            .then(raw => {
+                var files = JSON.parse(raw);
+                var list = document.getElementById("files");
+                var listDiv = document.getElementById("filesdiv");
+                listDiv.style.display = "block";
+                var filesText = "<a class='hover' onclick='loadLog(this)'>[sample log]</a><br>";
+                for (var i = 0; i < files.length; i++) {
+                    filesText += "<a class='hover' onclick='loadLog(this)'>";
+                    filesText += files[i];
+                    filesText += "</a><br>";
+                }
+                list.innerHTML += filesText;
+            })
+            .catch(error => {
+                console.log("error: " + error);
+            });
+}
 
 
 
-function loadLog() {
+function loadLog(fileName) {
     stopStatus();
-    updateStatus(fullData, null, fullData[0]["servertime"]);
+    console.log("loading log: " + fileName.text);
+    document.getElementById("filesdiv").style.display = "none";
+    if (fileName.text === "[sample log]") {
+        displayLog(fullData, fullData[0]["servertime"]);
+        return;
+    }
+
+    request({url: "/protected/getlogfile?filename=" + fileName.text, method: "GET"})
+            .then(raw => {
+                if (raw.endsWith("},\n")) {
+                    raw += "{}]}";
+                }
+                var data = JSON.parse(raw);
+                displayLog(data["log"], data["base-timestamp"]);
+            })
+            .catch(error => {
+                console.log("getlogfile error: " + error);
+            });
+}
+
+
+
+function displayLog(data, timestamp) {
+    updateStatus(data, null, timestamp);
     document.getElementById("loadLog").innerText = "Live View";
     document.getElementById("loadLog").onclick = displayLiveData;
     document.getElementById("comment").value = "<offline>";

@@ -19,9 +19,10 @@ public class DataLogger {
     private FileWriter writer;
     private Thread loggerThread;
     private DeviceManager dm;
-    private String logPath;
+    public String logPath;
     private CamStreamer cs;
     private long baseTime;
+    public String currentFile;
 
     public static String makeLogResponse(SerialDevice sd, long time, String response) {
         return "{\"device\":\"" + sd.name + "\",\"data\":" + response + ",\"servertime\":" + time + "}";
@@ -35,6 +36,7 @@ public class DataLogger {
 
     public void init(DeviceManager dm, CamStreamer cs) throws IOException {
         this.dm = dm;
+        this.currentFile = "";
 
         if (!FusorControlServer.config.noLog) {
             // make sure the folder exists
@@ -212,6 +214,7 @@ public class DataLogger {
 
     private void open(String filePrefix, String ts) throws IOException {
         String fileFullName = filePrefix + ".json";
+        currentFile = fileFullName;
         writer = new FileWriter(fileFullName);
         writer.append("{\"base-timestamp\":" + this.baseTime + ",\"instant\":\"" + ts + "\",\"log\":[\n");
         writer.flush();
@@ -226,6 +229,7 @@ public class DataLogger {
         writer.append("  {}\n]}\n");
         writer.flush();
         writer.close();
+        currentFile = "";
     }
 
     public void makeLogPath() {
@@ -234,7 +238,7 @@ public class DataLogger {
             this.logPath = FusorControlServer.config.logPath;
         }
 
-        // take of ending slashes for a moment
+        // take off ending slashes for a moment
         if (logPath.endsWith(System.getProperty("file.separator"))) {
             logPath = logPath.substring(0, logPath.length() - 1);
         }
@@ -244,6 +248,7 @@ public class DataLogger {
         // put the slash back on
         logPath += System.getProperty("file.separator");
         System.out.println("Log path is " + logPath);
+        WebServer.logPath = this.logPath;
     }
 
     public static void createFolder(String folder) {

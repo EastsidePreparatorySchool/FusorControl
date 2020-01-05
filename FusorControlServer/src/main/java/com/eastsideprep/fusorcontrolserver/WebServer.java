@@ -21,6 +21,7 @@ public class WebServer {
     public static DataLogger dl;
     static FusorWebLogState state;
     static WebLog log;
+    static String logPath;
 
 
     public WebServer() {
@@ -134,10 +135,6 @@ public class WebServer {
         }
         cd.variac.setVoltage(0);
 
-        //
-        // routes
-        //
-        get("/", (req, res) -> "<h1><a href='index.html'>Go to index.html</a></h1>");
 
         //
         // Observer routes
@@ -145,6 +142,8 @@ public class WebServer {
         //
         get("/protected/getstatus", (req, res) -> getObserverCtx(req).getStatusRoute());
         post("/protected/comment", (req, res) -> getObserverCtx(req).comment(req));
+        get("/protected/getlogfilenames", (req, res) -> getObserverCtx(req).getLogFileNames(), new JSONRT());
+        get("/protected/getlogfile", (req, res) -> getObserverCtx(req).getLogFile(req, res));
 
         //
         // Admin routes

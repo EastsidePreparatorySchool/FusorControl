@@ -4,7 +4,15 @@
  * and open the template in the editor.
  */
 package com.eastsideprep.fusorcontrolserver;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import javax.servlet.MultipartConfigElement;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
@@ -35,18 +43,59 @@ public class ObserverContext extends Context {
         return s;
     }
 
-  
     String comment(spark.Request req) {
         String text = req.queryParams("text");
         String ip = req.ip();
-        
+
         long millis = System.currentTimeMillis();
         String logText = DataLogger.makeCommentDeviceText(this.name, ip, text, millis);
-        
-        System.out.println("Comment: "+logText);
+
+        System.out.println("Comment: " + logText);
         WebServer.dm.recordStatus("Comment", millis, logText);
 
         return "ok";
+    }
+
+    ArrayList<String> getLogFileNames() {
+        ArrayList<String> result = new ArrayList<>();
+        File dir = new File(WebServer.logPath);
+        File[] directoryListing = dir.listFiles();
+
+        Arrays.sort(directoryListing, (a, b) -> Long.signum(b.lastModified() - a.lastModified()));
+
+        if (directoryListing != null) {
+            for (File child : directoryListing) {
+                String name = child.getName().toLowerCase();
+                if (name.endsWith(".json") && (WebServer.dl == null || !name.equals(WebServer.dl.currentFile))) {
+                    result.add(name);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    HttpServletResponse getLogFile(spark.Request req, spark.Response res) {
+        String filename = req.queryParams("filename");
+        if (filename == null || filename.equals("")) {
+            System.out.println("getLogFile got no filename");
+            return null;
+        }
+
+        System.out.println("logfile requested: " + filename);
+        try {
+            byte[] bytes;
+            bytes = Files.readAllBytes(Paths.get(WebServer.dl.logPath + filename));
+            HttpServletResponse raw = res.raw();
+            raw.getOutputStream().write(bytes);
+            raw.getOutputStream().flush();
+            raw.getOutputStream().close();
+            res.header("Content-Type", "application/JSON");
+            return raw;
+        } catch (Exception e) {
+            System.out.println("getLogFile: Exception: " + e);
+            return null;
+        }
     }
 
 }
