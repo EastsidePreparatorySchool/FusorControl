@@ -15,7 +15,7 @@ function updateStatus(data, raw, startTime) {
     if (data !== null) {
 
 //        console.log("starting to update text status  ...");
-        document.getElementById("data").innerText = infoFromData(data, startTime)+infoFromData(data, startTime)+infoFromData(data, startTime);
+        document.getElementById("data").innerText = infoFromData(data, startTime);
         if (raw !== null) {
             document.getElementById("data").innerHTML += "<br><br>";
             document.getElementById("data").innerText += raw;

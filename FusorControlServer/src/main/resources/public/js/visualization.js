@@ -135,12 +135,12 @@ function updateViz(dataArray) {
                 var percent;
                 if (vc.datatype === "text") {
                     percent = (1 - vc.min) * 100 / (vc.max - vc.min);
-                    if ( devicedata["observer"] !== undefined) {
-                    value = devicedata["observer"]["value"] + ":" + devicedata[variable]["value"];
-                    displayComment(devicedata["observer"]["value"], data["servertime"], devicedata["text"]["value"]);
-                } else {
-                     value = "\""+devicedata[variable]["value"]+"\"";
-                }
+                    if (devicedata["observer"] !== undefined) {
+                        value = devicedata["observer"]["value"] + ":" + devicedata[variable]["value"];
+                        displayComment(devicedata["observer"]["value"], data["servertime"], devicedata["text"]["value"]);
+                    } else {
+                        value = "\"" + devicedata[variable]["value"] + "\"";
+                    }
                 } else {
                     value = Number(devicedata[variable]["value"]);
                     percent = (Math.abs(value) - vc.min) * 100 / (vc.max - vc.min);
@@ -164,23 +164,27 @@ function updateViz(dataArray) {
                 varTime = Math.max(varTime, 0);
                 var secs = Math.round(varTime * 10) / 10000;
                 maxTime = Math.max(maxTime, secs);
-                if (liveServer) {
-                    if (!vizFrozen) {
-                        setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
-                    }
-                }
+
 
 //console.log("x: "+varTime+" y: "+percent)
                 addDataPoint(dataSeries, vc.type, secs, percent, value);
             } catch (error) {
                 console.log(error);
             }
+        } // for variable
+    } // for data item
+    
+    //
+    // adjust the view port
+    //
+    
+    if (liveServer) {
+        if (!vizFrozen) {
+            setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
         }
-    }
-    if (!liveServer) {
+    } else {
         setViewPort(0, maxTime);
     }
-
 
     renderChart();
 }
