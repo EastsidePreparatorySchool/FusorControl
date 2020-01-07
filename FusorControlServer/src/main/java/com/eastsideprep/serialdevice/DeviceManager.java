@@ -198,7 +198,7 @@ public class DeviceManager {
         try {
             while (!Thread.interrupted()) {
                 queryIdentifyAll(semaphore);
-                Thread.sleep(10000);
+                //Thread.sleep(10000);
             }
         } catch (InterruptedException e) {
         }
