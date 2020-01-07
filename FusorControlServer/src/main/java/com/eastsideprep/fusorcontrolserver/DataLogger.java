@@ -128,7 +128,7 @@ public class DataLogger {
         StringBuilder sb = DataLogger.startPseudoDeviceEntry(1000);
         DataLogger.addPseudoDeviceStringVariable(sb, "observer", observer, millis);
         DataLogger.addPseudoDeviceStringVariable(sb, "ip", ip, millis);
-        DataLogger.addPseudoDeviceStringVariable(sb, "text", "<emergency stop>", millis);
+        DataLogger.addPseudoDeviceStringVariable(sb, "text", "[emergency stop]", millis);
         return DataLogger.closePseudoDeviceEntry(sb, millis);
     }
 
