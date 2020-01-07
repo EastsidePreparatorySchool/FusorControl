@@ -184,7 +184,7 @@ public class CamStreamer {
             s = s.replaceAll("\\. ", ".");
             s = s.trim();
 
-            System.out.println("OCR: " + s);
+            //System.out.println("OCR: " + s);
             // check if we have an actual number of the right format
             if (s.startsWith(".")) {
                 if (s.length() != 4) {
