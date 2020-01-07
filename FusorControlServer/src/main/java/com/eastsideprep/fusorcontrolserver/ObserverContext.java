@@ -5,6 +5,7 @@
  */
 package com.eastsideprep.fusorcontrolserver;
 
+import static com.eastsideprep.fusorcontrolserver.WebServer.cd;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -14,6 +15,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.http.HttpServletResponse;
+import static spark.Spark.halt;
 
 /**
  *
@@ -57,6 +59,18 @@ public class ObserverContext extends Context {
         return "ok";
     }
 
+    String variacEmergencyStop(spark.Request req) {
+        System.out.println("Received Emergency Variac Stop ");
+        long millis = System.currentTimeMillis();
+        String logText = DataLogger.makeEmergencyStopDeviceText(this.name, ip, millis);
+        WebServer.dm.recordStatus("Command", millis, logText);
+        
+        if (cd.variac.set("stop", 0)) {
+            return "variac emergency stop ";
+        } else {
+            throw halt("Variac stop failed");
+        }
+    }
 
     ArrayList<String> getLogFileNames() {
         ArrayList<String> result = new ArrayList<>();

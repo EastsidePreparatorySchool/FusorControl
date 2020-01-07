@@ -47,6 +47,23 @@ function getLogs() {
 }
 
 
+function variac_emergency_stop() {
+    console.log("variac emergency stop");
+    try {
+        request({url: "/protected/variac_emergency_stop", method: "GET"})
+                .then(data => {
+                    console.log(data);
+                })
+                .catch(error => {
+                    console.log("error: " + error);
+                });
+    } catch (error) {
+        console.log("Error: " + error);
+    }
+}
+
+
+
 
 function loadLog(fileName) {
     stopStatus();

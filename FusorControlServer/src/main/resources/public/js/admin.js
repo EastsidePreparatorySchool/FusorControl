@@ -27,7 +27,7 @@ function enableAdminControls(enable) {
         "startLog", "stopLog", "getStatus", "kill",
         "tmpon", "tmpoff", "variacValue", "variacButton",
         "solon", "soloff", "needleValue", "needleButton",
-        "variacStop", "variacZero", "variacZeroNow"
+        "variacStop", "variacZero"
     ];
 
     for (var i = 0; i < adminControls.length; i++) {
@@ -97,7 +97,7 @@ function variac_stop(num) {
     var variacValue = num;
     console.log("variac stop:", num);
     try {
-        request({url: "/variac_stop?value=" + variacValue, method: "GET"})
+        request({url: "/protected/admin/variac_stop?value=" + variacValue, method: "GET"})
                 .then(data => {
                     console.log(data);
                 })

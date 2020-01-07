@@ -143,6 +143,7 @@ public class WebServer {
         post("/protected/comment", (req, res) -> getObserverCtx(req).comment(req));
         get("/protected/getlogfilenames", (req, res) -> getObserverCtx(req).getLogFileNames(), new JSONRT());
         get("/protected/getlogfile", (req, res) -> getObserverCtx(req).getLogFile(req, res));
+        get("/protected/variac_emergency_stop", (req, res) -> getObserverCtx(req).variacEmergencyStop(req));
 
         //
         // Admin routes
