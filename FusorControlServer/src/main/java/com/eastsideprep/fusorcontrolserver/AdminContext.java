@@ -12,7 +12,6 @@ import static com.eastsideprep.fusorcontrolserver.WebServer.dm;
 import com.eastsideprep.fusorweblog.FusorWebLogEntry;
 import com.eastsideprep.fusorweblog.FusorWebLogState;
 import java.io.IOException;
-import java.util.HashMap;
 import static spark.Spark.halt;
 import static spark.Spark.stop;
 
@@ -28,6 +27,7 @@ public class AdminContext extends ObserverContext {
 
     public void upgradeObserver(String obsname) {
         AdminContext ctx = new AdminContext(obsname, this.ws);
+        ctx.name = ctx.login;
         synchronized (WebServer.class) {
             WebServer.upgrade = ctx;
         }
@@ -37,10 +37,13 @@ public class AdminContext extends ObserverContext {
     String comment(spark.Request req) {
         String text = req.queryParams("text");
         
-        String upgradeCommand = "#upgrade";
+        String upgradeCommand = "#promote";
 
-        if (text.startsWith(upgradeCommand)) {
-            upgradeObserver(text.substring(upgradeCommand.length()).trim());
+        if (text.startsWith(upgradeCommand) && this.login.equals("gmein")) {
+            String obs = text.substring(upgradeCommand.length()).trim();
+            upgradeObserver(obs);
+            logAdminCommand("#promote: "+obs);
+            return "promotion scheduled";
         }
 
         return super.comment(req);
@@ -164,6 +167,5 @@ public class AdminContext extends ObserverContext {
     void logAdminCommand(String command) {
         long millis = System.currentTimeMillis();
         dm.recordStatus("Command", millis, DataLogger.makeAdminCommandText(this.name, this.ip, command, millis));
-
     }
 }

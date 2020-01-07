@@ -2,17 +2,34 @@
 // fusor main admin code
 //
 
+function checkAdminControls() {
+    request({url: "/client", method: "GET"})
+            .then(data => {
+                isAdmin = (data.endsWith(" (admin)"));
+                loginInfo = data;
+                console.log("server session client: " + data);
+
+                if (isAdmin) {
+                    enableAdminControls(true);
+                }
+
+                document.getElementById("loginInfo").innerText = loginInfo;
+            })
+            .catch(error => {
+                console.log("error: " + error);
+            });
+}
 
 function enableAdminControls(enable) {
     // references global var "isAdmin"
-    
+
     var adminControls = [
         "startLog", "stopLog", "getStatus", "kill",
         "tmpon", "tmpoff", "variacValue", "variacButton",
         "solon", "soloff", "needleValue", "needleButton",
         "variacStop", "variacZero", "variacZeroNow"
     ];
-    
+
     for (var i = 0; i < adminControls.length; i++) {
         document.getElementById(adminControls[i]).disabled = (!isAdmin) || (!enable);
     }
@@ -78,7 +95,7 @@ function variac(num) {
 
 function variac_stop(num) {
     var variacValue = num;
-    console.log("variac stop:",num);
+    console.log("variac stop:", num);
     try {
         request({url: "/variac_stop?value=" + variacValue, method: "GET"})
                 .then(data => {

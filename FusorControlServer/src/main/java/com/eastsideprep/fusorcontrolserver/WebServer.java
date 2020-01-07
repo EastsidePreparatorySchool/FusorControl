@@ -268,20 +268,22 @@ public class WebServer {
         }
 
         // upgrades
-        if (WebServer.upgrade != null && ctx.name.equals(WebServer.upgrade.name)) {
-            synchronized (WebServer.class) {
-                if (WebServer.upgrade != null) {
-                    Context ctx2 = WebServer.upgrade;
-                    ctx2.clientID = client;
-                    ctx2.ip = req.ip();
-                    ctx2.obs = ctx.obs;
-                    ctx2.isAdmin = true;
-                    WebServer.upgrade = null;
-                    ctxMap.put(client, ctx2);
-                    ctx = ctx2;
-                    long millis = System.currentTimeMillis();
-                    String logText = DataLogger.makeLoginCommandText(ctx.name, req.ip(), 1, millis);
-                    WebServer.dm.recordStatus("Upgrade", millis, logText);
+        if (WebServer.upgrade != null) {
+            if (ctx.login.equals(WebServer.upgrade.login)) {
+                synchronized (WebServer.class) {
+                    if (WebServer.upgrade != null) {
+                        AdminContext ctx2 = WebServer.upgrade;
+                        ctx2.clientID = client;
+                        ctx2.ip = req.ip();
+                        ctx2.obs = ctx.obs;
+                        ctx2.isAdmin = true;
+                        WebServer.upgrade = null;
+                        ctxMap.put(client, ctx2);
+                        ctx = ctx2;
+                        long millis = System.currentTimeMillis();
+                        String logText = DataLogger.makeLoginCommandText(ctx.login, req.ip(), 1, millis);
+                        WebServer.dm.recordStatus("<promote>", millis, logText);
+                    }
                 }
             }
 

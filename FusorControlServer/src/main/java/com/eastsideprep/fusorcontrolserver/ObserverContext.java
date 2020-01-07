@@ -87,7 +87,7 @@ public class ObserverContext extends Context {
         System.out.println("logfile requested: " + filename);
         try {
             byte[] bytes;
-            bytes = Files.readAllBytes(Paths.get(WebServer.dl.logPath + filename));
+            bytes = Files.readAllBytes(Paths.get(WebServer.logPath + filename));
             HttpServletResponse raw = res.raw();
             raw.getOutputStream().write(bytes);
             raw.getOutputStream().flush();

@@ -20,22 +20,6 @@ request({url: "/resetobserver", method: "GET"})
 //
 var isAdmin = false;
 var loginInfo = "<unknown>";
-request({url: "/client", method: "GET"})
-        .then(data => {
-            isAdmin = (data.endsWith(" (admin)"));
-            loginInfo = data;
-            console.log("server session client: " + data);
-
-            if (isAdmin) {
-                enableAdminControls(true);
-                //startLog(); // already done on server
-            }
-
-            document.getElementById("loginInfo").innerText = loginInfo;
-        })
-        .catch(error => {
-            console.log("error: " + error);
-        });
 
 
 //
@@ -116,7 +100,7 @@ function displayLiveData() {
 
 
 createViz();
-enableAdminControls(true);
+checkAdminControls();
 initStatus();
 
 

@@ -117,6 +117,10 @@ function updateViz(dataArray) {
             resetViz();
             continue;
         }
+        if (devicename === "<promote>") {
+            checkAdminControls();
+            continue;
+        }
 
         //
         // now add important variables to display
@@ -173,11 +177,11 @@ function updateViz(dataArray) {
             }
         } // for variable
     } // for data item
-    
+
     //
     // adjust the view port
     //
-    
+
     if (liveServer) {
         if (!vizFrozen) {
             setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
