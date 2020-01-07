@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.http.HttpServletResponse;
 
@@ -55,6 +56,7 @@ public class ObserverContext extends Context {
 
         return "ok";
     }
+
 
     ArrayList<String> getLogFileNames() {
         ArrayList<String> result = new ArrayList<>();

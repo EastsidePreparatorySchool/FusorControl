@@ -182,6 +182,9 @@ public class DataLogger {
 
     static void getNewLogEntries(WebLogObserver obs, StringBuilder sb) {
         ArrayList<WebLogEntry> list = obs.getNewItems();
+        if (list == null) {
+            return;
+        }
         if (FusorControlServer.config.superVerbose) {
             System.out.println("Obs: " + obs + ", updates: " + list.size());
         }

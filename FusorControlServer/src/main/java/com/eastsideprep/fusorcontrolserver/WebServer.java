@@ -22,7 +22,7 @@ public class WebServer {
     static FusorWebLogState state;
     static WebLog log;
     static String logPath;
-
+    static AdminContext upgrade;
 
     public WebServer() {
         instance = this;
@@ -135,7 +135,6 @@ public class WebServer {
         }
         cd.variac.setVoltage(0);
 
-
         //
         // Observer routes
         // anybody logged in can call these
@@ -240,11 +239,13 @@ public class WebServer {
 
         String client = req.queryParams("clientID");
         ctx.clientID = client;
+        ctx.ip = req.ip();
         if (!ctxMap.containsKey(client)) {
             System.out.println("New context: " + ctx + ", clientID " + client);
         }
-        ctxMap.put(client, ctx);
-        ctx.ip = req.ip();
+        synchronized (WebServer.class) {
+            ctxMap.put(client, ctx);
+        }
     }
 
     // context helper
@@ -264,6 +265,26 @@ public class WebServer {
         Context ctx = ctxMap.get(client);
         if (ctx == null) {
             return null;
+        }
+
+        // upgrades
+        if (WebServer.upgrade != null && ctx.name.equals(WebServer.upgrade.name)) {
+            synchronized (WebServer.class) {
+                if (WebServer.upgrade != null) {
+                    Context ctx2 = WebServer.upgrade;
+                    ctx2.clientID = client;
+                    ctx2.ip = req.ip();
+                    ctx2.obs = ctx.obs;
+                    ctx2.isAdmin = true;
+                    WebServer.upgrade = null;
+                    ctxMap.put(client, ctx2);
+                    ctx = ctx2;
+                    long millis = System.currentTimeMillis();
+                    String logText = DataLogger.makeLoginCommandText(ctx.name, req.ip(), 1, millis);
+                    WebServer.dm.recordStatus("Upgrade", millis, logText);
+                }
+            }
+
         }
 
         // blow up stale contexts

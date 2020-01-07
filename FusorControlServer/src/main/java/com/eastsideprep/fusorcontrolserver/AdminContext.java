@@ -12,11 +12,9 @@ import static com.eastsideprep.fusorcontrolserver.WebServer.dm;
 import com.eastsideprep.fusorweblog.FusorWebLogEntry;
 import com.eastsideprep.fusorweblog.FusorWebLogState;
 import java.io.IOException;
+import java.util.HashMap;
 import static spark.Spark.halt;
 import static spark.Spark.stop;
-
-
- 
 
 /**
  *
@@ -26,6 +24,26 @@ public class AdminContext extends ObserverContext {
 
     AdminContext(String login, WebServer ws) {
         super(login, ws);
+    }
+
+    public void upgradeObserver(String obsname) {
+        AdminContext ctx = new AdminContext(obsname, this.ws);
+        synchronized (WebServer.class) {
+            WebServer.upgrade = ctx;
+        }
+    }
+
+    @Override
+    String comment(spark.Request req) {
+        String text = req.queryParams("text");
+        
+        String upgradeCommand = "#upgrade";
+
+        if (text.startsWith(upgradeCommand)) {
+            upgradeObserver(text.substring(upgradeCommand.length()).trim());
+        }
+
+        return super.comment(req);
     }
 
     String killRoute() {
