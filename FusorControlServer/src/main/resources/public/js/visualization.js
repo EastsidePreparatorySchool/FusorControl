@@ -6,27 +6,29 @@ var vizData = [];
 var chart = null;
 var vizFrozen = false;
 var vizChannels = {
-    'TMP.tmp': {name: 'TMP status', variable: 'tmp', min: 0, max: 1, type: "discrete", datatype: "numeric"},
-    'TMP.pump_freq': {name: 'TMP frequency (Hz)', variable: 'pump_freq', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
-    'TMP.pump_curr_amps': {name: 'TMP current (A)', variable: 'pump_curr_amps', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
-    'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', variable: 'diaphragm_adc', min: 0, max: 110, type: "continuous", datatype: "numeric"},
-    'PIRANI.pirani_adc': {name: 'Fine pressure (adc)', variable: 'pirani_adc', min: 0, max: 1024, type: "continuous", datatype: "numeric"},
-    'VARIAC.input_volts': {name: 'Variac target (V)', variable: 'input_volts', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'VARIAC.potentiometer': {name: 'Variac actual (V)', variable: 'potentiometer', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', variable: 'variac_rms', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.nst_rms': {name: 'NST RMS (KV)', variable: 'nst_rms', min: 0, max: 15, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (KV)', variable: 'cw_avg', min: 0, max: 50, type: "continuous", datatype: "numeric"},
-//    'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', variable: 'hs_current_adc', min: 0, max: 50, type: "continuous", datatype: "numeric"},
-    'GC-SERIAL.cps': {name: 'GCW (cps)', variable: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
-    'PN-JUNCTION.total': {name: 'PNJ (adc)', variable: 'total', min: 0, max: 100, type: "continuous", datatype: "numeric"},
-    'Heartbeat.beat': {name: 'Heartbeat', variable: 'beat', min: 0, max: 5, type: "momentary", datatype: "numeric"},
-    'Comment.text': {name: 'Comment', variable: 'text', min: 0, max: 4, type: "momentary", datatype: "text"},
-    'Login.text': {name: 'Login', variable: 'text', min: 0, max: 3, type: "momentary", datatype: "text"},
-//    'OCR.text': {name: 'OCR text', variable: 'text', min: 0, max: 1.5, type: "momentary", datatype: "text"},
-//    'OCR.confidence': {name: 'OCR confidence', variable: 'confidence', min: 0, max: 200, type: "momentary", datatype: "numeric"},
-//    'OCR.double': {name: 'OCR value', variable: 'double', min: 0, max: 1000, type: "momentary", datatype: "numeric"},
-    'Command.text': {name: 'Command', variable: 'text', min: 0, max: 2, type: "momentary", datatype: "text"}
+    'TMP.tmp': {name: 'TMP status', min: 0, max: 1, type: "discrete", datatype: "numeric"},
+    'TMP.pump_freq': {name: 'TMP frequency (Hz)', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
+    'TMP.pump_curr_amps': {name: 'TMP current (A)', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
+    'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', min: 0, max: 110, type: "continuous", datatype: "numeric"},
+    'PIRANI.pirani_adc': {name: 'Fine pressure (adc)', min: 0, max: 1024, type: "continuous", datatype: "numeric"},
+    'VARIAC.input_volts': {name: 'Variac target (V)', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'VARIAC.potentiometer': {name: 'Variac actual (V)', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.nst_rms': {name: 'NST RMS (KV)', min: 0, max: 15, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (KV)', min: 0, max: 50, type: "continuous", datatype: "numeric"},
+//    'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', min: 0, max: 50, type: "continuous", datatype: "numeric"},
+    'GC-SERIAL.cps': {name: 'GCW (cps)', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
+    'PN-JUNCTION.total': {name: 'PNJ (adc)', min: 0, max: 100, type: "continuous", datatype: "numeric"},
+    'Heartbeat.beat': {name: 'Heartbeat', min: 0, max: 5, type: "momentary", datatype: "numeric"},
+    'Comment.text': {name: 'Comment', min: 0, max: 4, type: "momentary", datatype: "text"},
+    'Login.text': {name: 'Login', min: 0, max: 3, type: "momentary", datatype: "text"},
+//    'OCR.text': {name: 'OCR text', min: 0, max: 1.5, type: "momentary", datatype: "text"},
+//    'OCR.confidence': {name: 'OCR confidence', min: 0, max: 200, type: "momentary", datatype: "numeric"},
+//    'OCR.double': {name: 'OCR value', min: 0, max: 1000, type: "momentary", datatype: "numeric"},
+    'Command.text': {name: 'Command', min: 0, max: 2, type: "momentary", datatype: "text"}
 };
+
+
 function createViz() {
     var options = {
         zoomEnabled: true,
@@ -200,15 +202,18 @@ function addDataPoint(dataSeries, type, secs, percent, value) {
             dataSeries.dataPoints.push({x: secs + 0.0001, y: 0, value: 0});
             break;
         case "discrete":
-            dataSeries.dataPoints.push({x: secs - 0.0001, y: 0, value: 0});
+            if (dataSeries.dataPoints.length > 0) {
+                var lastPoint = dataSeries.dataPoints[dataSeries.dataPoints.length - 1];
+                dataSeries.dataPoints.push({x: secs - 0.0001, y: 0, value: lastPoint.y});
+            }
             dataSeries.dataPoints.push({x: secs, y: percent, value: value});
             break;
         case "discrete trailing":
             if (dataSeries.dataPoints.length > 0) {
                 var lastPoint = dataSeries.dataPoints[dataSeries.dataPoints.length - 1];
                 dataSeries.dataPoints.push({x: lastPoint.x + 0.0001, y: percent, value: value});
-                dataSeries.dataPoints.push({x: secs, y: 0, value: 0});
             }
+            dataSeries.dataPoints.push({x: secs, y: 0, value: value});
             break;
         case "continuous":
         default:
