@@ -6,26 +6,28 @@ var vizData = [];
 var chart = null;
 var vizFrozen = false;
 var vizChannels = {
-    'TMP.tmp': {name: 'TMP status', min: 0, max: 1, type: "discrete", datatype: "numeric"},
-    'TMP.pump_freq': {name: 'TMP frequency (Hz)', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
-    'TMP.pump_curr_amps': {name: 'TMP current (A)', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
-    'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', min: 0, max: 110, type: "continuous", datatype: "numeric"},
-    'PIRANI.pirani_adc': {name: 'Fine pressure (adc)', min: 0, max: 1024, type: "continuous", datatype: "numeric"},
-    'VARIAC.input_volts': {name: 'Variac target (V)', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'VARIAC.potentiometer': {name: 'Variac actual (V)', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.nst_rms': {name: 'NST RMS (KV)', min: 0, max: 15, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (KV)', min: 0, max: 50, type: "continuous", datatype: "numeric"},
-//    'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', min: 0, max: 50, type: "continuous", datatype: "numeric"},
-    'GC-SERIAL.cps': {name: 'GCW (cps)', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
-    'PN-JUNCTION.total': {name: 'PNJ (adc)', min: 0, max: 100, type: "continuous", datatype: "numeric"},
-    'Heartbeat.beat': {name: 'Heartbeat', min: 0, max: 5, type: "momentary", datatype: "numeric"},
-    'Comment.text': {name: 'Comment', min: 0, max: 4, type: "momentary", datatype: "text"},
-    'Login.text': {name: 'Login', min: 0, max: 3, type: "momentary", datatype: "text"},
-//    'OCR.text': {name: 'OCR text', min: 0, max: 1.5, type: "momentary", datatype: "text"},
-//    'OCR.confidence': {name: 'OCR confidence', min: 0, max: 200, type: "momentary", datatype: "numeric"},
-//    'OCR.double': {name: 'OCR value', min: 0, max: 1000, type: "momentary", datatype: "numeric"},
-    'Command.text': {name: 'Command', min: 0, max: 2, type: "momentary", datatype: "text"}
+    'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
+    'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
+    'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', shortname: 'DPHRGM raw', unit: 'adc', min: 0, max: 110, type: "continuous", datatype: "numeric"},
+    'PIRANI.pirani_adc': {name: 'Fine pressure (adc)', shortname: 'PIRANI raw', unit: 'adc', min: 0, max: 1024, type: "continuous", datatype: "numeric"},
+    'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR targ', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'VARIAC.potentiometer': {name: 'Variac actual (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.nst_rms': {name: 'NST RMS (KV)', shortname: 'NST rms', unit: 'KV', min: 0, max: 15, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (KV)', shortname: 'CW volts', unit: 'KV (abs)', min: 0, max: 50, type: "continuous", datatype: "numeric"},
+    'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', shortname: 'CW current', unit: 'adc', min: 0, max: 50, type: "continuous", datatype: "numeric"},
+    'GC-SERIAL.cps': {name: 'GCW (cps)', shortname: 'GCW clicks', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
+    'PN-JUNCTION.total': {name: 'PNJ (adc)', shortname: 'PN-J raw', unit: 'adc', min: 0, max: 100, type: "continuous", datatype: "numeric"},
+    'Heartbeat.beat': {name: 'Heartbeat', shortname: 'HEARTBEAT', unit: '', min: 0, max: 5, type: "momentary", datatype: "numeric"},
+
+    'TMP.tmp': {name: 'TMP status', shortname: '', min: 0, max: 1, type: "discrete", datatype: "numeric"},
+    'Comment.text': {name: 'Comment', shortname: '', min: 0, max: 4, type: "momentary", datatype: "text"},
+    'Login.text': {name: 'Login', shortname: '', min: 0, max: 3, type: "momentary", datatype: "text"},
+    'Command.text': {name: 'Command', shortname: '', min: 0, max: 2, type: "momentary", datatype: "text"}
+
+//    'OCR.text': {name: 'OCR text', shortname:'', min: 0, max: 1.5, type: "momentary", datatype: "text"},
+//    'OCR.confidence': {name: 'OCR confidence', shortname:'', min: 0, max: 200, type: "momentary", datatype: "numeric"},
+//    'OCR.double': {name: 'OCR value', shortname:'', min: 0, max: 1000, type: "momentary", datatype: "numeric"},
 };
 
 
@@ -96,13 +98,48 @@ function createViz() {
     chart.render();
 }
 
-function createText() {
-       for (var channel in vizChannels) {
-        
-    }
+var textChannels = {};
 
+function createText() {
+    var textDisplay = "";
+    for (var channel in vizChannels) {
+        if (vizChannels[channel].shortname !== '') {
+            textDisplay += vizChannels[channel].shortname + ":&nbsp;<span id='" + channel + "'>n/c</span>&nbsp"
+                    + vizChannels[channel].unit + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
+            textChannels[channel] = {value: 0, last: 0, current: 0};
+        }
+    }
+    document.getElementById("data").innerHTML = textDisplay;
 }
 
+
+function updateText(channel, value, time) {
+    var tc = textChannels[channel];
+
+    if (tc !== undefined) {
+        textChannels[channel].value = value;
+        textChannels[channel].current = time;
+    }
+}
+
+function renderText() {
+    for (var channel in textChannels) {
+        var tc = textChannels[channel];
+        var timespan = document.getElementById(channel + ".time");
+        var valspan = document.getElementById(channel);
+
+        if (tc.current !== tc.last) {
+            timespan.style.color = "gold";
+            valspan.style.color = "gold";
+            valspan.innerText = Math.round(tc.value * 100) / 100;
+            timespan.innerText = Math.round(tc.current * 100) / 100;
+        } else if (tc.current > tc.last + 1.5) {
+            timespan.style.color = "white";
+            valspan.style.color = "white";
+        }
+        tc.last = tc.current;
+    }
+}
 
 function resetViz() {
     for (var channel in vizChannels) {
@@ -158,7 +195,7 @@ function updateViz(dataArray) {
                     percent = (Math.abs(value) - vc.min) * 100 / (vc.max - vc.min);
                 }
 
-// get the three relevant timestamps, and do the math
+                // get the three relevant timestamps, and do the math
                 if (vc.offset === undefined) {
                     var serverTime = Number(data["servertime"]);
                     var deviceTime = Number(devicedata["devicetime"]);
@@ -178,8 +215,9 @@ function updateViz(dataArray) {
                 maxTime = Math.max(maxTime, secs);
 
 
-//console.log("x: "+varTime+" y: "+percent)
+                //console.log("x: "+varTime+" y: "+percent)
                 addDataPoint(dataSeries, vc.type, secs, percent, value);
+                updateText(devicename + "." + variable, value, secs);
             } catch (error) {
                 console.log(error);
             }
@@ -194,12 +232,13 @@ function updateViz(dataArray) {
         if (!vizFrozen) {
             setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
         }
-        document.getElementById("logtime").innerText = String(Math.round(maxTime*100)/100);
+        document.getElementById("logtime").innerText = String(Math.round(maxTime * 100) / 100);
     } else {
         setViewPort(0, maxTime);
     }
 
     renderChart();
+    renderText();
 }
 
 function addDataPoint(dataSeries, type, secs, percent, value) {

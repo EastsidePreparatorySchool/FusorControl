@@ -16,7 +16,7 @@ request({url: "/resetobserver", method: "GET"})
 
 
 //
-// enable admin controls if appropriate
+// reset admin controls
 //
 var isAdmin = false;
 var loginInfo = "<unknown>";
@@ -117,6 +117,7 @@ function displayLiveData() {
 
 
 createViz();
+createText();
 checkAdminControls();
 initStatus();
 

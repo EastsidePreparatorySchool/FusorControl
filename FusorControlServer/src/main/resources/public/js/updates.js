@@ -13,16 +13,7 @@ var liveServer = true;
 
 function updateStatus(data, raw, startTime) {
     if (data !== null) {
-
-//        console.log("starting to update text status  ...");
-        document.getElementById("data").innerText = infoFromData(data, startTime);
-        if (raw !== null) {
-            document.getElementById("data").innerHTML += "<br><br>";
-            document.getElementById("data").innerText += raw;
-        }
-//        console.log("starting to update graph status  ...");
         updateViz(data);
-//        console.log("done with updates");
     }
 }
 
