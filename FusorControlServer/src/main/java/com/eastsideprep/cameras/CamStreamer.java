@@ -166,6 +166,7 @@ public class CamStreamer {
     }
 
     void extractNumber(BufferedImage image, long millis, SerialDevice sd) {
+        if (true)return;
 
         TessWrapper.Result result = tw.extract(image);
         if (result.confidence < 80) {
