@@ -96,6 +96,13 @@ function createViz() {
     chart.render();
 }
 
+function createText() {
+       for (var channel in vizChannels) {
+        
+    }
+
+}
+
 
 function resetViz() {
     for (var channel in vizChannels) {
@@ -187,6 +194,7 @@ function updateViz(dataArray) {
         if (!vizFrozen) {
             setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
         }
+        document.getElementById("logtime").innerText = String(Math.round(maxTime*100)/100);
     } else {
         setViewPort(0, maxTime);
     }

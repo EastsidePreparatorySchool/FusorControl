@@ -36,13 +36,13 @@ public class AdminContext extends ObserverContext {
     @Override
     String comment(spark.Request req) {
         String text = req.queryParams("text");
-        
+
         String upgradeCommand = "#promote";
 
         if (text.startsWith(upgradeCommand) && this.login.equals("gmein")) {
             String obs = text.substring(upgradeCommand.length()).trim();
             upgradeObserver(obs);
-            logAdminCommand("#promote: "+obs);
+            logAdminCommand("#promote: " + obs);
             return "promotion scheduled";
         }
 
@@ -50,16 +50,19 @@ public class AdminContext extends ObserverContext {
     }
 
     String killRoute() {
-        logAdminCommand("shutdown");
-        if (dl != null) {
-            dl.shutdown();
-        }
-        dm.shutdown();
+        if (this.login.equals("gmein")) {
+            logAdminCommand("shutdown");
+            if (dl != null) {
+                dl.shutdown();
+            }
+            dm.shutdown();
 
-        stop();
-        System.out.println("Server ended with /kill");
-        System.exit(0);
-        return "server ended";
+            stop();
+            System.out.println("Server ended with /kill");
+            System.exit(0);
+            return "server ended";
+        }
+        throw halt(401);
     }
 
     String startLogRoute() {

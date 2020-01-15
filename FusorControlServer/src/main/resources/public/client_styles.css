@@ -2,6 +2,7 @@
 
 /*grid arrangement*/
 .fheader { grid-area: fheader; }
+.ftime { grid-area: ftime; }
 .fcontrol { grid-area: fcontrol; }
 .fdevices { grid-area: fdevices; }
 .fchart { grid-area: fchart; }
@@ -13,7 +14,7 @@
 .grid-container {
     display: grid;
     grid-template-areas:
-        'fheader fheader fheader '
+        'fheader fheader ftime'
         'fcontrol fcontrol fcontrol'
         'fdevices fchart ftext'
         'fdevices fchat fchat'
