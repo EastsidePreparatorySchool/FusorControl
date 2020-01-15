@@ -92,6 +92,16 @@ public class DataLogger {
         sb.append("},");
     }
 
+    static void addPseudoDeviceDoubleVariable(StringBuilder sb, String var, double val, long varTime) {
+        sb.append("\"");
+        sb.append(var);
+        sb.append("\":{\"value\":");
+        sb.append(val);
+        sb.append(",\"vartime\":");
+        sb.append(varTime);
+        sb.append("},");
+    }
+
     static void addPseudoDeviceStringVariable(StringBuilder sb, String var, String val, long varTime) {
         sb.append("\"");
         sb.append(var);
@@ -109,10 +119,10 @@ public class DataLogger {
         return sb.toString();
     }
 
-    static String heartbeatDeviceText(int val, long millis) {
+    static String makeHeartbeatDeviceText(double val, long millis) {
         StringBuilder sb = startPseudoDeviceEntry(500);
-        addPseudoDeviceIntVariable(sb, "beat", val, millis);
-        addPseudoDeviceIntVariable(sb, "logsize", WebLog.instance.getLogSize(), millis);
+        addPseudoDeviceDoubleVariable(sb, "beat", val, millis);
+        addPseudoDeviceIntVariable(sb, "logsize", WebLog.instance.getLogSize()/1000, millis);
         return closePseudoDeviceEntry(sb, millis);
     }
 
@@ -124,7 +134,7 @@ public class DataLogger {
         return DataLogger.closePseudoDeviceEntry(sb, millis);
     }
 
-    static String makeEmergencyStopDeviceText(String observer, String ip,long millis) {
+    static String makeEmergencyStopDeviceText(String observer, String ip, long millis) {
         StringBuilder sb = DataLogger.startPseudoDeviceEntry(1000);
         DataLogger.addPseudoDeviceStringVariable(sb, "observer", observer, millis);
         DataLogger.addPseudoDeviceStringVariable(sb, "ip", ip, millis);
@@ -139,24 +149,30 @@ public class DataLogger {
         DataLogger.addPseudoDeviceStringVariable(sb, "text", command, millis);
         return DataLogger.closePseudoDeviceEntry(sb, millis);
     }
-    
-    
+
     static String makeLoginCommandText(String login, String ip, int admin, long millis) {
         StringBuilder sb = DataLogger.startPseudoDeviceEntry(1000);
         DataLogger.addPseudoDeviceStringVariable(sb, "observer", login, millis);
         DataLogger.addPseudoDeviceStringVariable(sb, "ip", ip, millis);
         DataLogger.addPseudoDeviceIntVariable(sb, "admin", admin, millis);
-        DataLogger.addPseudoDeviceStringVariable(sb, "text", (admin == 1)?"(admin)":"(observer)", millis);
+        DataLogger.addPseudoDeviceStringVariable(sb, "text", (admin == 1) ? "(admin)" : "(observer)", millis);
         return DataLogger.closePseudoDeviceEntry(sb, millis);
     }
+
+    void recordHeartbeat(int secs) {
+        long time = this.baseTime+((long)secs)*1000;
+        dm.recordStatus("Heartbeat", time, makeHeartbeatDeviceText(secs % 10 == 0 ? 10 : 1, time));
+    }
+
     void loggerThreadLoop() {
         WebLogObserver obs = WebServer.log.addObserver("<logger thread>");
+        int secs = 0;
+        
         try {
             while (!Thread.interrupted()) {
+                recordHeartbeat(secs);
                 Thread.sleep(1000);
-
-                long millis = System.currentTimeMillis();
-                dm.recordStatus("Heartbeat", millis, heartbeatDeviceText(1, millis));
+                secs++;
 
                 StringBuilder sb = new StringBuilder();
                 sb.ensureCapacity(10000);
