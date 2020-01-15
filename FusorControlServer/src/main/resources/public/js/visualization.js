@@ -268,9 +268,9 @@ function addDataPoint(dataSeries, type, secs, percent, value) {
             dataSeries.dataPoints.push({x: secs, y: percent, value: value});
             break;
     }
-// in live view, constrain ourselves to 600 data points per series - should work out to one minute
+    // in live view, constrain ourselves to xxx data points per series
     if (liveServer) {
-        while (dataSeries.dataPoints.length > 600) {
+        while (dataSeries.dataPoints.length > 10000) {
             dataSeries.dataPoints.shift();
         }
     }
