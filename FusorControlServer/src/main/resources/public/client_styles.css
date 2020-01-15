@@ -8,8 +8,8 @@
 .fchart { grid-area: fchart; }
 .ftext { grid-area: ftext; }
 .fchat{ grid-area: fchat; }
-.fcameras { grid-area: fcameras; }
 .finput { grid-area: finput; }
+.fcamview { grid-area: fcamview; }
 
 .grid-container {
     display: grid;
@@ -17,8 +17,8 @@
         'fheader fheader ftime'
         'fcontrol fcontrol fcontrol'
         'fdevices fchart ftext'
-        'fdevices fchat fchat'
-        'fcameras finput finput';
+        'fdevices fchat fcamview'
+        'fdevices finput finput';
     grid-template-rows: 50px 50px 1fr 150px 50px;
     grid-template-columns: 220px 1fr 600px;
     grid-gap: 5px;
