@@ -29,13 +29,8 @@ public class ObserverContext extends Context {
 
     String getStatusRoute() {
         //System.out.println("/getstatus");
-        if (WebServer.dl == null && this.isAdmin) {
-            System.out.println("  logging inactive, poking bears ...");
-            WebServer.dm.getAllStatus();
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException ex) {
-            }
+        if (WebServer.dl == null) {
+            return "not logging";
         }
 
         String s = DataLogger.getNewLogEntryBatch(obs);
@@ -64,7 +59,7 @@ public class ObserverContext extends Context {
         long millis = System.currentTimeMillis();
         String logText = DataLogger.makeEmergencyStopDeviceText(this.name, ip, millis);
         WebServer.dm.recordStatus("Command", millis, logText);
-        
+
         if (cd.variac.set("stop", 0)) {
             return "variac emergency stop ";
         } else {

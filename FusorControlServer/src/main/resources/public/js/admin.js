@@ -47,6 +47,25 @@ function kill() {
             });
 }
 
+// get status once
+function getOneStatus() {
+    // for the real thing: web request to server
+    request({url: "/protected/getonestatus", method: "GET"})
+            .then(raw => {
+                if (liveServer) {
+                    globalData = raw;
+                    var data = JSON.parse(raw);
+                    updateStatus(data, raw, logStart);
+                }
+                //console.log(data);
+            })
+            .catch(error => {
+                console.log("getonestatus error: " + error);
+                console.log(globalData);
+            });
+}
+
+
 //start a new log
 function startLog() {
     console.log("startlog");

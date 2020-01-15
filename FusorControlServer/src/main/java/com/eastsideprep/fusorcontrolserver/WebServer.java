@@ -150,9 +150,8 @@ public class WebServer {
         // need to be logged in as admin to call these
         //
         get("/protected/admin/kill", (req, res) -> getAdminCtx(req).killRoute());
-        get("/protected/admin/startlog", (req, res) -> {
-            return getAdminCtx(req).startLogRoute();
-        });
+        get("/protected/admin/startlog", (req, res) -> getAdminCtx(req).startLogRoute());
+        get("/protected/getonestatus", (req, res) -> getAdminCtx(req).getOneStatusRoute());
         get("/protected/admin/stoplog", (req, res) -> getAdminCtx(req).stopLogRoute());
         get("/protected/admin/variac", (req, res) -> getAdminCtx(req).variacRoute(req));
         get("/protected/admin/variac_stop", (req, res) -> getAdminCtx(req).variacStop(req));

@@ -525,7 +525,6 @@ public class DeviceManager {
             //System.out.println("Sending GETALL to "+name);
             sd.getAll();
         }
-
     }
 
     public void autoStatusOn() {

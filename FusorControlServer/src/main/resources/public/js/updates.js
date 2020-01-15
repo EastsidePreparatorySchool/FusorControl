@@ -25,8 +25,12 @@ function getStatus() {
             .then(raw => {
                 if (liveServer) {
                     globalData = raw;
-                    var data = JSON.parse(raw);
-                    updateStatus(data, raw, logStart);
+                    if (raw !== "not logging") {
+                        var data = JSON.parse(raw);
+                        updateStatus(data, raw, logStart);
+                    } else {
+                        renderText(false);
+                    }
                     setTimeout(getStatus, updateInterval);
                 }
                 //console.log(data);
@@ -35,8 +39,10 @@ function getStatus() {
                 console.log("getstatus error: " + error);
                 console.log(globalData);
                 //console.log("stopping status requests to server");
-                stopStatus();
-                selectButton("stopLog", "startLog");
+                if (isAdmin) {
+                    //stopStatus();
+                    selectButton("stopLog", "startLog");
+                }
             });
 }
 

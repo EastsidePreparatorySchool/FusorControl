@@ -64,6 +64,27 @@ public class AdminContext extends ObserverContext {
         }
         throw halt(401);
     }
+    
+        String getOneStatusRoute() {
+        //System.out.println("/getstatus");
+        if (WebServer.dl == null && this.isAdmin) {
+            System.out.println("  logging inactive, poking bears ...");
+            WebServer.dm.getAllStatus();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException ex) {
+            }
+        }
+
+        String s = DataLogger.getNewLogEntryBatch(obs);
+
+        if (FusorControlServer.config.superVerbose) {
+            System.out.println("  Status:" + s);
+        }
+        return s;
+    }
+
+
 
     String startLogRoute() {
         synchronized (ws) {
