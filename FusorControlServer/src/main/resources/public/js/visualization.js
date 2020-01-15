@@ -122,18 +122,18 @@ function updateText(channel, value, time) {
     }
 }
 
-function renderText() {
+function renderText(update) {
     for (var channel in textChannels) {
         var tc = textChannels[channel];
         var timespan = document.getElementById(channel + ".time");
         var valspan = document.getElementById(channel);
 
-        if (tc.current !== tc.last) {
+        if ((tc.current !== tc.last) && update) {
             timespan.style.color = "gold";
             valspan.style.color = "gold";
             valspan.innerText = Math.round(tc.value * 100) / 100;
             timespan.innerText = Math.round(tc.current * 100) / 100;
-        } else if (tc.current > tc.last + 1.5) {
+        } else if ((tc.current > tc.last + 1.5) || !update) {
             timespan.style.color = "white";
             valspan.style.color = "white";
         }
@@ -238,7 +238,7 @@ function updateViz(dataArray) {
     }
 
     renderChart();
-    renderText();
+    renderText(true);
 }
 
 function addDataPoint(dataSeries, type, secs, percent, value) {

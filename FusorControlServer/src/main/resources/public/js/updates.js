@@ -51,6 +51,7 @@ function initStatus() {
 
 function stopStatus() {
     liveServer = false;
+    renderText(false);
     console.log("now no longer receiving status");
 }
 
