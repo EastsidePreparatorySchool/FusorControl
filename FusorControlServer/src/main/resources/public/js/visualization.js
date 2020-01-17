@@ -6,10 +6,13 @@ var vizData = [];
 var chart = null;
 var vizFrozen = false;
 var vizChannels = {
+    'TMP.tmp': {name: 'TMP status', shortname: 'TMP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
     'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
     'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', shortname: 'DPHRGM raw', unit: 'adc', min: 0, max: 110, type: "continuous", datatype: "numeric"},
     'PIRANI.pirani_adc': {name: 'Fine pressure (adc)', shortname: 'PIRANI raw', unit: 'adc', min: 0, max: 1024, type: "continuous", datatype: "numeric"},
+    'GAS.solenoid': {name: 'TMP status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
+    'NEEDLEVALE.needlevalve': {name: 'Needle valve', shortname: 'NEEDLE setting', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric"},
     'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR targ', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'VARIAC.potentiometer': {name: 'Variac actual (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
@@ -21,7 +24,6 @@ var vizChannels = {
     'Heartbeat.beat': {name: 'Heartbeat', shortname: 'HEARTBEAT', unit: '', min: 0, max: 50, type: "momentary", datatype: "numeric"},
     'Heartbeat.logsize': {name: 'Log size (kEntries)', shortname: 'LOGSIZE', unit: 'kEntries', min: 0, max: 10000, type: "discrete", datatype: "numeric"},
 
-    'TMP.tmp': {name: 'TMP status', shortname: '', min: 0, max: 1, type: "discrete", datatype: "numeric"},
     'Comment.text': {name: 'Comment', shortname: '', min: 0, max: 4, type: "momentary", datatype: "text"},
     'Login.text': {name: 'Login', shortname: '', min: 0, max: 3, type: "momentary", datatype: "text"},
     'Command.text': {name: 'Command', shortname: '', min: 0, max: 2, type: "momentary", datatype: "text"}
@@ -107,19 +109,20 @@ function createText() {
         if (vizChannels[channel].shortname !== '') {
             textDisplay += vizChannels[channel].shortname + ":&nbsp;<span id='" + channel + "'>n/c</span>&nbsp"
                     + vizChannels[channel].unit + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
-            textChannels[channel] = {value: 0, last: 0, current: 0};
+            textChannels[channel] = {value: 0, last: 0, current: 0, type: vizChannels[channel].datatype};
         }
     }
     document.getElementById("data").innerHTML = textDisplay;
 }
 
 
-function updateText(channel, value, time) {
+function updateText(channel, value, type, time) {
     var tc = textChannels[channel];
 
     if (tc !== undefined) {
-        textChannels[channel].value = value;
-        textChannels[channel].current = time;
+        tc.value = value;
+        tc.current = time;
+        tc.type = type;
     }
 }
 
@@ -132,7 +135,12 @@ function renderText(update) {
         if ((tc.current !== tc.last) && update) {
             timespan.style.color = "gold";
             valspan.style.color = "gold";
-            valspan.innerText = Math.round(tc.value * 100) / 100;
+
+            if (tc.type === "boolean") {
+                valspan.innerText = tc.value !== 0 ? "on" : "off";
+            } else if (tc.type === "numeric") {
+                valspan.innerText = Math.round(tc.value * 100) / 100;
+            }
             timespan.innerText = Math.round(tc.current * 100) / 100;
         } else if ((tc.current > tc.last + 1.5) || !update) {
             timespan.style.color = "white";
@@ -142,6 +150,21 @@ function renderText(update) {
     }
 }
 
+function renderButtons() {
+    var tc = textChannels["TMP.tmp"];
+    if (tc !== undefined && tc.value !== 0) {
+        selectButton("tmpon", "tmpoff");
+    } else {
+        selectButton("tmpoff", "tmpon");
+    }
+    
+    tc = textChannels["GAS.solenoid"];
+    if (tc !== undefined && tc.value !== 0) {
+        selectButton("solon", "soloff");
+    } else {
+        selectButton("soloff", "solon");
+    }
+}
 function resetViz() {
     for (var channel in vizChannels) {
         var vc = vizChannels[channel];
@@ -218,7 +241,7 @@ function updateViz(dataArray) {
 
                 //console.log("x: "+varTime+" y: "+percent)
                 addDataPoint(dataSeries, vc.type, secs, percent, value);
-                updateText(devicename + "." + variable, value, secs);
+                updateText(devicename + "." + variable, value, vc.datatype, secs);
             } catch (error) {
                 console.log(error);
             }

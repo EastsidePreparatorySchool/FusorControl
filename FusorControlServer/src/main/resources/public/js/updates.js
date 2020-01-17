@@ -28,8 +28,10 @@ function getStatus() {
                     if (raw !== "not logging") {
                         var data = JSON.parse(raw);
                         updateStatus(data, raw, logStart);
+                        selectButton("startLog", "stopLog");
                     } else {
                         renderText(false);
+                        selectButton("stopLog", "startLog");
                     }
                     setTimeout(getStatus, updateInterval);
                 }
