@@ -134,7 +134,7 @@ function renderText(update, secs) {
             valspan.innerText = Math.round(tc.value * 100) / 100;
             //timespan.style.color = "gold";
             //timespan.innerText = Math.round(tc.current * 100) / 100;
-        } else if ((secs > tc.last + 1.5) || !update) {
+        } else if ((secs > tc.last + 3) || !update) {
             //timespan.style.color = "white";
             valspan.style.color = "white";
         }
