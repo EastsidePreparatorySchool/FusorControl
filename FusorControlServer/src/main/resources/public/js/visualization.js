@@ -108,7 +108,7 @@ function createText() {
     for (var channel in vizChannels) {
         if (vizChannels[channel].shortname !== '') {
             textDisplay += vizChannels[channel].shortname + ":&nbsp;<span id='" + channel + "'>n/c</span>&nbsp"
-                    + vizChannels[channel].unit + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
+                    + vizChannels[channel].unit + "<br>";// + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
             textChannels[channel] = {value: 0, last: 0, current: 0, type: vizChannels[channel].datatype};
         }
     }
@@ -126,25 +126,21 @@ function updateText(channel, value, type, time) {
     }
 }
 
-function renderText(update) {
+function renderText(update, secs) {
     for (var channel in textChannels) {
         var tc = textChannels[channel];
-        var timespan = document.getElementById(channel + ".time");
+        //var timespan = document.getElementById(channel + ".time");
         var valspan = document.getElementById(channel);
 
         if ((tc.current !== tc.last) && update) {
-            timespan.style.color = "gold";
             valspan.style.color = "gold";
-
             if (tc.type === "boolean") {
                 valspan.innerText = tc.value !== 0 ? "on" : "off";
             } else if (tc.type === "numeric") {
                 valspan.innerText = Math.round(tc.value * 100) / 100;
             }
-            timespan.innerText = Math.round(tc.current * 100) / 100;
-        } else if ((tc.current > tc.last + 1.5) || !update) {
-            timespan.style.color = "white";
-            valspan.style.color = "white";
+        } else if ((secs > tc.last + 3) || !update) {
+            valspan.style.color = "gray";
         }
         tc.last = tc.current;
     }
@@ -257,12 +253,12 @@ function updateViz(dataArray) {
             setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
         }
         document.getElementById("logtime").innerText = String(Math.round(maxTime * 100) / 100);
+        renderText(true, maxTime);
     } else {
         setViewPort(0, maxTime);
     }
 
     renderChart();
-    renderText(true);
 }
 
 function addDataPoint(dataSeries, type, secs, percent, value) {

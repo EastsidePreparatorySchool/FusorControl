@@ -30,7 +30,7 @@ function getStatus() {
                         updateStatus(data, raw, logStart);
                         selectButton("startLog", "stopLog");
                     } else {
-                        renderText(false);
+                        renderText(false, 0);
                         selectButton("stopLog", "startLog");
                     }
                     setTimeout(getStatus, updateInterval);
