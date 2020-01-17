@@ -29,7 +29,7 @@ function getStatus() {
                         var data = JSON.parse(raw);
                         updateStatus(data, raw, logStart);
                     } else {
-                        renderText(false);
+                        renderText(false, 0);
                     }
                     setTimeout(getStatus, updateInterval);
                 }
