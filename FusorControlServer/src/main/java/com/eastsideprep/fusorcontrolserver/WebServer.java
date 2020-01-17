@@ -6,8 +6,10 @@ import com.eastsideprep.fusorweblog.FusorWebLogState;
 import com.eastsideprep.serialdevice.DeviceManager;
 import com.eastsideprep.serialdevice.CoreDevices;
 import com.eastsideprep.weblog.WebLog;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
+import java.net.URL;
+import java.net.HttpURLConnection;
 import javax.servlet.MultipartConfigElement;
 import static spark.Spark.*;
 import spark.staticfiles.StaticFilesConfiguration;
@@ -33,6 +35,7 @@ public class WebServer {
         port(80);
 
         post("/login", (req, res) -> login(req, res));
+        get ("/autologin", (req,res) -> autoLogin(req,res));
         post("/logout", (req, res) -> logout(req, res));
         get("/client", (req, res) -> getClient(req, res));
         get("/numcameras", (req, res) -> Integer.toString(cs.numCameras));
@@ -169,13 +172,15 @@ public class WebServer {
     //
     private static String login(spark.Request req, spark.Response res) {
         MultipartConfigElement multipartConfigElement = new MultipartConfigElement(System.getProperty("java.io.tmpdir"));
+
         req.raw().setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
 
         String login = req.queryParams("login");
         Context ctx;
 
         //System.out.println("\"" + login + "\"");
-        if ((req.ip().equals("10.20.82.127") /* GMEIN's LAPTOP */
+        if ((req.ip()
+                .equals("10.20.82.127") /* GMEIN's LAPTOP */
                 || req.ip().equals("0:0:0:0:0:0:0:1") /* LOCALHOST */)
                 && login.equalsIgnoreCase("gmein")) {
             System.out.println("login: Admin: " + login);
@@ -189,12 +194,44 @@ public class WebServer {
         }
 
         ctx.name = login;
+
         registerCtx(req, ctx);
 
         long millis = System.currentTimeMillis();
         String logText = DataLogger.makeLoginCommandText(login, req.ip(), ctx.isAdmin ? 1 : 0, millis);
+
         WebServer.dm.recordStatus("Login", millis, logText);
 
+        return "ok";
+    }
+
+    private static String autoLogin(spark.Request req, spark.Response res) {
+        String login = req.queryParams("login");
+        if (login.contains("@")) {
+            login = login.substring(0, login.indexOf('@'));
+        }
+        Context ctx;
+
+        //System.out.println("\"" + login + "\"");
+        if ((req.ip().equals("10.20.82.127") /* GMEIN's LAPTOP */
+                || req.ip().equals("0:0:0:0:0:0:0:1") /* LOCALHOST */)
+                && login.equalsIgnoreCase("gmein")) {
+            System.out.println("login: Admin: " + login);
+            ctx = new AdminContext(login, instance);
+            ctx.isAdmin = true;
+        } else {
+            ctx = new ObserverContext(login, instance);
+            System.out.println("login: Observer: " + login);
+        }
+
+        ctx.name = login;
+        registerCtx(req, ctx);
+
+        long millis = System.currentTimeMillis();
+        String logText = DataLogger.makeLoginCommandText(login, req.ip(), ctx.isAdmin ? 1 : 0, millis);
+
+        WebServer.dm.recordStatus("Login", millis, logText);
+        res.redirect("/console.html");
         return "ok";
     }
 
@@ -271,7 +308,8 @@ public class WebServer {
         if (WebServer.upgrade != null) {
             if (ctx.login.equals(WebServer.upgrade.login)) {
                 synchronized (WebServer.class) {
-                    if (WebServer.upgrade != null) {
+                    if (WebServer.upgrade
+                            != null) {
                         AdminContext ctx2 = WebServer.upgrade;
                         ctx2.clientID = client;
                         ctx2.ip = req.ip();

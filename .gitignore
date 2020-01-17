@@ -4,3 +4,4 @@
 FusorControlServer/logs/*
 FusorControlServer/config.json
 FusorControlServer/config.json
+/Auth/target/

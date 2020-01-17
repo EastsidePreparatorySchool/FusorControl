@@ -6,37 +6,52 @@
     <body>
         <script type="text/javascript" src="js/common.js"></script>
         <script type="text/javascript">
-            // first, see if we remember this user on the client
-            var client  = "";
-            try {
-                request({url: "/clienttype", method: "GET"})
-                        .then(data => {
-                            client = data;
-                            console.log("server session client: " + client);
-                            // now direct them to the proper place
-                            if (client === "admin") {
-                                location.assign("/console.html");
-                            } else if (client === "observer") {
-                                location.assign("/console.html");
-                            } else {
-                                location.assign("/login.html");
-                            }
-                        })
-                        .catch(error => {
-                            console.log("error: " + error);
-                        });
-            } catch (error) {
-                console.log("Error: " + error);
+            function makeClientID() {
+                window.sessionStorage.setItem("clientID", "" + ((new Date()).getTime()) % 100000);
             }
 
-            // now direct them to the proper place
-            if (client === "admin") {
-                location.assign("/console.html");
-            } else if (client === "observer") {
-                location.assign("/console.html");
-            } else {
-                location.assign("/login.html");
+            function getClientID() {
+                return window.sessionStorage.getItem("clientID");
             }
+
+            makeClientID();
+            //location.assign("http://epsauth.azurewebsites.net/login?url="+location.href+"login.html&loginparam=login");
+            location.assign("http://epsauth.azurewebsites.net/login?passthroughparam=clientID&passthrough="+getClientID()+
+                    "&url=" + location.href + "autologin&loginparam=login");
+        </script>
+        <script type="text/javascript">
+
+//            // first, see if we remember this user on the client
+//            var client = "";
+//            try {
+//                request({url: "/clienttype", method: "GET"})
+//                        .then(data => {
+//                            client = data;
+//                            console.log("server session client: " + client);
+//                            // now direct them to the proper place
+//                            if (client === "admin") {
+//                                location.assign("/console.html");
+//                            } else if (client === "observer") {
+//                                location.assign("/console.html");
+//                            } else {
+//                                location.assign("/login.html");
+//                            }
+//                        })
+//                        .catch(error => {
+//                            console.log("error: " + error);
+//                        });
+//            } catch (error) {
+//                console.log("Error: " + error);
+//            }
+//
+//            // now direct them to the proper place
+//            if (client === "admin") {
+//                location.assign("/console.html");
+//            } else if (client === "observer") {
+//                location.assign("/console.html");
+//            } else {
+//                location.assign("/login.html");
+//            }
         </script>
     </body>
 </html>
