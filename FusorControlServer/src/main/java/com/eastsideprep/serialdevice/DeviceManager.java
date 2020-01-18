@@ -190,7 +190,6 @@ public class DeviceManager {
         }
     }
 
- 
     private void queryThreadLoop(Object semaphore) {
         // thread priority below web server and also below logger thread
         // discovering new devices is not that important, after all
@@ -242,20 +241,28 @@ public class DeviceManager {
             }
         }
 
-        // filter the list of all ports down to only COM devices,
-        // and only ones that are not registered etc. 
+        //
+        // sort by COM port number
+        //
         SerialPort[] ports = SerialPort.getCommPorts();
         List<SerialPort> portList = new ArrayList<>(Arrays.asList(ports));
+        Collections.sort(portList, (a, b) -> (getPortNumber(a) - getPortNumber(b)));
+
+        arduinoMap.prunePortList(portList);
+        
+        // filter the list of all ports down to only COM devices,
+        // and only ones that are not registered etc. 
         portList.removeIf((p) -> ((!p.getSystemPortName().contains("COM"))
-                || arduinoMap.containsPort(p)
                 || (Arrays.binarySearch(ignorePorts, p.getDescriptivePortName()) >= 0)
                 || (p.getDescriptivePortName().toLowerCase().contains("bluetooth") && FusorControlServer.config.noBlueTooth)));
 
         //
-        // sort by COM port number
+        // make sure we understand if a port has disappeared from the list
         //
-        Collections.sort(portList, (a, b) -> (getPortNumber(a) - getPortNumber(b)));
-
+        
+        
+        // remove all the ports that are already registered
+        portList.removeIf(p->arduinoMap.containsPort(p));
         //
         // filter out bluetooth pairs
         //
@@ -435,7 +442,7 @@ public class DeviceManager {
 
         // register in the map
         arduinoMap.put(sd);
-        
+
         // if this is core, update the CoreDevices
         if (CoreDevices.isCoreDevice(sd.name)) {
             cd.refresh();

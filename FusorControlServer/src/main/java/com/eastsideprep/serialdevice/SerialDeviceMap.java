@@ -3,11 +3,15 @@ package com.eastsideprep.serialdevice;
 import com.fazecast.jSerialComm.SerialPort;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SerialDeviceMap {
 
-    HashMap<String, SerialDevice> nameMap = new HashMap<>();
-    HashMap<String, SerialDevice> portMap = new HashMap<>();
+    private HashMap<String, SerialDevice> nameMap = new HashMap<>();
+    private HashMap<String, SerialDevice> portMap = new HashMap<>();
 
     public SerialDevice get(SerialPort p) {
         SerialDevice sd;
@@ -53,6 +57,28 @@ public class SerialDeviceMap {
         }
     }
 
+    public void prunePortList(List<SerialPort> list) {
+        HashSet<String> set = new HashSet<>(list.stream().map((sp) -> sp.getSystemPortName()).collect(Collectors.toList()));
+        ArrayList<SerialDevice> removals = new ArrayList<>();
+        synchronized (this) {
+            Set<String> ports = this.portMap.keySet();
+        }
+        for (String port : this.portMap.keySet()) {
+            SerialDevice sd = portMap.get(port);
+            if (sd.isValid()) {
+                //System.out.println("Examining SD:" + sd.name + "(supposedly " + port + ")");
+                if (!set.contains(port)) {
+                    System.out.println("not present, removing: " + port);
+                    removals.add(sd);
+                }
+            }
+        }
+
+        for (SerialDevice sd : removals) {
+            remove(sd);
+        }
+    }
+
     public void remove(SerialDevice sd) {
         synchronized (this) {
             //System.out.println("SDM:REMOVE:"+sd.name);
@@ -84,7 +110,7 @@ public class SerialDeviceMap {
     public int validDeviceCount() {
         int num;
         synchronized (this) {
-            num = (int)nameMap.values().stream().filter((v)->(v.isValid())).count();
+            num = (int) nameMap.values().stream().filter((v) -> (v.isValid())).count();
         }
         return num;
 
