@@ -38,12 +38,16 @@ public class AdminContext extends ObserverContext {
         String text = req.queryParams("text");
 
         String upgradeCommand = "#promote";
+        String devicesCommand = "#devices";
 
         if (text.startsWith(upgradeCommand) && this.login.equals("gmein")) {
             String obs = text.substring(upgradeCommand.length()).trim();
             upgradeObserver(obs);
             logAdminCommand("#promote: " + obs);
             return "promotion scheduled";
+        } else if (text.equals(devicesCommand) && this.login.equals("gmein")) {
+            logAdminCommand("#devices: " + dm.getAllDeviceNames());
+            return "ok";
         }
 
         return super.comment(req);
@@ -64,8 +68,8 @@ public class AdminContext extends ObserverContext {
         }
         throw halt(401);
     }
-    
-        String getOneStatusRoute() {
+
+    String getOneStatusRoute() {
         //System.out.println("/getstatus");
         if (WebServer.dl == null && this.isAdmin) {
             System.out.println("  logging inactive, poking bears ...");
@@ -83,8 +87,6 @@ public class AdminContext extends ObserverContext {
         }
         return s;
     }
-
-
 
     String startLogRoute() {
         synchronized (ws) {

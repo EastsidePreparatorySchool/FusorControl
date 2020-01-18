@@ -186,4 +186,9 @@ public class SerialDevice {
     public void setAutoStatus(boolean auto) {
         this.autoStatus = auto;
     }
+    
+   @Override
+   public String toString() {
+       return "["+name + (isValid()?" ("+port.getSystemPortName()+")":"")+"]";
+   }
 }

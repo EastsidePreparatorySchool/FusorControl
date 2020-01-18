@@ -489,6 +489,12 @@ public class DeviceManager {
         return arduinoMap.getAllDevices();
     }
 
+    public String getAllDeviceNames() {
+        ArrayList<SerialDevice> list =  arduinoMap.getAllDevices();
+        list.removeIf(sd->!sd.isValid());
+        return list.toString();
+    }
+
     public ArrayList<String> getDeviceNames() {
         return arduinoMap.getNames();
     }
