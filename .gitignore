@@ -5,3 +5,5 @@ FusorControlServer/logs/*
 FusorControlServer/config.json
 FusorControlServer/config.json
 /Auth/target/
+/Auth2/Foods/nbproject/private/
+/Auth2/Foods/build/

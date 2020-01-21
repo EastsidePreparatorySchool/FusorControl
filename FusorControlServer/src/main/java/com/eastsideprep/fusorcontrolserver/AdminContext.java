@@ -172,8 +172,8 @@ public class AdminContext extends ObserverContext {
     String solenoidOffRoute() {
         logAdminCommand("Solenoid closed");
 
-        if (cd.gas.setOpen()) {
-            return "set solenoid to open";
+        if (cd.gas.setClosed()) {
+            return "set solenoid to closed";
         }
         throw halt(500, "set solenoid failed");
     }

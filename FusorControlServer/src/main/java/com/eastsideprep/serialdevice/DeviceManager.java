@@ -360,9 +360,9 @@ public class DeviceManager {
 //                    port.closePort();
 //                    port.openPort();
                     port.addDataListener(connectionListener);
-                    Thread.sleep(2000);
+                    Thread.sleep(3000);
                     writeToPort(port, SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));
-                    Thread.sleep(2000);
+                    Thread.sleep(3000);
                 } catch (Exception e) {
                     System.out.println("open exception: " + e);
                 }
