@@ -21,6 +21,7 @@ public class SerialDevice {
     public final static String FUSOR_COMMAND_PREFIX = "CMD[";
     public final static String FUSOR_RESPONSE_PREFIX = "RSP[";
     public final static String FUSOR_POSTFIX = "]END";
+    public final static String FUSOR_RESPONSE_POSTFIX = "]END\n";
 
     public final static String FUSOR_IDENTIFY = "IDENTIFY";
     public final static String FUSOR_STATUS = "STATUS";
@@ -83,9 +84,9 @@ public class SerialDevice {
         if (this.os == null) {
             return true;
         }
-        if (FusorControlServer.config.superVerbose) {
+//        if (FusorControlServer.config.superVerbose) {
             System.out.println("command to device " + name + ": " + s);
-        }
+//        }
 
         String cmd = makeCommand(s);
 
@@ -116,7 +117,7 @@ public class SerialDevice {
     private boolean retrieveConfirmation(String cmd) {
         boolean result;
         synchronized (this.confMonitor) {
-            //System.out.println("Cmd: " +cmd+ ", conf: "+this.confirmation);
+            System.out.println("Cmd: " +cmd+ ", conf: "+this.confirmation);
             result = cmd.equals(this.confirmation);
             this.confirmation = null;
         }

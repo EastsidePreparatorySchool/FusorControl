@@ -83,7 +83,7 @@ public class DeviceManager {
 
         start = buffer.indexOf(SerialDevice.FUSOR_RESPONSE_PREFIX);
         if (start != -1) {
-            end = buffer.indexOf(SerialDevice.FUSOR_POSTFIX, start);
+            end = buffer.indexOf(SerialDevice.FUSOR_RESPONSE_POSTFIX, start);
         }
         //System.out.println("" + start + ", " + end);
 
@@ -91,10 +91,10 @@ public class DeviceManager {
         while (start != -1 && end > start) {//while there is a complete message to process
             String response = buffer.substring(start + SerialDevice.FUSOR_RESPONSE_PREFIX.length(), end);
             processMessage(response, port);
-            buffer = buffer.substring(end + SerialDevice.FUSOR_POSTFIX.length()); //the remainder of the buffer
+            buffer = buffer.substring(end + SerialDevice.FUSOR_RESPONSE_POSTFIX.length()); //the remainder of the buffer
             start = buffer.indexOf(SerialDevice.FUSOR_RESPONSE_PREFIX);
             if (start != -1) {
-                end = buffer.indexOf(SerialDevice.FUSOR_POSTFIX, start);
+                end = buffer.indexOf(SerialDevice.FUSOR_RESPONSE_POSTFIX, start);
             }
             //System.out.println("" + start + ", " + end);
         }

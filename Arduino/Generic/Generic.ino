@@ -30,6 +30,9 @@ void setup(){
   d2_timestamp = millis();
   d2_count = 0;
 
+  pinMode(2, INPUT);
+  pinMode(3, INPUT);
+
   attachInterrupt(digitalPinToInterrupt(2), ISR_edgeCounter, RISING);
 
   FUSOR_LED_ON();
@@ -64,7 +67,7 @@ void updateAll() {
   for (int i = 0; i < 4; i++) {
     if (fusorVariableUpdated(aRegs[i])) {
       int val = fusorGetIntVariable(aRegs[i]);
-      analogWrite(i, val);
+      //analogWrite(i, val);
     }
     fusorSetIntVariable(aRegs[i], analogRead(i));
   }
@@ -75,9 +78,9 @@ void updateAll() {
   for (int i = 0; i < 2; i++) {
     if (fusorVariableUpdated(dRegs[i])) {
       bool val = fusorGetBoolVariable(dRegs[i]);
-      digitalWrite(i, val?HIGH:LOW);
+      //digitalWrite(i, val?HIGH:LOW);
     }
-    fusorSetIntVariable(dRegs[i], digitalRead(i) == HIGH);
+    fusorSetBoolVariable(dRegs[i], digitalRead(i) == HIGH);
   }
 
   //

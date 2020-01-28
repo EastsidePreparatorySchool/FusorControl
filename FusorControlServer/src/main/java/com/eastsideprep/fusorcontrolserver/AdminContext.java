@@ -88,14 +88,14 @@ public class AdminContext extends ObserverContext {
         return s;
     }
 
-    String startLogRoute() {
+    String startLogRoute(spark.Request req) {
         synchronized (ws) {
             if (dl != null) {
                 dl.shutdown();
             }
             dl = new DataLogger();
             try {
-                dl.init(dm, cs);
+                dl.init(dm, cs, req.queryParams("filename"));
             } catch (IOException ex) {
                 System.out.println("startLog IO exception: " + ex);
             }
@@ -182,7 +182,7 @@ public class AdminContext extends ObserverContext {
         int value = Integer.parseInt(req.queryParams("value"));
         logAdminCommand("Set needle valve:" + value);
         System.out.println("Received needle valve Set " + value);
-        if (cd.needle.set("needlevalve", value)) {
+        if (cd.needle.set("needlevalve_in", value)) {
             System.out.println("needle valve success");
             return "set needle valve value as " + value;
         }

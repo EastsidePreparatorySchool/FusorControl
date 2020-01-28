@@ -12,7 +12,7 @@ var vizChannels = {
     'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', shortname: 'DPHRGM raw', unit: 'adc', min: 0, max: 110, type: "continuous", datatype: "numeric"},
     'PIRANI.pirani_adc': {name: 'Fine pressure (adc)', shortname: 'PIRANI raw', unit: 'adc', min: 0, max: 1024, type: "continuous", datatype: "numeric"},
     'GAS.solenoid': {name: 'TMP status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
-    'NEEDLEVALE.needlevalve': {name: 'Needle valve', shortname: 'NEEDLE setting', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric"},
+    'NEEDLEVALVE.needlevalve_out': {name: 'Needle valve', shortname: 'NEEDLE setting', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric"},
     'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR targ', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'VARIAC.potentiometer': {name: 'Variac actual (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},

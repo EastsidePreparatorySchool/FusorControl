@@ -3,6 +3,8 @@
 //
 
 
+
+
 //
 // reset weblog observer
 //
@@ -34,12 +36,13 @@ function getLogs() {
                 var listDiv = document.getElementById("filesdiv");
                 listDiv.style.display = "block";
                 var filesText = "<a class='hover' onclick='loadLog(this)'>[sample log]</a><br>";
+                
                 for (var i = 0; i < files.length; i++) {
                     filesText += "<a class='hover' onclick='loadLog(this)'>";
                     filesText += files[i];
                     filesText += "</a><br>";
                 }
-                list.innerHTML += filesText;
+                list.innerHTML = filesText;
             })
             .catch(error => {
                 console.log("error: " + error);

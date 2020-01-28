@@ -2,8 +2,6 @@
 // Fusor project - fusor.h - shared Arduino code
 //
 
-#define FDEBUG true
-
 #define FUSOR_LED_ON() digitalWrite(LED_BUILTIN, HIGH);
 #define FUSOR_LED_OFF() digitalWrite(LED_BUILTIN, LOW);
 
@@ -42,8 +40,7 @@ static long _fusorLastStatus = 0;
 static const char *_fusorCmd = "CMD[";
 static const char *_fusorRsp = "RSP[";
 static const char *_fusorEnd = "]END";
-#define FUSOR_FIX_LENGTH_CMD 4
-#define FUSOR_FIX_LENGTH_END 4
+#define FUSOR_FIX_LENGTH 4
 
 #ifdef BLUETOOTH
 BluetoothSerial SerialBT;
@@ -117,21 +114,20 @@ void fusorSendResponse(const char *msg)
 
   // make sure to not leave any markers in the message unaltered,
   // so that the host doesn't get confused
-  char *start = strstr(fusorResponseBuffer, _fusorCmd);
+  char *start = strstr(fusorResponseBuffer, _fusorEnd);
   if (start != NULL)
   {
-    strncpy(start, "cmd<", FUSOR_FIX_LENGTH_CMD);
+    strncpy(start, "cmd<", FUSOR_FIX_LENGTH);
   }
 
   char *end = strstr(fusorResponseBuffer, _fusorEnd);
   if (end != NULL)
   {
-    strncpy(end, ">end", FUSOR_FIX_LENGTH_END);
+    strncpy(end, ">end", FUSOR_FIX_LENGTH);
   }
 
   // add the real end marker
   fusorAddResponse(_fusorEnd);
-  fusorAddResponse("\n");
   FSERIAL.write((const uint8_t *)fusorResponseBuffer, strlen(fusorResponseBuffer));
 }
 
@@ -153,7 +149,7 @@ char *_fusorCompactCmdBuffer(char *newStart)
 
 int _fusorReadToCmdBuffer()
 {
-  while (FSERIAL.available() > 0 && fusorCmdBufpos < FUSOR_CMDLENGTH - 1)
+  while (FSERIAL.available() > 0 && fusorCmdBufpos < FUSOR_CMDLENGTH)
   {
     fusorCmdBuffer[fusorCmdBufpos] = FSERIAL.read();
     fusorCmdBufpos++;
@@ -193,17 +189,15 @@ char *_fusorGetCommand(char *sCommand)
   sCommand = strstr(sCommand, _fusorCmd);
   if (sCommand != NULL)
   {
+    // found keyword, skip, compact
+    sCommand += FUSOR_FIX_LENGTH;
+    sCommand = _fusorCompactCmdBuffer(sCommand);
+
     // look for end of command
     char *sEnd = strstr(sCommand, _fusorEnd);
-    if (sEnd != NULL && sEnd > sCommand)
+    if (sEnd != NULL)
     {
-      // found complete command, compact, terminate appropriately, return start
-      // found keyword, skip, compact
-      sCommand += FUSOR_FIX_LENGTH_CMD;
-      sCommand = _fusorCompactCmdBuffer(sCommand);
-
-      // reestablish where the end is
-      sEnd = strstr(sCommand, _fusorEnd);
+      // found complete command, terminate appropriately, return start
       *sEnd = 0;
       return sCommand;
     }
@@ -217,7 +211,7 @@ char *_fusorParseCommand(char *full, char **command, char **var, char **val)
 {
   char *next;
   int len = strlen(full);
-  char *nextCmd = full + len + FUSOR_FIX_LENGTH_END;
+  char *nextCmd = full + len + FUSOR_FIX_LENGTH;
 
   *command = full;
   *var = NULL;
@@ -626,20 +620,17 @@ void fusorLoop()
   _fusorDoAutoStatus();
 
   // reset all "updated" values
-  //  for (int i = 0; i < fusorNumVars; i++)
-  //  {
-  //    fusorVariables[i].updated = false;
-  //  }
+//  for (int i = 0; i < fusorNumVars; i++)
+//  {
+//    fusorVariables[i].updated = false;
+//  }
 
   //collects serial messages from the hardware buffer
   if (_fusorReadToCmdBuffer() > 0)
   {
-    if (FDEBUG)
-    {
-      fusorStartResponse("ECHO:");
-      fusorAddResponse(fusorCmdBuffer);
-      fusorSendResponse(NULL);
-    }
+    // fusorStartResponse("received cmd, current buffer:");
+    // fusorAddResponse(fusorCmdBuffer);
+    // fusorSendResponse(NULL);
     // got message, let's parse
     char *sCommand = NULL;
     while (sCommand = _fusorGetCommand(sCommand))

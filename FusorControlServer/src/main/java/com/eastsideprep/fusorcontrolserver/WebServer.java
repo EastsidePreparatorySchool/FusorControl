@@ -123,7 +123,7 @@ public class WebServer {
         cd = dm.init();
         dl = new DataLogger();
         try {
-            dl.init(dm, cs);
+            dl.init(dm, cs, null);
         } catch (IOException ex) {
             System.out.println("initial startLog IO exception: " + ex);
         }
@@ -153,7 +153,7 @@ public class WebServer {
         // need to be logged in as admin to call these
         //
         get("/protected/admin/kill", (req, res) -> getAdminCtx(req).killRoute());
-        get("/protected/admin/startlog", (req, res) -> getAdminCtx(req).startLogRoute());
+        get("/protected/admin/startlog", (req, res) -> getAdminCtx(req).startLogRoute(req));
         get("/protected/getonestatus", (req, res) -> getAdminCtx(req).getOneStatusRoute());
         get("/protected/admin/stoplog", (req, res) -> getAdminCtx(req).stopLogRoute());
         get("/protected/admin/variac", (req, res) -> getAdminCtx(req).variacRoute(req));
@@ -299,6 +299,12 @@ public class WebServer {
         }
 
         String client = req.queryParams("clientID");
+        
+        // if someone reloaded a tab, clientID will not be there. If they have only one tab open, just use that one
+        if (client == null && ctxMap.size() == 1) {
+            client = ctxMap.values().toArray(new Context[1])[0].clientID;
+        }
+        
         Context ctx = ctxMap.get(client);
         if (ctx == null) {
             return null;

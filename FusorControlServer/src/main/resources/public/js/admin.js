@@ -68,9 +68,13 @@ function getOneStatus() {
 
 //start a new log
 function startLog() {
+    var filename = prompt("Custom name for log file:", "");
+    if (filename === null) {
+        filename = "";
+    }
     console.log("startlog");
     document.getElementById("chat").innerText = "";
-    request({url: "/protected/admin/startlog", method: "GET"})
+    request({url: "/protected/admin/startlog?filename="+filename, method: "GET"})
             .then(data => {
                 console.log(data);
                 initStatus();

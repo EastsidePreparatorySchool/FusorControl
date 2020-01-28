@@ -36,7 +36,7 @@ public class ObserverContext extends Context {
         String s = DataLogger.getNewLogEntryBatch(obs);
 
         if (FusorControlServer.config.superVerbose) {
-            System.out.println("  Status:" + s);
+            //System.out.println("  Status:" + s);
         }
         return s;
     }

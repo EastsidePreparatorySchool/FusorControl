@@ -34,7 +34,7 @@ public class DataLogger {
 
     }
 
-    public void init(DeviceManager dm, CamStreamer cs) throws IOException {
+    public void init(DeviceManager dm, CamStreamer cs, String customName) throws IOException {
         this.dm = dm;
         this.currentFile = "";
 
@@ -51,7 +51,7 @@ public class DataLogger {
 
             // create logfile
             this.baseTime = System.currentTimeMillis();
-            open(fileName, ts);
+            open(fileName+(customName != null? "_"+customName:""), ts);
             this.cs = cs;
             cs.startRecording(fileName + "_cam_", this.baseTime);
 
@@ -210,7 +210,7 @@ public class DataLogger {
             return;
         }
         if (FusorControlServer.config.superVerbose) {
-            System.out.println("Obs: " + obs + ", updates: " + list.size());
+            //System.out.println("Obs: " + obs + ", updates: " + list.size());
         }
 
         for (WebLogEntry e : list) {
