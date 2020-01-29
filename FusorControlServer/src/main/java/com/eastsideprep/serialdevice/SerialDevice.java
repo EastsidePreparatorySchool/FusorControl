@@ -117,7 +117,7 @@ public class SerialDevice {
     private boolean retrieveConfirmation(String cmd) {
         boolean result;
         synchronized (this.confMonitor) {
-            System.out.println("Cmd: " +cmd+ ", conf: "+this.confirmation);
+            System.out.println("Device: "+this.name+", cmd: " +cmd+ ", conf: "+this.confirmation);
             result = cmd.equals(this.confirmation);
             this.confirmation = null;
         }

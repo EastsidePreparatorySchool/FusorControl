@@ -32,7 +32,7 @@ public class DeviceManager {
     private final SerialPortDataListener connectionListener = new SerialPortDataListener() {
         @Override
         public int getListeningEvents() {
-            return SerialPort.LISTENING_EVENT_DATA_AVAILABLE;
+            return SerialPort.LISTENING_EVENT_DATA_RECEIVED;
         }
 
         @Override
@@ -40,26 +40,28 @@ public class DeviceManager {
             if (FusorControlServer.config.verbose) {
                 //System.out.println("  Serial event on port " + e.getSerialPort().getSystemPortName());
             }
-            if (e.getEventType() == SerialPort.LISTENING_EVENT_DATA_AVAILABLE) {
+            if (e.getEventType() == SerialPort.LISTENING_EVENT_DATA_RECEIVED) {
                 processSerialData(e);
             }
         }
     };
 
     private void processSerialData(SerialPortEvent e) {
-        if (e.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE) {
-            return;
-        }
-
         //System.out.println("Serial data available");
         SerialPort port = e.getSerialPort();
-        int bytes = port.bytesAvailable();
+
+//        int bytes = port.bytesAvailable();
+//        if (bytes == 0) {
+//            return;
+//        }
+//        byte[] data = new byte[bytes];
+//        port.readBytes(data, bytes);
+
+        byte[] data = e.getReceivedData();
+        int bytes = data.length;
         if (bytes == 0) {
             return;
         }
-
-        byte[] data = new byte[bytes];
-        port.readBytes(data, bytes);
 
         if (FusorControlServer.config.superVerbose) {
             System.out.println("Read " + data.length + " bytes from " + e.getSerialPort().getSystemPortName());
