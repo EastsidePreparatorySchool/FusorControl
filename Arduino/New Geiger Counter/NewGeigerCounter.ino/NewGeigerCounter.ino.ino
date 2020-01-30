@@ -38,7 +38,7 @@ void loop() {
   fusorLoop();
   Serial.println(d2_count/2);
   updateAll();
-  delay(5);
+  fusorDelay(1000);
 }
 
 void updateAll() {
@@ -62,7 +62,7 @@ void updateAll() {
 
   long period = now - timestamp;
   if (period == 0) period = 1;
-  float frequency = ((float)count)/period;
+ float frequency = ((float)count*1000)/period;
 
   fusorSetIntVariable("d2_count",count);
   fusorSetFloatVariable("d2_frequency",frequency);
