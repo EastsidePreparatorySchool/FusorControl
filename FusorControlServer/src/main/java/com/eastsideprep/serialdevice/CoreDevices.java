@@ -15,11 +15,24 @@ public class CoreDevices {
         this.dm = dm;
     }
 
-    public void refresh(){
-        this.variac = (VariacControlDevice) dm.get("VARIAC");
-        this.gas = (GasControlDevice) dm.get("GAS");
-        this.tmp = (TMPControlDevice) dm.get("TMP");
-        this.needle = dm.get("NEEDLEVALVE");
+    public void refresh() {
+        SerialDevice sd;
+        sd = dm.get("VARIAC");
+        if (sd != null) {
+            this.variac = (VariacControlDevice) sd;
+        }
+        sd = dm.get("GAS");
+        if (sd != null) {
+            this.gas = (GasControlDevice) sd;
+        }
+        sd = dm.get("TMP");
+        if (sd != null) {
+            this.tmp = (TMPControlDevice) sd;
+        }
+        sd = dm.get("NEEDLEVALVE");
+        if (sd != null) {
+            this.needle = sd;
+        }
     }
 
     public static boolean isCoreDevice(String name) {

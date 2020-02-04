@@ -1,6 +1,5 @@
 package com.eastsideprep.serialdevice;
 
-import com.eastsideprep.fusorcontrolserver.DataLogger;
 import com.eastsideprep.fusorcontrolserver.FusorControlServer;
 import com.eastsideprep.fusorcontrolserver.WebServer;
 import com.eastsideprep.fusorweblog.FusorWebLogEntry;
@@ -13,7 +12,6 @@ import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -43,15 +41,15 @@ public class DeviceManager {
 
         @Override
         public void serialEvent(SerialPortEvent e) {
-            if (FusorControlServer.config.verbose) {
-                //System.out.println("  Serial event on port " + e.getSerialPort().getSystemPortName());
-            }
+            try {
             DeviceManager.instance.processSerialData(e);
+            } catch (Throwable t) {
+                System.err.println("Exception in serial data processing: "+t);
+            }
         }
     };
 
     private void processSerialData(SerialPortEvent e) {
-        //System.out.println("Serial data received");
         SerialPort port = e.getSerialPort();
 
         byte[] data = e.getReceivedData();
@@ -441,7 +439,7 @@ public class DeviceManager {
         arduinoMap.put(sd);
 
         // if this is core, update the CoreDevices
-        if (CoreDevices.isCoreDevice(sd.name)) {
+        if (cd != null && CoreDevices.isCoreDevice(sd.name)) {
             cd.refresh();
         }
 
@@ -466,17 +464,18 @@ public class DeviceManager {
             DeviceManager dm = DeviceManager.instance;
             if (!dm.arduinoMap.containsPort(port)) {
                 SerialDevice sd = new SerialDevice(port, name);
-                String msg = "";
 
                 sd = specificDevice(sd);
-
                 dm.register(sd);
-                System.out.println("  -- new Arduino connected: " + sd.name + " (" + sd.originalName + ", function: " + sd.function + "), on: " + port.getSystemPortName() + msg);
+
+                System.out.println("  -- new Arduino connected: " + sd.name + " (" + sd.originalName + ", function: " + sd.function + "), on: " + port.getSystemPortName());
                 if (WebServer.dl != null) {
                     sd.autoStatusOn();
                 }
+
             }
         }
+
     }
 
     public SerialDevice get(String name) {
