@@ -23,11 +23,17 @@ public class DeviceManager {
     //
     // the static part of this class acts as the manager for serial devices
     //
+    private static DeviceManager instance;
+
     private SerialDeviceMap arduinoMap = new SerialDeviceMap();
     private Thread queryThread;
     // keep track of partial messages
     private HashMap<SerialPort, String> bufferState = new HashMap<>();
     private CoreDevices cd;
+
+    public DeviceManager() {
+        DeviceManager.instance = this;
+    }
 
     private final SerialPortDataListener connectionListener = new SerialPortDataListener() {
         @Override
@@ -40,22 +46,13 @@ public class DeviceManager {
             if (FusorControlServer.config.verbose) {
                 //System.out.println("  Serial event on port " + e.getSerialPort().getSystemPortName());
             }
-            if (e.getEventType() == SerialPort.LISTENING_EVENT_DATA_RECEIVED) {
-                processSerialData(e);
-            }
+            DeviceManager.instance.processSerialData(e);
         }
     };
 
     private void processSerialData(SerialPortEvent e) {
-        //System.out.println("Serial data available");
+        //System.out.println("Serial data received");
         SerialPort port = e.getSerialPort();
-
-//        int bytes = port.bytesAvailable();
-//        if (bytes == 0) {
-//            return;
-//        }
-//        byte[] data = new byte[bytes];
-//        port.readBytes(data, bytes);
 
         byte[] data = e.getReceivedData();
         int bytes = data.length;
@@ -64,7 +61,7 @@ public class DeviceManager {
         }
 
         if (FusorControlServer.config.superVerbose) {
-            System.out.println("Read " + data.length + " bytes from " + e.getSerialPort().getSystemPortName());
+            System.out.println("Received " + data.length + " bytes from " + e.getSerialPort().getSystemPortName());
         }
         String buffer = new String(data);
         if (FusorControlServer.config.superVerbose) {
@@ -251,7 +248,7 @@ public class DeviceManager {
         Collections.sort(portList, (a, b) -> (getPortNumber(a) - getPortNumber(b)));
 
         arduinoMap.prunePortList(portList);
-        
+
         // filter the list of all ports down to only COM devices,
         // and only ones that are not registered etc. 
         portList.removeIf((p) -> ((!p.getSystemPortName().contains("COM"))
@@ -261,10 +258,8 @@ public class DeviceManager {
         //
         // make sure we understand if a port has disappeared from the list
         //
-        
-        
         // remove all the ports that are already registered
-        portList.removeIf(p->arduinoMap.containsPort(p));
+        portList.removeIf(p -> arduinoMap.containsPort(p));
         //
         // filter out bluetooth pairs
         //
@@ -466,15 +461,16 @@ public class DeviceManager {
         }
     }
 
-    private void identify(String name, SerialPort port) {
-        synchronized (this) {
-            if (!arduinoMap.containsPort(port)) {
+    private static void identify(String name, SerialPort port) {
+        synchronized (DeviceManager.class) {
+            DeviceManager dm = DeviceManager.instance;
+            if (!dm.arduinoMap.containsPort(port)) {
                 SerialDevice sd = new SerialDevice(port, name);
                 String msg = "";
 
                 sd = specificDevice(sd);
 
-                register(sd);
+                dm.register(sd);
                 System.out.println("  -- new Arduino connected: " + sd.name + " (" + sd.originalName + ", function: " + sd.function + "), on: " + port.getSystemPortName() + msg);
                 if (WebServer.dl != null) {
                     sd.autoStatusOn();
@@ -492,8 +488,8 @@ public class DeviceManager {
     }
 
     public String getAllDeviceNames() {
-        ArrayList<SerialDevice> list =  arduinoMap.getAllDevices();
-        list.removeIf(sd->!sd.isValid());
+        ArrayList<SerialDevice> list = arduinoMap.getAllDevices();
+        list.removeIf(sd -> !sd.isValid());
         return list.toString();
     }
 
