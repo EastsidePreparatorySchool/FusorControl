@@ -1,6 +1,6 @@
 //
-// Fusor project - Diaphragm pressure sensor code for Arduino
-// 
+// Fusor project - Pirani gauge pressure sensor code for Arduino
+// Arduino Uno
 //
 
 #include "fusor.h"

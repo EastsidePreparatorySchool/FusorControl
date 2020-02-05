@@ -14,8 +14,8 @@ void setup(){
 
   cps = 0;
 
-  pinMode(10, INPUT);
-  pinMode(11, OUTPUT);
+  pinMode(14, INPUT);
+  pinMode(15, OUTPUT);
   
   Serial3.begin(9600);//, SERIAL_8N1);
     

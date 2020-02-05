@@ -3,6 +3,8 @@
 //
 
 
+
+
 //
 // reset weblog observer
 //
@@ -16,7 +18,7 @@ request({url: "/resetobserver", method: "GET"})
 
 
 //
-// enable admin controls if appropriate
+// reset admin controls
 //
 var isAdmin = false;
 var loginInfo = "<unknown>";
@@ -34,12 +36,13 @@ function getLogs() {
                 var listDiv = document.getElementById("filesdiv");
                 listDiv.style.display = "block";
                 var filesText = "<a class='hover' onclick='loadLog(this)'>[sample log]</a><br>";
+                
                 for (var i = 0; i < files.length; i++) {
                     filesText += "<a class='hover' onclick='loadLog(this)'>";
                     filesText += files[i];
                     filesText += "</a><br>";
                 }
-                list.innerHTML += filesText;
+                list.innerHTML = filesText;
             })
             .catch(error => {
                 console.log("error: " + error);
@@ -111,14 +114,37 @@ function displayLiveData() {
     location.reload();
 }
 
+
+function enableCameras() {
+    request({url: "/numcameras", method: "GET"})
+            .then(data => {
+                // yes: make the display visible and set the url
+                var numCameras = Number(data);       // got number from server
+                numCameras = Math.min(numCameras, 4); // 4 cameras max
+                for (var i = 1; i <= numCameras; i++) {
+                    var cam = document.getElementById("cam" + i);
+                    cam.style.display = "inline";
+                    cam.src = window.location.origin + ":45" + (i + 66) + "/mjpg";
+                }
+            })
+            .catch(error => {
+                console.log("camera error: " + error);
+            });
+}
+
+
+
 //
 // init code
 //
 
 
 createViz();
+createText();
 checkAdminControls();
 initStatus();
+enableCameras();
+
 
 
         

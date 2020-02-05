@@ -14,15 +14,18 @@ int SERVO_PWM_PORT = 9;
 
 void setup(){
   fusorInit("NEEDLEVALVE");
-  fusorAddVariable("needlevalve", FUSOR_VARTYPE_INT);
+  
+  fusorAddVariable("needlevalve_in", FUSOR_VARTYPE_INT);
+  fusorAddVariable("needlevalve_out", FUSOR_VARTYPE_INT);
   fusorAddVariable("nv_angle", FUSOR_VARTYPE_INT);
-  fusorSetIntVariable("needlevalve", 0);
+  
+  fusorSetIntVariable("needlevalve_out", 0);
   fusorSetIntVariable("nv_angle", 0);
 
   needleValve(0);
   needlevalveservo.attach(SERVO_PWM_PORT);
   FUSOR_LED_ON();
-  delay(300);
+  delay(100);
   FUSOR_LED_OFF();
 }
 
@@ -33,18 +36,19 @@ void loop() {
 }
 
 void updateAll() {
-  if (fusorVariableUpdated("needlevalve")) {
-    needleValve(fusorGetIntVariable("needlevalve"));
+  if (fusorVariableUpdated("needlevalve_in")) {
+    needleValve(fusorGetIntVariable("needlevalve_in"));
   }
 }
 
 void needleValve(int percent) {
-  int angle = MIN_DEG + (MAX_DEG - MIN_DEG) * percent / 100;
-  fusorSetIntVariable("nv_angle", angle);
-
-  needlevalveservo.write(angle);
-
-  // the servo library doesn't like being talked to while the servo is still settling
-  fusorDelay(1200);
-  fusorClearCommandQueue();
+//  fusorSetIntVariable("needlevalve_out", percent);
+//  int angle = MIN_DEG + (MAX_DEG - MIN_DEG) * percent / 100;
+//  fusorSetIntVariable("nv_angle", angle);
+//
+//  needlevalveservo.write(angle);
+//
+//  // the servo library doesn't like being talked to while the servo is still settling
+//  fusorDelay(1200);
+//  fusorClearCommandQueue();
 }

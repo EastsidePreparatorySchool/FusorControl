@@ -2,7 +2,7 @@
 // Fusor project - fusor.h - shared Arduino code
 //
 
-#define FDEBUG false
+#define FDEBUG true
 
 #define FUSOR_LED_ON() digitalWrite(LED_BUILTIN, HIGH);
 #define FUSOR_LED_OFF() digitalWrite(LED_BUILTIN, LOW);
@@ -183,8 +183,6 @@ void fusorClearCommandQueue()
 
 char *_fusorGetCommand(char *sCommand)
 {
-  char *sEnd;
-  
   // start from beginning if indicated
   if (sCommand == NULL)
   {
@@ -196,7 +194,7 @@ char *_fusorGetCommand(char *sCommand)
   if (sCommand != NULL)
   {
     // look for end of command
-    sEnd = strstr(sCommand, _fusorEnd);
+    char *sEnd = strstr(sCommand, _fusorEnd);
     if (sEnd != NULL && sEnd > sCommand)
     {
       // found complete command, compact, terminate appropriately, return start
@@ -208,17 +206,6 @@ char *_fusorGetCommand(char *sCommand)
       sEnd = strstr(sCommand, _fusorEnd);
       *sEnd = 0;
       return sCommand;
-    }
-  } 
-  else 
-  {
-    // no valid CMD found. check for ends, so we can compact and get rid of garbage
-    sEnd = strstr(fusorCmdBuffer, _fusorEnd);
-    if (sEnd != NULL) {
-      // found end, get rid of the whole front of the buffer.
-      sEnd += FUSOR_FIX_LENGTH_END;
-      _fusorCompactCmdBuffer(sEnd);
-      return NULL;
     }
   }
 
@@ -664,6 +651,7 @@ void fusorLoop()
       int len = strlen(sCommand);
 
       sCommand = _fusorParseCommand(sCommand, &sCmd, &sVar, &sVal);
+      // if (strcmp(sCmd, "GETALL") == 0)
       // {
       //   // make sure that GETALL only runs once this loop
       //   if (didGetAll)
@@ -678,6 +666,23 @@ void fusorLoop()
       // fusorStartResponse("Executed cmd, next up:");
       // fusorAddResponse(fusorCmdBuffer);
       // fusorSendResponse(NULL);
+    }
+
+    if (fusorCmdBufpos > 0)
+    {
+      // compact command buffer if any partial garbage is present
+      // shouldn't have to do that but oh well
+      sCommand = strstr(fusorCmdBuffer, "FusorCommand[");
+      if (sCommand != NULL && sCommand != fusorCmdBuffer)
+      {
+        // found start of command, compact
+        *sCommand = 0;
+        fusorStartResponse("garbage before command:");
+        fusorAddResponse(fusorCmdBuffer);
+        fusorSendResponse(NULL);
+        *sCommand = 'F';
+        _fusorCompactCmdBuffer(sCommand);
+      }
     }
   }
 }

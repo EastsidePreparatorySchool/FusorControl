@@ -13,16 +13,7 @@ var liveServer = true;
 
 function updateStatus(data, raw, startTime) {
     if (data !== null) {
-
-//        console.log("starting to update text status  ...");
-        document.getElementById("data").innerText = infoFromData(data, startTime);
-        if (raw !== null) {
-            document.getElementById("data").innerHTML += "<br><br>";
-            document.getElementById("data").innerText += raw;
-        }
-//        console.log("starting to update graph status  ...");
         updateViz(data);
-//        console.log("done with updates");
     }
 }
 
@@ -34,8 +25,14 @@ function getStatus() {
             .then(raw => {
                 if (liveServer) {
                     globalData = raw;
-                    var data = JSON.parse(raw);
-                    updateStatus(data, raw, logStart);
+                    if (raw !== "not logging") {
+                        var data = JSON.parse(raw);
+                        updateStatus(data, raw, logStart);
+                        selectButton("startLog", "stopLog");
+                    } else {
+                        renderText(false, 0);
+                        selectButton("stopLog", "startLog");
+                    }
                     setTimeout(getStatus, updateInterval);
                 }
                 //console.log(data);
@@ -44,8 +41,10 @@ function getStatus() {
                 console.log("getstatus error: " + error);
                 console.log(globalData);
                 //console.log("stopping status requests to server");
-                stopStatus();
-                selectButton("stopLog", "startLog");
+                if (isAdmin) {
+                    //stopStatus();
+                    selectButton("stopLog", "startLog");
+                }
             });
 }
 
@@ -60,6 +59,7 @@ function initStatus() {
 
 function stopStatus() {
     liveServer = false;
+    renderText(false);
     console.log("now no longer receiving status");
 }
 

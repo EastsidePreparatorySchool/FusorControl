@@ -36,40 +36,66 @@ public class AdminContext extends ObserverContext {
     @Override
     String comment(spark.Request req) {
         String text = req.queryParams("text");
-        
+
         String upgradeCommand = "#promote";
+        String devicesCommand = "#devices";
 
         if (text.startsWith(upgradeCommand) && this.login.equals("gmein")) {
             String obs = text.substring(upgradeCommand.length()).trim();
             upgradeObserver(obs);
-            logAdminCommand("#promote: "+obs);
+            logAdminCommand("#promote: " + obs);
             return "promotion scheduled";
+        } else if (text.equals(devicesCommand) && this.login.equals("gmein")) {
+            logAdminCommand("#devices: " + dm.getAllDeviceNames());
+            return "ok";
         }
 
         return super.comment(req);
     }
 
     String killRoute() {
-        logAdminCommand("shutdown");
-        if (dl != null) {
-            dl.shutdown();
-        }
-        dm.shutdown();
+        if (this.login.equals("gmein")) {
+            logAdminCommand("shutdown");
+            if (dl != null) {
+                dl.shutdown();
+            }
+            dm.shutdown();
 
-        stop();
-        System.out.println("Server ended with /kill");
-        System.exit(0);
-        return "server ended";
+            stop();
+            System.out.println("Server ended with /kill");
+            System.exit(0);
+            return "server ended";
+        }
+        throw halt(401);
     }
 
-    String startLogRoute() {
+    String getOneStatusRoute() {
+        //System.out.println("/getstatus");
+        if (WebServer.dl == null && this.isAdmin) {
+            System.out.println("  logging inactive, poking bears ...");
+            WebServer.dm.getAllStatus();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException ex) {
+            }
+        }
+
+        String s = DataLogger.getNewLogEntryBatch(obs);
+
+        if (FusorControlServer.config.superVerbose) {
+            System.out.println("  Status:" + s);
+        }
+        return s;
+    }
+
+    String startLogRoute(spark.Request req) {
         synchronized (ws) {
             if (dl != null) {
                 dl.shutdown();
             }
             dl = new DataLogger();
             try {
-                dl.init(dm, cs);
+                dl.init(dm, cs, req.queryParams("filename"));
             } catch (IOException ex) {
                 System.out.println("startLog IO exception: " + ex);
             }
@@ -146,8 +172,8 @@ public class AdminContext extends ObserverContext {
     String solenoidOffRoute() {
         logAdminCommand("Solenoid closed");
 
-        if (cd.gas.setOpen()) {
-            return "set solenoid to open";
+        if (cd.gas.setClosed()) {
+            return "set solenoid to closed";
         }
         throw halt(500, "set solenoid failed");
     }
@@ -156,7 +182,7 @@ public class AdminContext extends ObserverContext {
         int value = Integer.parseInt(req.queryParams("value"));
         logAdminCommand("Set needle valve:" + value);
         System.out.println("Received needle valve Set " + value);
-        if (cd.needle.set("needlevalve", value)) {
+        if (cd.needle.set("needlevalve_in", value)) {
             System.out.println("needle valve success");
             return "set needle valve value as " + value;
         }

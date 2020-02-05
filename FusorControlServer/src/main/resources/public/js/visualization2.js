@@ -2,6 +2,7 @@
 // fusor device status -> graph
 //
 
+var textChannels = {};
 var vizData = [];
 var chart = null;
 var vizFrozen = false;
@@ -23,7 +24,6 @@ var vizChannels = {
     'PN-JUNCTION.total': {name: 'PNJ (adc)', shortname: 'PN-J raw', unit: 'adc', min: 0, max: 100, type: "continuous", datatype: "numeric"},
     'Heartbeat.beat': {name: 'Heartbeat', shortname: 'HEARTBEAT', unit: '', min: 0, max: 50, type: "momentary", datatype: "numeric"},
     'Heartbeat.logsize': {name: 'Log size (kEntries)', shortname: 'LOGSIZE', unit: 'kEntries', min: 0, max: 10000, type: "discrete", datatype: "numeric"},
-
     'Comment.text': {name: 'Comment', shortname: '', min: 0, max: 4, type: "momentary", datatype: "text"},
     'Login.text': {name: 'Login', shortname: '', min: 0, max: 3, type: "momentary", datatype: "text"},
     'Command.text': {name: 'Command', shortname: '', min: 0, max: 2, type: "momentary", datatype: "text"}
@@ -34,81 +34,12 @@ var vizChannels = {
 };
 
 
-function createViz() {
-    var options = {
-        zoomEnabled: true,
-        animationEnabled: true,
-        title: {
-            text: ""
-        },
-        axisY: {
-            title: "Percent",
-            includeZero: true,
-            suffix: " %",
-            lineThickness: 1,
-            maximum: 100
-        },
-        axisX: {
-            title: "time",
-            includeZero: false,
-            suffix: " s",
-            lineThickness: 1,
-            viewportMinimum: 0,
-            viewportMaximum: 60
-        },
-        legend: {
-            cursor: "pointer",
-            itemmouseover: function (e) {
-                e.dataSeries.lineThickness = e.chart.data[e.dataSeriesIndex].lineThickness * 2;
-                e.dataSeries.markerSize = e.chart.data[e.dataSeriesIndex].markerSize + 2;
-                e.chart.render();
-            },
-            itemmouseout: function (e) {
-                e.dataSeries.lineThickness = e.chart.data[e.dataSeriesIndex].lineThickness / 2;
-                e.dataSeries.markerSize = e.chart.data[e.dataSeriesIndex].markerSize - 2;
-                e.chart.render();
-            },
-            itemclick: function (e) {
-                if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
-                    e.dataSeries.visible = false;
-                } else {
-                    e.dataSeries.visible = true;
-                }
-                e.chart.render();
-            }
-        },
-        toolTip: {
-            shared: false,
-            content: "{name}: t: {x}, y: {value}"
-        },
-        data: vizData,
-        rangeChanging: function (e) {
-            vizFrozen = (e.trigger !== "reset");
-        }
-    };
-    for (var channel in vizChannels) {
-        var dataSeries = {
-            type: "line",
-            name: vizChannels[channel].name,
-            showInLegend: true,
-            dataPoints: []
-        };
-        vizData.push(dataSeries);
-        vizChannels[channel].dataSeries = dataSeries;
-    }
-
-    chart = new CanvasJS.Chart("chartContainer", options);
-    chart.render();
-}
-
-var textChannels = {};
-
 function createText() {
     var textDisplay = "";
     for (var channel in vizChannels) {
         if (vizChannels[channel].shortname !== '') {
             textDisplay += vizChannels[channel].shortname + ":&nbsp;<span id='" + channel + "'>n/c</span>&nbsp"
-                    + vizChannels[channel].unit + "<br>";// + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
+                    + vizChannels[channel].unit + "<br>"; // + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
             textChannels[channel] = {value: 0, last: 0, current: 0, type: vizChannels[channel].datatype};
         }
     }
@@ -118,7 +49,6 @@ function createText() {
 
 function updateText(channel, value, type, time) {
     var tc = textChannels[channel];
-
     if (tc !== undefined) {
         tc.value = value;
         tc.current = time;
@@ -131,7 +61,6 @@ function renderText(update, secs) {
         var tc = textChannels[channel];
         //var timespan = document.getElementById(channel + ".time");
         var valspan = document.getElementById(channel);
-
         if ((tc.current !== tc.last) && update) {
             valspan.style.color = "gold";
             if (tc.type === "boolean") {
@@ -153,7 +82,7 @@ function renderButtons() {
     } else {
         selectButton("tmpoff", "tmpon");
     }
-    
+
     tc = textChannels["GAS.solenoid"];
     if (tc !== undefined && tc.value !== 0) {
         selectButton("solon", "soloff");
@@ -164,7 +93,7 @@ function renderButtons() {
 function resetViz() {
     for (var channel in vizChannels) {
         var vc = vizChannels[channel];
-        vc.dataSeries.dataPoints = [];
+        vc.dataset.data = [];
         maxTime = 0;
         startTime = undefined;
         logstart = undefined;
@@ -198,7 +127,7 @@ function updateViz(dataArray) {
                 if (vc === undefined) {
                     continue;
                 }
-                var dataSeries = vc.dataSeries;
+                var dataset = vc.dataset;
                 // get value for this channel
                 var value;
                 var percent;
@@ -233,10 +162,8 @@ function updateViz(dataArray) {
                 varTime = Math.max(varTime, 0);
                 var secs = Math.round(varTime * 10) / 10000;
                 maxTime = Math.max(maxTime, secs);
-
-
                 //console.log("x: "+varTime+" y: "+percent)
-                addDataPoint(dataSeries, vc.type, secs, percent, value);
+                addDataPoint(dataset, vc.type, secs, percent, value);
                 updateText(devicename + "." + variable, value, vc.datatype, secs);
             } catch (error) {
                 console.log(error);
@@ -245,64 +172,193 @@ function updateViz(dataArray) {
     } // for data item
 
     //
-    // adjust the view port
+    // todo: adjust the view port
     //
 
     if (liveServer) {
         if (!vizFrozen) {
-            setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
+//            setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
         }
         document.getElementById("logtime").innerText = String(Math.round(maxTime * 100) / 100);
         renderText(true, maxTime);
     } else {
-        setViewPort(0, maxTime);
+//        setViewPort(0, maxTime);
     }
 
     renderChart();
 }
 
-function addDataPoint(dataSeries, type, secs, percent, value) {
+
+
+
+
+
+
+
+//
+// chart.js stuff
+//
+
+
+
+function addDataPoint(dataset, type, secs, percent, value) {
+    secs = moment.unix(secs);
     switch (type) {
         case "momentary":
-            dataSeries.dataPoints.push({x: secs - 0.0001, y: 0, value: 0});
-            dataSeries.dataPoints.push({x: secs, y: percent, value: value});
-            dataSeries.dataPoints.push({x: secs + 0.0001, y: 0, value: 0});
+            dataset.data.push({x: secs - 0.0001, y: 0, value: 0});
+            dataset.data.push({x: secs, y: percent, value: value});
+            dataset.data.push({x: secs + 0.0001, y: 0, value: 0});
             break;
         case "discrete":
-            if (dataSeries.dataPoints.length > 0) {
-                var lastPoint = dataSeries.dataPoints[dataSeries.dataPoints.length - 1];
-                dataSeries.dataPoints.push({x: secs - 0.0001, y: lastPoint.y, value: lastPoint.value});
+            if (dataset.data.length > 0) {
+                var lastPoint = dataset.data[dataset.data.length - 1];
+                dataset.data.push({x: secs - 0.0001, y: 0, value: lastPoint.y});
             }
-            dataSeries.dataPoints.push({x: secs, y: percent, value: value});
+            dataset.data.push({x: secs, y: percent, value: value});
             break;
         case "discrete trailing":
-            if (dataSeries.dataPoints.length > 0) {
-                var lastPoint = dataSeries.dataPoints[dataSeries.dataPoints.length - 1];
-                dataSeries.dataPoints.push({x: lastPoint.x + 0.0001, y: percent, value: value});
+            if (dataset.data.length > 0) {
+                var lastPoint = dataset.data[dataset.data.length - 1];
+                dataset.data.push({x: lastPoint.x + 0.0001, y: percent, value: value});
             }
-            dataSeries.dataPoints.push({x: secs, y: 0, value: value});
+            dataset.data.push({x: secs, y: 0, value: value});
             break;
         case "continuous":
         default:
-            dataSeries.dataPoints.push({x: secs, y: percent, value: value});
+            dataset.data.push({x: secs, y: percent, value: value});
             break;
     }
     // in live view, constrain ourselves to xxx data points per series
     if (liveServer) {
-        while (dataSeries.dataPoints.length > 10000) {
-            dataSeries.dataPoints.shift();
+        while (dataset.data.length > 10000) {
+            dataset.data.shift();
         }
     }
 }
 
-function setViewPort(min, max) {
-    chart.axisX[0].set("viewportMinimum", min);
-    chart.axisX[0].set("viewportMaximum", max);
+
+
+function createViz() {
+    var color = Chart.helpers.color;
+    var cfg = {
+        data: {
+            datasets: vizData
+        },
+        options: {
+            legend: {
+                position: "bottom"
+            },
+            animation: {
+                duration: 0
+            },
+            scales: {
+                xAxes: [{
+                        type: 'time',
+                        time: {
+                            unit: 'second'
+                        },
+                        displayFormats: {
+                            second: 'XXX.XX'
+                        },
+
+                        distribution: 'linear',
+                        offset: true,
+                        ticks: {
+                            major: {
+                                enabled: true,
+                                fontStyle: 'bold'
+                            },
+                            source: 'data',
+                            autoSkip: true,
+                            autoSkipPadding: 75,
+                            maxRotation: 0,
+                            sampleSize: 100
+                        }
+                    }],
+                yAxes: [{
+                        gridLines: {
+                            drawBorder: false
+                        }
+                    }]
+            },
+            tooltips: {
+                intersect: false,
+                mode: 'index',
+                callbacks: {
+                    label: function (tooltipItem, myData) {
+                        var label = myData.datasets[tooltipItem.datasetIndex].label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        label += parseFloat(tooltipItem.value).toFixed(2);
+                        return label;
+                    }
+                }
+            }
+        }
+    };
+    var ctx = document.getElementById('chartContainer').getContext('2d');
+    chart = new Chart(ctx, cfg);
+    window.chartColors = [
+        'maroon',
+        'brown',
+        'olive',
+        'teal',
+        'navy',
+        'black',
+        'red',
+        'orange',
+        'yellow',
+        'lime',
+        'green',
+        'cyan',
+        'blue',
+        'purple',
+        'magenta',
+        'grey',
+        'pink',
+        'apricot',
+        'beige',
+        'mint',
+        'lavender'
+    ];
+    var i = 0;
+    for (var channel in vizChannels) {
+        var dataset = {
+            label: vizChannels[channel].name,
+            backgroundColor: color(window.chartColors[i]).alpha(0.5).rgbString(),
+            borderColor: window.chartColors[i],
+            data: [],
+            type: 'line',
+            pointRadius: 0,
+            fill: false,
+            lineTension: 0,
+            borderWidth: 2
+        };
+//        switch (vizChannels[channel].type) {
+//            case "momentary":
+//                dataset.steppedLine = 'middle';
+//                break;
+//            case "discrete":
+//                dataset.steppedLine = 'after';
+//                break;
+//            case "discrete trailing":
+//                dataset.steppedLine = 'before';
+//                break;
+//            case "continuous":
+//            default:
+//                dataset.steppedLine = false;
+//                break;
+//        }
+        vizData.push(dataset);
+        vizChannels[channel].dataset = dataset;
+        i++;
+    }
+
 }
 
-
 function renderChart() {
-    chart.render();
+    chart.update();
 }
 
 

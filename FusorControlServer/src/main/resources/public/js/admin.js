@@ -47,11 +47,34 @@ function kill() {
             });
 }
 
+// get status once
+function getOneStatus() {
+    // for the real thing: web request to server
+    request({url: "/protected/getonestatus", method: "GET"})
+            .then(raw => {
+                if (liveServer) {
+                    globalData = raw;
+                    var data = JSON.parse(raw);
+                    updateStatus(data, raw, logStart);
+                }
+                //console.log(data);
+            })
+            .catch(error => {
+                console.log("getonestatus error: " + error);
+                console.log(globalData);
+            });
+}
+
+
 //start a new log
 function startLog() {
+    var filename = prompt("Custom name for log file:", "");
+    if (filename === null) {
+        filename = "";
+    }
     console.log("startlog");
     document.getElementById("chat").innerText = "";
-    request({url: "/protected/admin/startlog", method: "GET"})
+    request({url: "/protected/admin/startlog?filename="+filename, method: "GET"})
             .then(data => {
                 console.log(data);
                 initStatus();
