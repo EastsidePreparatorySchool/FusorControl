@@ -82,6 +82,7 @@ public class SerialDevice {
 
     public boolean command(String s) {
         if (this.os == null) {
+            System.out.println("Command to fake device");
             return true;
         }
 //        if (FusorControlServer.config.superVerbose) {

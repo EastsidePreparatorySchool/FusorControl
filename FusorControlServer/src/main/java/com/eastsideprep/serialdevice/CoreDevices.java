@@ -53,6 +53,7 @@ public class CoreDevices {
     }
 
     public void fakeMissingCoreDevices() {
+        System.out.println("Faking missing core devices");
         if (variac == null) {
             variac = new VariacControlDevice(new NullSerialDevice("VARIAC"));
             dm.register(variac);

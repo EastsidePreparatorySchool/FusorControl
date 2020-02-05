@@ -168,6 +168,7 @@ public class DeviceManager {
         // need to be able to fakeCoreDevices this thing away from the Arduinos
         // so make dummy ports if necessary
         if (FusorControlServer.config.fakeCoreDevices) {
+            cd.refresh();
             cd.fakeMissingCoreDevices();
         }
 
