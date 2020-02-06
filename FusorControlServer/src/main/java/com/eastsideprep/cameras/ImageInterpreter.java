@@ -34,7 +34,7 @@ public class ImageInterpreter {
         double confidence;
         public Digit(BufferedImage bi) {
             this.image = bi;
-            this.sW = 40; //TODO make this good
+            this.sW = 60; //TODO make this good
         }
         public double segmentConfidence(int sRow, int sCol, int eRow, int eCol) {
             double sum = 0;
@@ -60,8 +60,8 @@ public class ImageInterpreter {
                 blockTest.setRGB(eCol, row, red);
             }
             for(int col = sCol; col < eCol; col++) {
-                blockTest.setRGB(sRow, col, red);
-                blockTest.setRGB(eRow, col, red);
+                blockTest.setRGB(col, sRow, red);
+                blockTest.setRGB(col, eRow, red);
             }
             /**/ //TODO remove this
             
@@ -88,13 +88,13 @@ public class ImageInterpreter {
              6666
             */
             double[] sC = new double[7]; //confidence between zero and one that a given segment exists
-            sC[0] = this.segmentConfidence(0, sW, sW, endCol - sW);
-            sC[1] = this.segmentConfidence(sW, sW/2, startRow + (endRow-startRow-sW)/2, sW*3/2);
-            sC[2] = this.segmentConfidence(sW, endCol - sW, startRow + (endRow-startRow-sW)/2, endCol);
-            sC[3] = this.segmentConfidence(startRow + (endRow-startRow-sW)/2, sW, startRow + (endRow-startRow+sW)/2, endCol - sW);
-            sC[4] = this.segmentConfidence(startRow + (endRow-startRow+sW)/2, 0, endRow - sW, sW);
+            sC[0] = this.segmentConfidence(startRow, startCol + sW * 3/2, startRow + sW, endCol - sW);
+            sC[1] = this.segmentConfidence(startRow + sW, startCol + sW/2, startRow + (endRow-startRow-sW)/2, startCol + sW*3/2);
+            sC[2] = this.segmentConfidence(startRow + sW, endCol - sW, startRow + (endRow-startRow-sW)/2, endCol);
+            sC[3] = this.segmentConfidence(startRow + (endRow-startRow-sW)/2, startCol + sW* 3/2, startRow + (endRow-startRow+sW)/2, endCol - sW * 3/2);
+            sC[4] = this.segmentConfidence(startRow + (endRow-startRow+sW)/2, startCol, endRow - sW, startCol + sW);
             sC[5] = this.segmentConfidence(startRow + (endRow-startRow+sW)/2, endCol - (sW * 3/2), endRow - sW, endCol - sW/2);
-            sC[6] = this.segmentConfidence(endRow - sW, sW, endRow, endCol - sW);
+            sC[6] = this.segmentConfidence(endRow - sW, startCol + sW, endRow, endCol - sW * 3/2);
             
             double[] numberConfidence = new double[10];
             numberConfidence[0] = sC[0] + sC[1] + sC[2] - sC[3] + sC[4] + sC[5] + sC[6];
@@ -276,12 +276,13 @@ public class ImageInterpreter {
         }
         
         image = prepImage(image);
-        //blockTest = image.getSubimage(0, 0, image.getWidth(), image.getHeight());
+        //blockTest = image;
 
         Result result = extract(image);
         System.out.println("Result: '" + result.text + "', confidence: " + result.confidence);
 
         File outputfile = new File("pirani_test_bw.png");
+        //File outputfile = new File("C:\\Users\\tpylypenko\\Documents\\GitHub\\FusorControl\\FusorControlServer\\src\\main\\java\\com\\eastsideprep\\cameras\\pirani_test_bw.png");
         try {
             ImageIO.write(image, "png", outputfile);
         } catch (Throwable ex) {
