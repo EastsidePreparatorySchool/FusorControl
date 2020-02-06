@@ -42,9 +42,9 @@ public class DeviceManager {
         @Override
         public void serialEvent(SerialPortEvent e) {
             try {
-            DeviceManager.instance.processSerialData(e);
+                DeviceManager.instance.processSerialData(e);
             } catch (Throwable t) {
-                System.err.println("Exception in serial data processing: "+t);
+                System.err.println("Exception in serial data processing: " + t);
             }
         }
     };
@@ -164,11 +164,11 @@ public class DeviceManager {
         }
 
         this.cd = new CoreDevices(this);
+        cd.refresh();
 
         // need to be able to fakeCoreDevices this thing away from the Arduinos
         // so make dummy ports if necessary
         if (FusorControlServer.config.fakeCoreDevices) {
-            cd.refresh();
             cd.fakeMissingCoreDevices();
         }
 
