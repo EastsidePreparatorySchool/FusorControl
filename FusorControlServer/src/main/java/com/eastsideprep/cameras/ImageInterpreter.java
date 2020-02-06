@@ -22,6 +22,8 @@ import net.sourceforge.tess4j.util.ImageIOHelper;
  * @author tpylypenko
  */
 public class ImageInterpreter {
+    //static BufferedImage blockTest; //TODO remove this
+    
     private static class Digit {
         BufferedImage image;
         int startRow;
@@ -51,18 +53,30 @@ public class ImageInterpreter {
                 }
             }
             
+            /*
+            int red = (new Color(255, 0, 0)).getRGB();
+            for(int row = sRow; row < eRow; row++) {
+                blockTest.setRGB(sCol, row, red);
+                blockTest.setRGB(eCol, row, red);
+            }
+            for(int col = sCol; col < eCol; col++) {
+                blockTest.setRGB(sRow, col, red);
+                blockTest.setRGB(eRow, col, red);
+            }
+            /**/ //TODO remove this
+            
             return sum/total;
         }
-        public String guessDigit() {
+        public Result guessDigit() {
             int height = endRow - startRow + 1;
             int width = endCol - startCol + 1;
             double ratio = ((double) height)/width;
             //System.out.println("height: " + height + "\t width:" + width);
             if(ratio < 1) {
-                return ".";
+                return new Result(".", 1);
             }
             if(ratio > 2.5) {
-                return "1";
+                return new Result("1", 1);
             }
             /*
              0000
@@ -73,24 +87,47 @@ public class ImageInterpreter {
             4    5
              6666
             */
-            double[] segmentConfidence = new double[7]; //confidence between zero and one that a given segment exists
-            segmentConfidence[0] = this.segmentConfidence(0, sW, sW, endCol - sW);
-            segmentConfidence[1] = this.segmentConfidence(sW, sW/2, startRow + (endRow-startRow-sW)/2, sW*3/2);
-            segmentConfidence[2] = this.segmentConfidence(sW, endCol - sW, startRow + (endRow-startRow-sW)/2, endCol);
-            segmentConfidence[3] = this.segmentConfidence(startRow + (endRow-startRow-sW)/2, sW, startRow + (endRow-startRow+sW)/2, endCol - sW);
-            //TODO check the other segmentConfidences
+            double[] sC = new double[7]; //confidence between zero and one that a given segment exists
+            sC[0] = this.segmentConfidence(0, sW, sW, endCol - sW);
+            sC[1] = this.segmentConfidence(sW, sW/2, startRow + (endRow-startRow-sW)/2, sW*3/2);
+            sC[2] = this.segmentConfidence(sW, endCol - sW, startRow + (endRow-startRow-sW)/2, endCol);
+            sC[3] = this.segmentConfidence(startRow + (endRow-startRow-sW)/2, sW, startRow + (endRow-startRow+sW)/2, endCol - sW);
+            sC[4] = this.segmentConfidence(startRow + (endRow-startRow+sW)/2, 0, endRow - sW, sW);
+            sC[5] = this.segmentConfidence(startRow + (endRow-startRow+sW)/2, endCol - (sW * 3/2), endRow - sW, endCol - sW/2);
+            sC[6] = this.segmentConfidence(endRow - sW, sW, endRow, endCol - sW);
             
-            //TODO identify the number by the segments
-            return "7";
+            double[] numberConfidence = new double[10];
+            numberConfidence[0] = sC[0] + sC[1] + sC[2] - sC[3] + sC[4] + sC[5] + sC[6];
+            numberConfidence[1] = 0;
+            numberConfidence[2] = sC[0] - sC[1] + sC[2] + sC[3] + sC[4] - sC[5] + sC[6];
+            numberConfidence[3] = sC[0] - sC[1] + sC[2] + sC[3] - sC[4] + sC[5] + sC[6];
+            numberConfidence[4] = -sC[0] + sC[1] + sC[2] + sC[3] - sC[4] + sC[5] - sC[6];
+            numberConfidence[5] = sC[0] + sC[1] - sC[2] + sC[3] - sC[4] + sC[5] + sC[6];
+            numberConfidence[6] = sC[0] + sC[1] - sC[2] + sC[3] + sC[4] + sC[5] + sC[6];
+            numberConfidence[7] = sC[0] - sC[1] + sC[2] - sC[3] - sC[4] + sC[5] - sC[6];
+            numberConfidence[8] = sC[0] + sC[1] + sC[2] + sC[3] + sC[4] + sC[5] + sC[6];
+            numberConfidence[9] = sC[0] + sC[1] + sC[2] + sC[3] + sC[4] - sC[5] + sC[6];
+            for(int i = 0; i < 10; i++) {
+                numberConfidence[i] /= 6;
+            }
             
+            int digit = 0;
+            double bestConfidence = 0;
+            for(int i = 0; i < 10; i++) {
+                if(numberConfidence[i] > bestConfidence) {
+                    digit = i;
+                    bestConfidence = numberConfidence[i];
+                }
+            }
+            return new Result("" + digit, bestConfidence);
         }
     }
     public static class Result {
 
         public String text;
-        public int confidence;
+        public double confidence;
 
-        public Result(String text, int confidence) {
+        public Result(String text, double confidence) {
             this.text = text;
             this.confidence = confidence;
         }
@@ -151,11 +188,15 @@ public class ImageInterpreter {
         
         //System.out.println("the number has " + digits.size() + " digits"); //the "." counts as a digit
         String output = "";
+        double confidence = 0;
         for(Digit d : digits) {
-            output += d.guessDigit();
+            Result r = d.guessDigit();
+            output += r.text;
+            confidence += r.confidence;
         }
+        confidence /= digits.size();
         
-        return new Result(output, 0);
+        return new Result(output, confidence);
     }
     
     public static ByteBuffer prepImageBuffer(ByteBuffer buf, int width, int height) {
@@ -235,6 +276,7 @@ public class ImageInterpreter {
         }
         
         image = prepImage(image);
+        //blockTest = image.getSubimage(0, 0, image.getWidth(), image.getHeight());
 
         Result result = extract(image);
         System.out.println("Result: '" + result.text + "', confidence: " + result.confidence);
