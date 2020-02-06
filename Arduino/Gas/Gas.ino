@@ -8,6 +8,10 @@
 #include "fusor.h"
 
 #define SOL 15 // digital out pin for solenoid
+Servo needlevalveservo;
+int MIN_DEG = 0;
+int MAX_DEG = 180;
+int SERVO_PWM_PORT = 2;
 
 void setup(){
   fusorInit("GAS");
@@ -15,13 +19,15 @@ void setup(){
   fusorAddVariable("needlevalve", FUSOR_VARTYPE_INT);
   fusorSetBoolVariable("solenoid", false);
   fusorSetIntVariable("needlevalve", 0);
+  fusorSetIntVariable("nv_angle", 0);
+
 
   // relay control for solenoid valve
   pinMode(SOL, OUTPUT);
   digitalWrite(SOL, LOW);
 
   needleValve(0);
-
+  needlevalveservo.attach(SERVO_PWM_PORT);
   FUSOR_LED_ON();
   delay(300);
   FUSOR_LED_OFF();
@@ -43,5 +49,12 @@ void updateAll() {
 }
 
 void needleValve(int percent) {
-  // TODO: Write code for needle valve controller here
+  int angle = MIN_DEG + (MAX_DEG - MIN_DEG) * percent / 100;
+  fusorSetIntVariable("nv_angle", angle);
+
+  needlevalveservo.write(angle);
+
+  // the servo library doesn't like being talked to while the servo is still settling
+  fusorDelay(1200);
+  fusorClearCommandQueue();
 }
