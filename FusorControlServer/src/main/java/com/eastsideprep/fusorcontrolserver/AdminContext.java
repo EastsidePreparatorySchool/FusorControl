@@ -182,7 +182,7 @@ public class AdminContext extends ObserverContext {
         int value = Integer.parseInt(req.queryParams("value"));
         logAdminCommand("Set needle valve:" + value);
         System.out.println("Received needle valve Set " + value);
-        if (cd.needle.set("needlevalve_in", value)) {
+        if (cd.gas.set("nv_in", value)) {
             System.out.println("needle valve success");
             return "set needle valve value as " + value;
         }

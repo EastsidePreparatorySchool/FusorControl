@@ -11,19 +11,23 @@
 #define TMP_AMPS  A0 // pin for pump amps 0-10V = 0 - 2.5A
 #define TMP_FREQ  A1 // pin for pump freq 0-10V = 0 - 1250Hz
 
+bool stat = false;
+
 void setup() {
   fusorInit("TMP");
   fusorAddVariable("tmp", FUSOR_VARTYPE_BOOL);
+  fusorAddVariable("tmp_stat", FUSOR_VARTYPE_BOOL);
   fusorAddVariable("lowspeed", FUSOR_VARTYPE_BOOL);
-  fusorAddVariable("pump_freq_adc", FUSOR_VARTYPE_INT);
+  //fusorAddVariable("pump_freq_adc", FUSOR_VARTYPE_INT);
   fusorAddVariable("pump_curr_amps", FUSOR_VARTYPE_FLOAT);
-  fusorAddVariable("pump_curr_adc", FUSOR_VARTYPE_FLOAT);
+  //fusorAddVariable("pump_curr_adc", FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("pump_freq", FUSOR_VARTYPE_FLOAT);
 
-  fusorSetBoolVariable("tmp", false);
+  fusorSetBoolVariable("tmp", false);  
+  fusorSetBoolVariable("tmp_stat", false);  
   fusorSetBoolVariable("lowspeed", false);
-  fusorSetIntVariable("pump_freq_adc", 0);
-  fusorSetIntVariable("pump_curr_adc", 0);
+  //fusorSetIntVariable("pump_freq_adc", 0);
+  //fusorSetIntVariable("pump_curr_adc", 0);
   fusorSetFloatVariable("pump_curr_amps", 0.0);
   fusorSetFloatVariable("pump_freq", 0.0);
 
@@ -57,8 +61,8 @@ void updateAll() {
   for (int i = 0; i < 10; analogRead(TMP_FREQ), i++);
   int freq = analogRead(TMP_FREQ);
 
-  fusorSetIntVariable("pump_curr_adc", amps);
-  fusorSetIntVariable("pump_freq_adc", freq);
+  //fusorSetIntVariable("pump_curr_adc", amps);
+  //fusorSetIntVariable("pump_freq_adc", freq);
   fusorSetFloatVariable("pump_curr_amps", ((float)amps) * 2.5f / 1024.0f); // full adc 1024 = 2.5A
   fusorSetFloatVariable("pump_freq", ((float)freq) * 1250.0f / 1024.0f); // full adc 1024 = 1250 Hz
 
@@ -74,6 +78,8 @@ void updateAll() {
       //fusorSetBoolVariable("tmp", false);
     }
   }
+  fusorSetBoolVariable("tmp_stat", stat);  
+
 
   //fusorSendResponse("done processing tmp sets ...");
 
@@ -96,6 +102,7 @@ void tmpOn() {
   digitalWrite(TMP_ON, HIGH);
   //delay(100);
   FUSOR_LED_OFF();
+  stat = true;
 }
 
 void tmpOff() {
@@ -103,6 +110,7 @@ void tmpOff() {
   digitalWrite(TMP_ON, LOW);
   //delay(100);
   FUSOR_LED_OFF();
+  stat = false;
 }
 
 void tmpLow() {

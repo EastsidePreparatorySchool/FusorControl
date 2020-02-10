@@ -40,9 +40,9 @@ public class DeviceManager {
         }
 
         @Override
-        public void serialEvent(SerialPortEvent e) {
+        public void serialEvent(SerialPortEvent event) {
             try {
-                DeviceManager.instance.processSerialData(e);
+                DeviceManager.instance.processSerialData(event);
             } catch (Throwable t) {
                 System.err.println("Exception in serial data processing: " + t);
             }
@@ -194,8 +194,12 @@ public class DeviceManager {
         Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 2);
         try {
             while (!Thread.interrupted()) {
+                int prevDevices = this.arduinoMap.validDeviceCount();
                 queryIdentifyAll(semaphore);
                 Thread.sleep(2000);
+                if (WebServer.dl != null && prevDevices != this.arduinoMap.validDeviceCount()){
+                    this.autoStatusOn();
+                }
             }
         } catch (InterruptedException e) {
         }
@@ -470,10 +474,6 @@ public class DeviceManager {
                 dm.register(sd);
 
                 System.out.println("  -- new Arduino connected: " + sd.name + " (" + sd.originalName + ", function: " + sd.function + "), on: " + port.getSystemPortName());
-                if (WebServer.dl != null) {
-                    sd.autoStatusOn();
-                }
-
             }
         }
 

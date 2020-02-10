@@ -5,12 +5,16 @@
 
 #include "fusor.h"
 
+long avgSignal;
+int newPercent = 10;
 
 void setup(){
   fusorInit("PIRANI");
   
   // fixed analog input
   fusorAddVariable("pirani_adc", FUSOR_VARTYPE_INT);
+  fusorSetIntVariable("pirani_adc", 0);
+  avgSignal = analogRead(A0);
 
   FUSOR_LED_ON();
   delay(200);
@@ -26,7 +30,10 @@ void loop() {
 }
 
 void updateAll() {
-  fusorSetIntVariable("pirani_adc", analogRead(A0));
+  long newSignal = analogRead(A0);
+  avgSignal = (avgSignal*(100-newPercent) + newSignal*newPercent)/100;
+
+  fusorSetIntVariable("pirani_adc", (int) avgSignal);
 }
   
   

@@ -4,15 +4,15 @@ public class GasControlDevice extends SerialDevice {
 
     GasControlDevice(SerialDevice sd) {
         super(sd);
-        this.setStatus("{\"device\":\"GAS\"}");
+        this.setStatus("{\"device\":\"GAS\"}");// todo: why is this here?
     }
 
     public boolean setOpen() {
-        return this.set("solenoid", true);
+        return this.set("sol_in", true);
     }
 
     public boolean setClosed() {
-        return this.set("solenoid", false);
+        return this.set("sol_in", false);
     }
  
 }
