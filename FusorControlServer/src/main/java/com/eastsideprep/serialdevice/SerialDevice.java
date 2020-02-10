@@ -82,14 +82,14 @@ public class SerialDevice {
 
     public boolean command(String s) {
         if (this.os == null) {
-            if (FusorControlServer.config.superVerbose) {
+            if (FusorControlServer.config.verbose) {
                 System.out.println("Command to fake device " + name);
             }
             return true;
         }
-//        if (FusorControlServer.config.superVerbose) {
-        System.out.println("command to device " + name + ": " + s);
-//        }
+        if (FusorControlServer.config.verbose) {
+            System.out.println("command to device " + name + ": " + s);
+        }
 
         String cmd = makeCommand(s);
 
@@ -120,7 +120,9 @@ public class SerialDevice {
     private boolean retrieveConfirmation(String cmd) {
         boolean result;
         synchronized (this.confMonitor) {
-            System.out.println("Device: " + this.name + ", cmd: " + cmd + ", conf: " + this.confirmation);
+            if (FusorControlServer.config.superVerbose) {
+                System.out.println("Device: " + this.name + ", cmd: " + cmd + ", conf: " + this.confirmation);
+            }
             result = cmd.equals(this.confirmation);
             this.confirmation = null;
         }
@@ -156,9 +158,9 @@ public class SerialDevice {
 
     public void autoStatusOn() {
         try {
-        command("AUTOSTATUSON");
+            command("AUTOSTATUSON");
         } catch (Throwable t) {
-            System.out.println("Exception in Autostatus on: "+t);
+            System.out.println("Exception in Autostatus on: " + t);
         }
     }
 
