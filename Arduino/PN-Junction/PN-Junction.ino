@@ -5,7 +5,7 @@
 
 #include "fusor.h"
 
-long avgSignal;
+long avgSignal = 0;
 int newPercent = 10;
 
 void setup(){
@@ -15,9 +15,12 @@ void setup(){
   fusorAddVariable("left", FUSOR_VARTYPE_INT);
   fusorAddVariable("right", FUSOR_VARTYPE_INT);
   
-  fusorSetIntVariable("left", 0);
-  fusorSetIntVariable("right", 0);
-  fusorSetIntVariable("total", 0);
+  int left = analogRead(A0);
+  int right = analogRead(A1);
+  fusorSetIntVariable("left", left);
+  fusorSetIntVariable("right", right);
+  fusorSetIntVariable("total", left+right);
+  avgSignal = left+right;
   
   FUSOR_LED_ON();
   delay(200);

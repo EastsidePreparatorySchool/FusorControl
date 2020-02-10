@@ -45,6 +45,7 @@ function getStatus() {
                     //stopStatus();
                     selectButton("stopLog", "startLog");
                 }
+                setTimeout(getStatus, updateInterval);
             });
 }
 

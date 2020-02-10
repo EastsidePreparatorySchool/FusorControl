@@ -59,8 +59,8 @@ void updateAll() {
   if (fusorVariableUpdated("nv_in")) {
     needleValve(fusorGetIntVariable("nv_in"));
   }
-//  fusorSetBoolVariable("sol_stat", solstat);
-//  fusorSetIntVariable("nv_stat", needlevalvestat);
+  fusorSetBoolVariable("sol_stat", solstat);
+  fusorSetIntVariable("nv_stat", needlevalvestat);
 }
 
 void needleValve(int percent) {
@@ -68,8 +68,4 @@ void needleValve(int percent) {
   fusorSetIntVariable("nv_angle", angle);
   needlevalvestat = percent;
   needlevalveservo.write(angle);
-
-  // the servo library doesn't like being talked to while the servo is still settling
-//  fusorDelay(1200);
-//  fusorClearCommandQueue();
 }
