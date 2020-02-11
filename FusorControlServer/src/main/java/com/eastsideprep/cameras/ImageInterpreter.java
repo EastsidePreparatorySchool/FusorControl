@@ -75,7 +75,7 @@ public class ImageInterpreter {
             if(ratio < 1) {
                 return new Result(".", 1);
             }
-            if(ratio > 2.5) {
+            if(ratio > 2) {
                 return new Result("1", 1);
             }
             /*
