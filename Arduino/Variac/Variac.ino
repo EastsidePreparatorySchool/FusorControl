@@ -7,7 +7,7 @@
 #include "fusor.h"
 
 
-#define MINVOLTS 5
+#define MINVOLTS 0
 #define MAXVOLTS 120
 
 #define PUL 4 // stepper motor controller PULSE
@@ -86,8 +86,8 @@ void setVoltage(int volts, bool emergency) {
       if (emergency) {
         fusorDelayMicroseconds(1);
       } else {
-        // try to delay it to something like 5V/s
-        fusorDelay(5);
+        // try to delay it to something reasonable
+        fusorDelayMicroseconds(100);
       }
       // check where we are
       pot = analogRead(POT);
@@ -190,7 +190,6 @@ void updateAll() {
     if (value == 0) {
       zeroVoltage();
       fusorSetIntVariable("input_volts", 0);
-      return;
     }
   }
 
@@ -198,6 +197,9 @@ void updateAll() {
   if (fusorVariableUpdated("input_volts")) {
     volts = fusorGetIntVariable("input_volts");
     setVoltage(volts, false); // in non-emergency mode
+    if (volts == 0) {
+      zeroVoltage();
+    }
   }
 
   // update input volts to get constant status line in display
