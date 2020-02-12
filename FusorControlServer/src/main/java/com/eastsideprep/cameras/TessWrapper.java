@@ -84,7 +84,7 @@ public class TessWrapper {
 //        ColorModel cm = image.getColorModel();
 //        if (cm.getColorSpace().getType() == ColorSpace.TYPE_RGB && img.getRaster().getTransferType() == DataBuffer.TYPE_BYTE) {
         int bwidth = buf.limit() / height;
-        int bytespp = bwidth / width;
+        int bytespp = bwidth / width;  //bytes per pixel
         //System.out.println("line is " + width + " pixels, " + bwidth + " bytes");
 
         byte[] bytes = new byte[buf.limit()];

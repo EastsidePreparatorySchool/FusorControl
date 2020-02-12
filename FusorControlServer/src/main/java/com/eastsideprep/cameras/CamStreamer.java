@@ -32,8 +32,8 @@ public class CamStreamer {
     private ArrayList<Webcam> cams = new ArrayList<>();
     private ArrayList<Thread> camThreads = new ArrayList<>();
     private volatile boolean stopRecording = false;
-    private Tesseract tesseract;
-    private TessWrapper tw;
+    //private Tesseract tesseract;
+    //private TessWrapper tw;
     private DeviceManager dm;
 
     public CamStreamer(DeviceManager dm) {
@@ -87,12 +87,13 @@ public class CamStreamer {
         WebcamDiscoveryService discovery = Webcam.getDiscoveryService();
         discovery.stop();
 
+        /*
         tesseract = new Tesseract();
         tesseract.setDatapath("tessdata");
         tesseract.setLanguage("letsgodigital");
 
         tw = new TessWrapper();
-        tw.init();
+        tw.init();/**/
     }
 
     void record(Webcam webcam, String fileName, long baseTime) {
@@ -168,8 +169,8 @@ public class CamStreamer {
     void extractNumber(BufferedImage image, long millis, SerialDevice sd) {
         if (true)return;
 
-        TessWrapper.Result result = tw.extract(image);
-        if (result.confidence < 80) {
+        ImageInterpreter.Result result = ImageInterpreter.extract(image);
+        if (result.confidence < 70) {
             return;
         }
         String s = result.text;
