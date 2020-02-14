@@ -54,14 +54,18 @@ public class ObserverContext extends Context {
         return "ok";
     }
 
-    String variacEmergencyStop(spark.Request req) {
-        System.out.println("Received Emergency Variac Stop ");
+    String emergencyStop(spark.Request req) {
+        System.out.println("Received Emergency Stop ");
         long millis = System.currentTimeMillis();
         String logText = DataLogger.makeEmergencyStopDeviceText(this.name, ip, millis);
         WebServer.dm.recordStatus("Command", millis, logText);
 
+        cd.gas.setClosed();
+        System.out.println("Closed solenoid");
+
         if (cd.variac.set("stop", 0)) {
-            return "variac emergency stop ";
+            System.out.println("variac 0");
+            return "emergency stop complete";
         } else {
             throw halt("Variac stop failed");
         }

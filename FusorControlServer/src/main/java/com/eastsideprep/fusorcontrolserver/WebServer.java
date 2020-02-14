@@ -136,7 +136,7 @@ public class WebServer {
             dm.shutdown();
             throw new IllegalArgumentException("missing core devices after dm.init()");
         }
-        cd.variac.setVoltage(0);
+        cd.variac.setVoltage(-1);
 
         //
         // Observer routes
@@ -146,7 +146,7 @@ public class WebServer {
         post("/protected/comment", (req, res) -> getObserverCtx(req).comment(req));
         get("/protected/getlogfilenames", (req, res) -> getObserverCtx(req).getLogFileNames(), new JSONRT());
         get("/protected/getlogfile", (req, res) -> getObserverCtx(req).getLogFile(req, res));
-        get("/protected/variac_emergency_stop", (req, res) -> getObserverCtx(req).variacEmergencyStop(req));
+        get("/protected/emergency_stop", (req, res) -> getObserverCtx(req).emergencyStop(req));
 
         //
         // Admin routes

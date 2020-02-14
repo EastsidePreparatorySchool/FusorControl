@@ -1,1 +1,1 @@
-{"fakeCoreDevices":true,"noLog":false,"logFreq":10,"includeCoreStatus":true,"verbose":false,"cmdTimeOut":200,"superVerbose":true,"noBlueTooth":true,"saveProcessedVideo":true, "logPath":"logs"}
+{"fakeCoreDevices":true,"noLog":false,"logFreq":10,"includeCoreStatus":true,"verbose":false,"cmdTimeOut":200,"superVerbose":false,"noBlueTooth":true,"saveProcessedVideo":true, "logPath":"logs"}

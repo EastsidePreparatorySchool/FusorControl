@@ -50,10 +50,10 @@ function getLogs() {
 }
 
 
-function variac_emergency_stop() {
-    console.log("variac emergency stop");
+function emergency_stop() {
+    console.log("emergency stop");
     try {
-        request({url: "/protected/variac_emergency_stop", method: "GET"})
+        request({url: "/protected/emergency_stop", method: "GET"})
                 .then(data => {
                     console.log(data);
                 })

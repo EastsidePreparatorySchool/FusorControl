@@ -55,6 +55,10 @@
                     Needle Valve:<br>
                     <input disabled style="width:48%;" id="needleValue" min="0" max="100" step="1" size="10" value="0" type="number"  onchange="needleValve(this.value)" >
                     <button disabled style="width:48%;" id="needleButton" class="btn btn-primary btn-large" onclick="needleValve(document.getElementById('needleValue').value)" >Set</button>
+                    <br>
+                    <br>
+                    <button style="width:98%;" id="emergencyStop" class="btn btn-primary btn-large" onclick="emergency_stop()">Emergency stop</button>
+                    <br>
                 </div>
 
             </div>  

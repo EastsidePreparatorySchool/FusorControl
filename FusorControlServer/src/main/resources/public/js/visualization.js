@@ -13,20 +13,20 @@ var vizChannels = {
     'PIRANI.pirani_adc': {name: 'Fine pressure (adc)', shortname: 'PIRANI raw', unit: 'adc', min: 0, max: 1024, type: "continuous", datatype: "numeric"},
     'GAS.sol_stat': {name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
     'GAS.nv_stat': {name: 'Needle valve', shortname: 'NV status', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric"},
-    'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR targ', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'VARIAC.potentiometer': {name: 'Variac actual (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'VARIAC.dial_volts': {name: 'Variac dial (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'KV', min: 0, max: 15, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW volts', unit: 'KV (abs)', min: 0, max: 50, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW volt', unit: 'KV', min: 0, max: 50, type: "continuous", datatype: "numeric"},
     'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', shortname: 'CW current', unit: 'adc', min: 0, max: 50, type: "continuous", datatype: "numeric"},
     'GC-SERIAL.cps': {name: 'GCW (cps)', shortname: 'GCW clicks', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
     'PN-JUNCTION.total': {name: 'PNJ (adc)', shortname: 'PN-J raw', unit: 'adc', min: 0, max: 100, type: "continuous", datatype: "numeric"},
     'Heartbeat.beat': {name: 'Heartbeat', shortname: 'HEARTBEAT', unit: '', min: 0, max: 50, type: "momentary", datatype: "numeric"},
     'Heartbeat.logsize': {name: 'Log size (kEntries)', shortname: 'LOGSIZE', unit: 'kEntries', min: 0, max: 10000, type: "discrete", datatype: "numeric"},
 
-    'Comment.text': {name: 'Comment', shortname: '', min: 0, max: 4, type: "momentary", datatype: "text"},
-    'Login.text': {name: 'Login', shortname: '', min: 0, max: 3, type: "momentary", datatype: "text"},
-    'Command.text': {name: 'Command', shortname: '', min: 0, max: 2, type: "momentary", datatype: "text"}
+    'Comment.text': {name: 'Comment', shortname: '', min: 0, max: 30, type: "momentary", datatype: "text"},
+    'Login.text': {name: 'Login', shortname: '', min: 0, max: 40, type: "momentary", datatype: "text"},
+    'Command.text': {name: 'Command', shortname: '', min: 0, max: 20, type: "momentary", datatype: "text"}
 
 //    'OCR.text': {name: 'OCR text', shortname:'', min: 0, max: 1.5, type: "momentary", datatype: "text"},
 //    'OCR.confidence': {name: 'OCR confidence', shortname:'', min: 0, max: 200, type: "momentary", datatype: "numeric"},
@@ -102,27 +102,35 @@ function createViz() {
 }
 
 var textChannels = {};
+var devices = {};
 
 function createText() {
     var textDisplay = "";
     for (var channel in vizChannels) {
         if (vizChannels[channel].shortname !== '') {
-            textDisplay += vizChannels[channel].shortname + ":&nbsp;<span id='" + channel + "'>n/c</span>&nbsp"
+            // make a device map to keep track of device time
+            var deviceName = channel.substring(0, channel.indexOf('.'));
+            devices[deviceName] = {time: -1};
+            var name = vizChannels[channel].shortname;
+            name = name + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".substring(0, (14 - name.length) * 6);
+
+            textDisplay += name + ":&nbsp;<span id='" + channel + "'>n/c&nbsp;&nbsp;&nbsp;</span>&nbsp"
                     + vizChannels[channel].unit + "<br>";// + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
-            textChannels[channel] = {value: 0, last: 0, current: 0, type: vizChannels[channel].datatype};
+            textChannels[channel] = {value: 0, last: -1, current: -1, type: vizChannels[channel].datatype, device: devices[deviceName]};
         }
     }
     document.getElementById("data").innerHTML = textDisplay;
 }
 
 
-function updateText(channel, value, type, time) {
+function updateText(channel, value, type, time, deviceTime) {
     var tc = textChannels[channel];
 
     if (tc !== undefined) {
         tc.value = value;
         tc.current = time;
         tc.type = type;
+        tc.device.time = deviceTime;
     }
 }
 
@@ -133,14 +141,24 @@ function renderText(update, secs) {
         var valspan = document.getElementById(channel);
 
         if ((tc.current !== tc.last) && update) {
+            // value for variable is new, according to its timestamp
             valspan.style.color = "gold";
+            valspan.style.fontWeight = "bold";
             if (tc.type === "boolean") {
-                valspan.innerText = tc.value !== 0 ? "on" : "off";
+                valspan.innerHTML = tc.value !== 0 ? "&nbsp;&nbsp;&nbsp;&nbsp;on" : "&nbsp;&nbsp;&nbsp;off";
             } else if (tc.type === "numeric") {
-                valspan.innerText = Math.round(tc.value * 100) / 100;
+                // make it a nice 3.2 format
+                var text = Number.parseFloat(tc.value).toFixed(2);
+                valspan.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".substring(text.length * 6) + text;
             }
-        } else if ((secs > tc.last + 3) || !update) {
+        } else if ((secs > tc.device.time + 3) || !update) {
+            // device is there, but variable is stale
             valspan.style.color = "gray";
+            valspan.style.fontWeight = "normal";
+        } else if ((secs > tc.last + 3) || !update) {
+            // device has not reported in 3 seconds
+            valspan.style.color = "gold";
+            valspan.style.fontWeight = "normal";
         }
         tc.last = tc.current;
     }
@@ -153,7 +171,7 @@ function renderButtons() {
     } else {
         selectButton("tmpoff", "tmpon");
     }
-    
+
     tc = textChannels["GAS.solenoid"];
     if (tc !== undefined && tc.value !== 0) {
         selectButton("solon", "soloff");
@@ -216,9 +234,11 @@ function updateViz(dataArray) {
                 }
 
                 // get the three relevant timestamps, and do the math
+                var serverTime = 0;
+                var deviceTime = 0;
                 if (vc.offset === undefined) {
-                    var serverTime = Number(data["servertime"]);
-                    var deviceTime = Number(devicedata["devicetime"]);
+                    serverTime = Number(data["servertime"]);
+                    deviceTime = Number(devicedata["devicetime"]);
                     if (startTime === undefined) {
                         startTime = serverTime;
                         logStart = serverTime;
@@ -232,12 +252,18 @@ function updateViz(dataArray) {
                 varTime -= vc.offset;
                 varTime = Math.max(varTime, 0);
                 var secs = Math.round(varTime * 10) / 10000;
+
+                deviceTime = Number(devicedata["devicetime"]);
+                deviceTime -= vc.offset;
+                deviceTime = Math.max(deviceTime, 0);
+                var deviceSecs = Math.round(deviceTime * 10) / 10000;
+
                 maxTime = Math.max(maxTime, secs);
 
 
                 //console.log("x: "+varTime+" y: "+percent)
                 addDataPoint(dataSeries, vc.type, secs, percent, value);
-                updateText(devicename + "." + variable, value, vc.datatype, secs);
+                updateText(devicename + "." + variable, value, vc.datatype, secs, deviceSecs);
             } catch (error) {
                 console.log(error);
             }
