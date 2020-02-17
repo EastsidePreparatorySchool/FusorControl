@@ -12,7 +12,7 @@
 #define MINVOLTS 0
 #define MAXVOLTS 120
 #define MINSTEPS 0
-#define MAXSTEPS 3830
+#define MAXSTEPS 486
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 Adafruit_StepperMotor *myMotor;
@@ -56,7 +56,7 @@ void setVoltage(int volts) {
 
   FUSOR_LED_ON();
   for (int i = 0; i<steps; i++) {
-    myMotor->onestep(sign>0?FORWARD:BACKWARD, DOUBLE); 
+    myMotor->onestep(sign>0?FORWARD:BACKWARD, INTERLEAVE); 
 
     // update our variables
     if ((i+1)%100 == 0) {
@@ -82,7 +82,7 @@ void zeroVoltage() {
   //drive down 200 bonus steps, so we get to actual zero
   FUSOR_LED_ON();
   for (int i=0; i<200; i++) {
-    myMotor->onestep(BACKWARD, DOUBLE); 
+    myMotor->onestep(BACKWARD, SINGLE); 
   }
   myMotor->release();
   FUSOR_LED_OFF();
@@ -90,7 +90,7 @@ void zeroVoltage() {
 
 void calibrate() {
   FUSOR_LED_ON();
-  for (int i=0; i<4000; i++) {
+  for (int i=0; i<500; i++) {
     myMotor->onestep(BACKWARD, DOUBLE); 
   }
   myMotor->release();
