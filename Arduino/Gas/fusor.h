@@ -38,6 +38,8 @@ static int fusorNumVars = 0;
 static FusorVariable fusorVariables[FUSOR_MAX_VARIABLES];
 static bool _fusorAutoStatus = false;
 static long _fusorLastStatus = 0;
+static char _buffer[16];
+
 
 static const char *_fusorCmd = "CMD[";
 static const char *_fusorRsp = "RSP[";
@@ -306,7 +308,6 @@ void _fusorCmdExecute(char *sCmd, char *sVar, char *sVal)
 
 void _fusorCmdGetAll()
 {
-  static char buffer[16];
   int skip = 0;
   fusorStartResponse("STATUS:{");
 
@@ -326,17 +327,12 @@ void _fusorCmdGetAll()
         fusorAddResponse("\"");
         break;
       case FUSOR_VARTYPE_INT:
-        itoa(pfv->intValue, buffer, 10);
-        fusorAddResponse(buffer);
+        itoa(pfv->intValue, _buffer, 10);
+        fusorAddResponse(_buffer);
         break;
       case FUSOR_VARTYPE_FLOAT:
-        dtostrf(pfv->floatValue, 15, 8, buffer);
-        skip = 0;
-        while (buffer[skip] == ' ')
-        {
-          skip++;
-        }
-        fusorAddResponse(buffer + skip);
+        // we processed the float earlier, just send the string
+        fusorAddResponse(pfv->value); 
         break;
       case FUSOR_VARTYPE_BOOL:
         fusorAddResponse((char *)(pfv->boolValue ? "true" : "false"));
@@ -346,15 +342,15 @@ void _fusorCmdGetAll()
         break;
     }
     fusorAddResponse(",\"vartime\":");
-    ltoa(pfv->timestamp, buffer, 10);
-    fusorAddResponse(buffer);
+    ltoa(pfv->timestamp, _buffer, 10);
+    fusorAddResponse(_buffer);
 
     fusorAddResponse("}");
     fusorAddResponse(",");
   }
   fusorAddResponse("\"devicetime\":");
-  ltoa(millis(), buffer, 10);
-  fusorAddResponse(buffer);
+  ltoa(millis(), _buffer, 10);
+  fusorAddResponse(_buffer);
 
   fusorAddResponse("}");
   fusorSendResponse(NULL);
@@ -578,9 +574,35 @@ void fusorSetBoolVariable(const char *var, bool val)
 void fusorSetFloatVariable(const char *var, float val)
 {
   FusorVariable *pfv;
+  int skip;
 
   pfv = _fusorGetVariableEntry(var);
-  pfv->floatValue = val;
+
+  // make it into a string right here
+  dtostrf(val, 15, 8, _buffer);
+  skip = 0;
+  while (_buffer[skip] == ' ')
+  {
+      skip++;
+  }
+  strncpy(pfv->value, _buffer+skip, FUSOR_VAR_LENGTH - 1);
+  pfv->value[FUSOR_VAR_LENGTH - 1] = 0;
+
+  //pfv->updated = true;
+  pfv->timestamp = millis();
+}
+
+// alternate "set float" for data that is already in string format
+// (e.g. received from serial connection)
+void fusorSetFloatVariableFromString(const char *var, const char * str)
+{
+  FusorVariable *pfv;
+
+  pfv = _fusorGetVariableEntry(var);
+
+  strncpy(pfv->value, str, FUSOR_VAR_LENGTH - 1);
+  pfv->value[FUSOR_VAR_LENGTH - 1] = 0;
+
   //pfv->updated = true;
   pfv->timestamp = millis();
 }
