@@ -10,7 +10,7 @@ var vizChannels = {
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
     'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
     'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', shortname: 'DPHRGM raw', unit: 'adc', min: 0, max: 110, type: "continuous", datatype: "numeric"},
-    'PIRANI.p4': {name: 'Fine pressure', shortname: 'PIRANI', unit: 'Torr', min: 0, max: 800, type: "continuous", datatype: "numeric"},
+    'PIRANI.p4': {name: 'Fine pressure', shortname: 'PIRANI', unit: 'mTorr', factor:1000, min: 0, max: 800000, type: "continuous", datatype: "numeric"},
     'GAS.sol_stat': {name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
     'GAS.nv_stat': {name: 'Needle valve', shortname: 'NV status', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric"},
     'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
@@ -79,7 +79,7 @@ function createViz() {
         },
         toolTip: {
             shared: false,
-            content: "{name}: t: {x}, y: {value}"
+            content: "{name}: t: {x}, y: {value} {unit}"
         },
         data: vizData,
         rangeChanging: function (e) {
@@ -114,9 +114,13 @@ function createText() {
             var name = vizChannels[channel].shortname;
             name = name + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".substring(0, (14 - name.length) * 6);
 
-            textDisplay += name + ":&nbsp;<span id='" + channel + "'>n/c&nbsp;&nbsp;&nbsp;</span>&nbsp"
+            textDisplay += name + ":&nbsp;<span id='" + channel + "'>n/c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp"
                     + vizChannels[channel].unit + "<br>";// + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
-            textChannels[channel] = {value: 0, last: -1, current: -1, type: vizChannels[channel].datatype, device: devices[deviceName]};
+            textChannels[channel] = {value: 0,
+                last: -1,
+                current: -1,
+                type: vizChannels[channel].datatype,
+                device: devices[deviceName]};
         }
     }
     document.getElementById("data").innerHTML = textDisplay;
@@ -147,16 +151,16 @@ function renderText(update, secs) {
             if (tc.type === "boolean") {
                 valspan.innerHTML = tc.value !== 0 ? "&nbsp;&nbsp;&nbsp;&nbsp;on" : "&nbsp;&nbsp;&nbsp;off";
             } else if (tc.type === "numeric") {
-                // make it a nice 3.2 format
+                // make it a nice 6.2 format
                 var text = Number.parseFloat(tc.value).toFixed(2);
-                valspan.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".substring(text.length * 6) + text;
+                valspan.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".substring(text.length * 6) + text;
             }
         } else if ((secs > tc.device.time + 3) || !update) {
-            // device is there, but variable is stale
+            // device has not reported in 3 seconds
             valspan.style.color = "gray";
             valspan.style.fontWeight = "normal";
         } else if ((secs > tc.last + 3) || !update) {
-            // device has not reported in 3 seconds
+            // device is there, but variable is stale
             valspan.style.color = "gold";
             valspan.style.fontWeight = "normal";
         }
@@ -230,6 +234,9 @@ function updateViz(dataArray) {
                     }
                 } else {
                     value = Number(devicedata[variable]["value"]);
+                    if (vc.factor !== undefined) {
+                        value *=  vc.factor;
+                    }
                     percent = (Math.abs(value) - vc.min) * 100 / (vc.max - vc.min);
                 }
 
@@ -262,7 +269,7 @@ function updateViz(dataArray) {
 
 
                 //console.log("x: "+varTime+" y: "+percent)
-                addDataPoint(dataSeries, vc.type, secs, percent, value);
+                addDataPoint(dataSeries, vc.type, secs, percent, value, vc.unit);
                 updateText(devicename + "." + variable, value, vc.datatype, secs, deviceSecs);
             } catch (error) {
                 console.log(error);
@@ -278,7 +285,7 @@ function updateViz(dataArray) {
         if (!vizFrozen) {
             setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
         }
-        document.getElementById("logtime").innerText = String(Math.round(maxTime * 100) / 100);
+        document.getElementById("logtime").innerText = Number.parseFloat(maxTime).toFixed(2);
         renderText(true, maxTime);
     } else {
         setViewPort(0, maxTime);
@@ -287,30 +294,33 @@ function updateViz(dataArray) {
     renderChart();
 }
 
-function addDataPoint(dataSeries, type, secs, percent, value) {
+function addDataPoint(dataSeries, type, secs, percent, value, unit) {
+    if (unit === undefined) {
+        unit = "";
+    }
     switch (type) {
         case "momentary":
-            dataSeries.dataPoints.push({x: secs - 0.0001, y: 0, value: 0});
-            dataSeries.dataPoints.push({x: secs, y: percent, value: value});
-            dataSeries.dataPoints.push({x: secs + 0.0001, y: 0, value: 0});
+            dataSeries.dataPoints.push({x: secs - 0.0001, y: 0, value: 0, unit:unit});
+            dataSeries.dataPoints.push({x: secs, y: percent, value: value, unit:unit});
+            dataSeries.dataPoints.push({x: secs + 0.0001, y: 0, value: 0, unit:unit});
             break;
         case "discrete":
             if (dataSeries.dataPoints.length > 0) {
                 var lastPoint = dataSeries.dataPoints[dataSeries.dataPoints.length - 1];
-                dataSeries.dataPoints.push({x: secs - 0.0001, y: lastPoint.y, value: lastPoint.value});
+                dataSeries.dataPoints.push({x: secs - 0.0001, y: lastPoint.y, value: lastPoint.value, unit:unit});
             }
-            dataSeries.dataPoints.push({x: secs, y: percent, value: value});
+            dataSeries.dataPoints.push({x: secs, y: percent, value: value, unit:unit});
             break;
         case "discrete trailing":
             if (dataSeries.dataPoints.length > 0) {
                 var lastPoint = dataSeries.dataPoints[dataSeries.dataPoints.length - 1];
-                dataSeries.dataPoints.push({x: lastPoint.x + 0.0001, y: percent, value: value});
+                dataSeries.dataPoints.push({x: lastPoint.x + 0.0001, y: percent, value: value, unit:unit});
             }
-            dataSeries.dataPoints.push({x: secs, y: 0, value: value});
+            dataSeries.dataPoints.push({x: secs, y: 0, value: value, unit:unit});
             break;
         case "continuous":
         default:
-            dataSeries.dataPoints.push({x: secs, y: percent, value: value});
+            dataSeries.dataPoints.push({x: secs, y: percent, value: value, unit:unit});
             break;
     }
     // in live view, constrain ourselves to xxx data points per series
