@@ -7,17 +7,24 @@
 
 #include "fusor.h"
 
+
+long avgSignal;
+int newPercent = 10;
+
+
 void setup(){
   // must do this in init, the rest is optional
   fusorInit("PIRANI");
-  fusorAddVariable("P1",FUSOR_VARTYPE_FLOAT);
-  fusorAddVariable("P2",FUSOR_VARTYPE_FLOAT);
-  fusorAddVariable("P3",FUSOR_VARTYPE_FLOAT);
-  fusorAddVariable("P4",FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("p1",FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("p2",FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("p3",FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("p4",FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("pa_adc",FUSOR_VARTYPE_INT);
+  fusorAddVariable("pa",FUSOR_VARTYPE_FLOAT);
+
+  avgSignal = analogRead(A0);
 
   pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(14, INPUT);
-  pinMode(15, OUTPUT);
   
   Serial3.begin(9600);//, SERIAL_8N1);
 
@@ -53,36 +60,43 @@ void queryPressure(const char * var, int mode) {
 // read until response ends in ";FF"
 char * readResponse() {
   static char responseBuffer[30];
-  byte beforeLast, last, current;
+  char * pTerm;
+  char *pAck;
   int i = 0;
-  last = 0;
+  int count = 0;
 
   // read until end found
   do {
+    digitalWrite(LED_BUILTIN, HIGH);
     while(Serial3.available()) {
-      beforeLast = last;
-      last = current;
-      current = Serial3.read();
-      responseBuffer[i++] = current;
+      responseBuffer[i++] = Serial3.read();
     }
-  } while(current != 'F' || last !='F' || beforeLast != ';');
+    digitalWrite(LED_BUILTIN, LOW);
+    count++;
+    fusorDelay(5);
+  } while(count < 20 && !(pTerm = strstr(responseBuffer, ";FF")));
   
   // terminate 
-  responseBuffer[i-3] = 0;
+  if (pTerm == NULL) {
+    return NULL;
+  } 
+  *pTerm = 0;
+  
   // check if success
-  char *ack = strstr(responseBuffer, "ACK");
-  if (ack == NULL) {
+  pAck = strstr(responseBuffer, "ACK");
+  if (pAck == NULL) {
     return NULL;
   } 
 
   // return pointer to response content
-  return ack + 3;
+  return pAck + 3;
 }
 
 
 // send a command, wait for response, loop and blink if NAK
 bool command(char *str) {
   Serial3.write(str);
+  fusorDelay(50);
   if (readResponse() == NULL) {
     while(true) {
       digitalWrite(LED_BUILTIN, HIGH);
@@ -95,8 +109,12 @@ bool command(char *str) {
 
 // query device and set all variables 
 void updateAll() {
-  queryPressure ("P1", 1);
-  queryPressure ("P2", 2);
-  queryPressure ("P3", 3);
-  queryPressure ("P4", 4);
+  queryPressure ("p1", 1);
+  queryPressure ("p2", 2);
+  queryPressure ("p3", 3);
+  queryPressure ("p4", 4);
+  long newSignal = analogRead(A0);
+  avgSignal = (avgSignal*(100-newPercent) + newSignal*newPercent)/100;
+  fusorSetIntVariable("pa_adc", avgSignal);
+  fusorSetFloatVariable("pa", 0); // todo: real math for voltage divider and log scale here
 }
