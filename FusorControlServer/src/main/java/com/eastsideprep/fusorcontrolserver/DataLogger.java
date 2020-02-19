@@ -51,7 +51,7 @@ public class DataLogger {
 
             // create logfile
             this.baseTime = System.currentTimeMillis();
-            open(fileName+(customName != null? "_"+customName:""), ts);
+            open(fileName + (customName != null ? "_" + customName : ""), ts);
             this.cs = cs;
             cs.startRecording(fileName + "_cam_", this.baseTime);
 
@@ -122,7 +122,7 @@ public class DataLogger {
     static String makeHeartbeatDeviceText(double val, long millis) {
         StringBuilder sb = startPseudoDeviceEntry(500);
         addPseudoDeviceDoubleVariable(sb, "beat", val, millis);
-        addPseudoDeviceIntVariable(sb, "logsize", WebLog.instance.getLogSize()/1000, millis);
+        addPseudoDeviceIntVariable(sb, "logsize", WebLog.instance.getLogSize() / 1000, millis);
         return closePseudoDeviceEntry(sb, millis);
     }
 
@@ -160,19 +160,23 @@ public class DataLogger {
     }
 
     void recordHeartbeat(int secs) {
-        long time = this.baseTime+((long)secs)*1000;
+        long time = this.baseTime + ((long) secs) * 1000;
         dm.recordStatus("Heartbeat", time, makeHeartbeatDeviceText(secs % 10 == 0 ? 10 : 1, time));
     }
 
     void loggerThreadLoop() {
         WebLogObserver obs = WebServer.log.addObserver("<logger thread>");
         int secs = 0;
-        
+        int last = 0;
+
         try {
             while (!Thread.interrupted()) {
-                recordHeartbeat(secs);
-                Thread.sleep(1000);
-                secs++;
+                secs = (int) (System.currentTimeMillis() - this.baseTime) / 1000;
+                if (secs != last) {
+                    recordHeartbeat(secs);
+                    last = secs;
+                }
+                Thread.sleep(200);
 
                 StringBuilder sb = new StringBuilder();
                 sb.ensureCapacity(10000);
