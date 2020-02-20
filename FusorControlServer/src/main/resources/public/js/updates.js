@@ -20,33 +20,35 @@ function updateStatus(data, raw, startTime) {
 
 var globalData;
 function getStatus() {
-    // for the real thing: web request to server
-    request({url: "/protected/getstatus", method: "GET"})
-            .then(raw => {
-                if (liveServer) {
-                    globalData = raw;
-                    if (raw !== "not logging") {
-                        var data = JSON.parse(raw);
-                        updateStatus(data, raw, logStart);
-                        selectButton("startLog", "stopLog");
-                    } else {
-                        renderText(false, 0);
+    if (!offline) {
+        // for the real thing: web request to server
+        request({url: "/protected/getstatus", method: "GET"})
+                .then(raw => {
+                    if (liveServer) {
+                        globalData = raw;
+                        if (raw !== "not logging") {
+                            var data = JSON.parse(raw);
+                            updateStatus(data, raw, logStart);
+                            selectButton("startLog", "stopLog");
+                        } else {
+                            renderText(false, 0);
+                            selectButton("stopLog", "startLog");
+                        }
+                        setTimeout(getStatus, updateInterval);
+                    }
+                    //console.log(data);
+                })
+                .catch(error => {
+                    console.log("getstatus error: " + error);
+                    console.log(globalData);
+                    //console.log("stopping status requests to server");
+                    if (isAdmin) {
+                        //stopStatus();
                         selectButton("stopLog", "startLog");
                     }
                     setTimeout(getStatus, updateInterval);
-                }
-                //console.log(data);
-            })
-            .catch(error => {
-                console.log("getstatus error: " + error);
-                console.log(globalData);
-                //console.log("stopping status requests to server");
-                if (isAdmin) {
-                    //stopStatus();
-                    selectButton("stopLog", "startLog");
-                }
-                setTimeout(getStatus, updateInterval);
-            });
+                });
+    }
 }
 
 

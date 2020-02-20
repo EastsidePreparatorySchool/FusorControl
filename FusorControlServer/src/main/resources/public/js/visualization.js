@@ -5,13 +5,15 @@
 var vizData = [];
 var chart = null;
 var vizFrozen = false;
+var tooltipUpdates = true;
 var vizChannels = {
     'TMP.tmp_stat': {name: 'TMP status', shortname: 'TMP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
     'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
-    'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', shortname: 'DIAPHRAGM', unit: 'adc', min: 0, max: 200, type: "continuous", datatype: "numeric"},
-    'PIRANI.p3': {name: 'Piezo pressure', shortname: 'PIEZO', unit: 'mTorr', factor:1000, min: 0, max: 800000, type: "continuous", datatype: "numeric"},
-    'PIRANI.p4': {name: 'Pirani pressure', shortname: 'PIRANI', unit: 'mTorr', factor:1000, min: 0, max: 200, type: "continuous", datatype: "numeric"},
+//    'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', shortname: 'DIAPHRAGM', unit: 'adc', min: 0, max: 200, type: "continuous", datatype: "numeric"},
+    'PIRANI.p3': {name: 'Piezo pressure', shortname: '', unit: 'mTorr', factor: 1000, min: 0, max: 800000, type: "continuous", datatype: "numeric"},
+    'PIRANI.p1': {name: 'Pirani pressure', shortname: 'PRESSURE', unit: 'mTorr', factor: 1000, min: 0, max: 500, type: "continuous", datatype: "numeric"},
+    'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: '', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric"},
     'GAS.sol_stat': {name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
     'GAS.nv_stat': {name: 'Needle valve', shortname: 'NV status', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric"},
     'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
@@ -77,7 +79,23 @@ function createViz() {
         },
         toolTip: {
             shared: false,
-            content: "{name}: t: {x}, y: {value} {unit}"
+            content: "{name}: t: {x}, y: {value} {unit}",
+            contentFormatter: function (e) {
+                if (tooltipUpdates) {
+                    tooltipUpdates = false;
+                    var d = e.entries[0].dataPoint;
+                    if (offline) {
+                        // 
+                        var index = bSearchLog(d.time);
+                        var prior = findPrior(index, d.device);
+                        updateViz(offlineLog.slice(prior, index+1));
+                    }
+                    tooltipUpdates = true;
+                    return `${d.device}: t: ${d.x}, y: ${d.value} ${d.unit}`;
+                } else {
+                    return "";
+                }
+            }
         },
         data: vizData,
         rangeChanging: function (e) {
@@ -142,7 +160,7 @@ function renderText(update, secs) {
         //var timespan = document.getElementById(channel + ".time");
         var valspan = document.getElementById(channel);
 
-        if ((tc.current !== tc.last) && update) {
+        if (((tc.current !== tc.last) && update) || offline) {
             // value for variable is new, according to its timestamp
             valspan.style.color = "gold";
             valspan.style.fontWeight = "bold";
@@ -222,7 +240,7 @@ function updateViz(dataArray) {
                 // get value for this channel
                 var value;
                 var percent;
-                if (vc.datatype === "text") {
+                if (vc.datatype === "text" & tooltipUpdates) {
                     percent = (1 - vc.min) * 100 / (vc.max - vc.min);
                     if (devicedata["observer"] !== undefined) {
                         value = devicedata["observer"]["value"] + ":" + devicedata[variable]["value"];
@@ -233,17 +251,15 @@ function updateViz(dataArray) {
                 } else {
                     value = Number(devicedata[variable]["value"]);
                     if (vc.factor !== undefined) {
-                        value *=  vc.factor;
+                        value *= vc.factor;
                     }
                     percent = (Math.abs(value) - vc.min) * 100 / (vc.max - vc.min);
                 }
 
                 // get the three relevant timestamps, and do the math
-                var serverTime = 0;
-                var deviceTime = 0;
+                var serverTime = Number(data["servertime"]);
+                var deviceTime = Number(devicedata["devicetime"]);
                 if (vc.offset === undefined) {
-                    serverTime = Number(data["servertime"]);
-                    deviceTime = Number(devicedata["devicetime"]);
                     if (startTime === undefined) {
                         startTime = serverTime;
                         logStart = serverTime;
@@ -263,11 +279,11 @@ function updateViz(dataArray) {
                 deviceTime = Math.max(deviceTime, 0);
                 var deviceSecs = Math.round(deviceTime * 10) / 10000;
 
-                maxTime = Math.max(maxTime, secs);
+                maxTimeTotal = Math.max(maxTime, secs);
 
 
                 //console.log("x: "+varTime+" y: "+percent)
-                addDataPoint(dataSeries, vc.type, secs, percent, value, vc.unit);
+                addDataPoint(dataSeries, vc.type, secs, percent, value, vc.unit, serverTime, vc.name);
                 updateText(devicename + "." + variable, value, vc.datatype, secs, deviceSecs);
             } catch (error) {
                 console.log(error);
@@ -281,44 +297,48 @@ function updateViz(dataArray) {
 
     if (liveServer) {
         if (!vizFrozen) {
-            setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
+            setViewPort(Math.max(maxTimeTotal - 60, 0), Math.max(maxTimeTotal, 60));
         }
-        document.getElementById("logtime").innerText = Number.parseFloat(maxTime).toFixed(2);
-        renderText(true, maxTime);
+        document.getElementById("logtime").innerText = Number.parseFloat(maxTimeTotal).toFixed(2);
+        renderText(true, maxTimeTotal);
     } else {
         setViewPort(0, maxTime);
+        renderText(true, secs);
     }
 
     renderChart();
 }
 
-function addDataPoint(dataSeries, type, secs, percent, value, unit) {
+function addDataPoint(dataSeries, type, secs, percent, value, unit, time, device) {
+    if (!tooltipUpdates) {
+        return;
+    }
     if (unit === undefined) {
         unit = "";
     }
     switch (type) {
         case "momentary":
-            dataSeries.dataPoints.push({x: secs - 0.0001, y: 0, value: 0, unit:unit});
-            dataSeries.dataPoints.push({x: secs, y: percent, value: value, unit:unit});
-            dataSeries.dataPoints.push({x: secs + 0.0001, y: 0, value: 0, unit:unit});
+            dataSeries.dataPoints.push({x: secs - 0.0001, y: 0, value: 0, unit: unit, time: time, device: device});
+            dataSeries.dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
+            dataSeries.dataPoints.push({x: secs + 0.0001, y: 0, value: 0, unit: unit, time: time, device: device});
             break;
         case "discrete":
             if (dataSeries.dataPoints.length > 0) {
                 var lastPoint = dataSeries.dataPoints[dataSeries.dataPoints.length - 1];
-                dataSeries.dataPoints.push({x: secs - 0.0001, y: lastPoint.y, value: lastPoint.value, unit:unit});
+                dataSeries.dataPoints.push({x: secs - 0.0001, y: lastPoint.y, value: lastPoint.value, unit: unit, time: time, device: device});
             }
-            dataSeries.dataPoints.push({x: secs, y: percent, value: value, unit:unit});
+            dataSeries.dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
             break;
         case "discrete trailing":
             if (dataSeries.dataPoints.length > 0) {
                 var lastPoint = dataSeries.dataPoints[dataSeries.dataPoints.length - 1];
-                dataSeries.dataPoints.push({x: lastPoint.x + 0.0001, y: percent, value: value, unit:unit});
+                dataSeries.dataPoints.push({x: lastPoint.x + 0.0001, y: percent, value: value, unit: unit, time: time, device: device});
             }
-            dataSeries.dataPoints.push({x: secs, y: 0, value: value, unit:unit});
+            dataSeries.dataPoints.push({x: secs, y: 0, value: value, unit: unit, time: time, device: device});
             break;
         case "continuous":
         default:
-            dataSeries.dataPoints.push({x: secs, y: percent, value: value, unit:unit});
+            dataSeries.dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
             break;
     }
     // in live view, constrain ourselves to xxx data points per series

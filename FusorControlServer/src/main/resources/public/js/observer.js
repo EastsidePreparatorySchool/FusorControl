@@ -8,11 +8,14 @@
 //
 // reset weblog observer
 //
+offline = false;
 request({url: "/resetobserver", method: "GET"})
         .then(data => {
         })
         .catch(error => {
             console.log("error: " + error);
+            // switch to local browse mode only
+            offline = true;
         });
 
 
@@ -29,24 +32,29 @@ var loginInfo = "<unknown>";
 //
 
 function getLogs() {
-    request({url: "/protected/getlogfilenames", method: "GET"})
-            .then(raw => {
-                var files = JSON.parse(raw);
-                var list = document.getElementById("files");
-                var listDiv = document.getElementById("filesdiv");
-                listDiv.style.display = "block";
-                var filesText = "<a class='hover' onclick='loadLog(this)'>[sample log]</a><br>";
-                
-                for (var i = 0; i < files.length; i++) {
-                    filesText += "<a class='hover' onclick='loadLog(this)'>";
-                    filesText += files[i];
-                    filesText += "</a><br>";
-                }
-                list.innerHTML = filesText;
-            })
-            .catch(error => {
-                console.log("error: " + error);
-            });
+    if (offline) {
+        filename = prompt("Enter ULR from github", "https://raw.githubusercontent.com/EastsidePreparatorySchool/FusorExperiments/master/logs/keep/fusor-2020-02-11T16-39-19-612Z_small-air-hv-test.json");
+        loadLog(filename);
+    } else {
+        request({url: "/protected/getlogfilenames", method: "GET"})
+                .then(raw => {
+                    var files = JSON.parse(raw);
+                    var list = document.getElementById("files");
+                    var listDiv = document.getElementById("filesdiv");
+                    listDiv.style.display = "block";
+                    var filesText = "<a class='hover' onclick='loadServerLog(this)'>[sample log]</a><br>";
+
+                    for (var i = 0; i < files.length; i++) {
+                        filesText += "<a class='hover' onclick='loadServerLog(this)'>";
+                        filesText += files[i];
+                        filesText += "</a><br>";
+                    }
+                    list.innerHTML = filesText;
+                })
+                .catch(error => {
+                    console.log("error: " + error);
+                });
+    }
 }
 
 
@@ -66,18 +74,27 @@ function emergency_stop() {
 }
 
 
+function loadServerLog(input) {
+    loadLog(input.text);
+}
 
 
 function loadLog(fileName) {
     stopStatus();
-    console.log("loading log: " + fileName.text);
+    console.log("loading log: " + fileName);
     document.getElementById("filesdiv").style.display = "none";
-    if (fileName.text === "[sample log]") {
+    if (fileName === "[sample log]") {
         displayLog(fullData, fullData[0]["servertime"]);
         return;
     }
 
-    request({url: "/protected/getlogfile?filename=" + fileName.text, method: "GET"})
+    if (offline) {
+        url = fileName;
+    } else {
+        url = "/protected/getlogfile?filename=" + fileName;
+    }
+
+    request({url: url, method: "GET"})
             .then(raw => {
                 if (raw.endsWith("},\n")) {
                     raw += "{}]}";
@@ -93,6 +110,11 @@ function loadLog(fileName) {
 
 
 function displayLog(data, timestamp) {
+    data.sort(function (a, b) {
+        return a["servertime"] - b["servertime"];
+    });
+    offlineLog = data;
+    offline = true;
     updateStatus(data, null, timestamp);
     document.getElementById("loadLog").innerText = "Live View";
     document.getElementById("loadLog").onclick = displayLiveData;
@@ -101,6 +123,40 @@ function displayLog(data, timestamp) {
     document.getElementById("commentbutton").disabled = true;
     document.getElementById("chat").innerText = "<offline>";
     enableAdminControls(false);
+}
+
+
+function bSearchLog(time) {
+    var a = 0;
+    var b = offlineLog.length - 1;
+
+    while (b !== a) {
+        var c = Math.floor((a + b) / 2);
+        var entry = offlineLog[c];
+        if (entry["servertime"] >= time) {
+            b = Math.floor((a + b) / 2);
+        } else {
+            a = Math.ceil((a + b) / 2);
+        }
+    }
+
+    // now go forward through equal values
+    while (a < offlineLog.length - 1 && offlineLog[a + 1]["servertime"] === time) {
+        a++;
+    }
+
+    return a;
+}
+
+function findPrior(index, device) {
+    if (index === 0) {
+        return 0;
+    }
+    var a = index - 1;
+    while (a > index - 50 && offlineLog[a].device !== device) {
+        a--;
+    }
+    return a+1;
 }
 
 function displayLiveData() {
