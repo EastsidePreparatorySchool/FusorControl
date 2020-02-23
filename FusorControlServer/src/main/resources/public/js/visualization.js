@@ -227,7 +227,7 @@ function renderText(update, secs) {
                 valspan.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".substring(text.length * 6) + text;
             }
         } else if ((secs > tc.device.time + 10) || !update) {
-            // device has not reported in 3 seconds
+            // device has not reported in n seconds
             valspan.style.color = "gray";
             valspan.style.fontWeight = "normal";
         } else if ((secs > tc.last + 10) || !update) {
