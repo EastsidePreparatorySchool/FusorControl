@@ -2,8 +2,7 @@
 // fusor device status -> graph
 //
 
-var usingChartJS = true;
-
+var usingChartJS = false;
 var vizData = [];
 var chart = null;
 var vizFrozen = false; // CanvasJS allows to zoom and pan, I freeze the display for it
@@ -42,15 +41,11 @@ var vizChannels = {
     'PN-JUNCTION.total': {name: 'PNJ (adc)', shortname: 'PN-J raw', unit: 'adc', min: 0, max: 100, type: "continuous", datatype: "numeric"},
     'Heartbeat.beat': {name: 'Heartbeat', shortname: 'HEARTBEAT', unit: '', min: 0, max: 50, type: "momentary", datatype: "numeric"},
     'Heartbeat.logsize': {name: 'Log size (kEntries)', shortname: 'LOGSIZE', unit: 'kEntries', min: 0, max: 10000, type: "discrete", datatype: "numeric"},
-
     'Comment.text': {name: 'Comment', shortname: '', min: 0, max: 30, type: "momentary", datatype: "text"},
     'Login.text': {name: 'Login', shortname: '', min: 0, max: 40, type: "momentary", datatype: "text"},
     'Command.text': {name: 'Command', shortname: '', min: 0, max: 20, type: "momentary", datatype: "text"}
 
 };
-
-
-
 //
 // create the HTML and chart for whatever library we are using
 //
@@ -116,15 +111,10 @@ function createVizCanvasJS() {
             content: "{name}: t: {x}, y: {value} {unit}",
             contentFormatter: function (e) {
                 if (tooltipUpdates) {
-                    tooltipUpdates = false;
                     var d = e.entries[0].dataPoint;
                     if (offline) {
-                        // 
-                        var index = bSearchLog(d.time);
-                        var prior = findPrior(index, d.device);
-                        updateViz(offlineLog.slice(prior, index + 1));
+                        updateCorrespondingText(d.time, d.device)
                     }
-                    tooltipUpdates = true;
                     return `${d.device}: t: ${d.x}, y: ${d.value} ${d.unit}`;
                 } else {
                     return "";
@@ -153,6 +143,37 @@ function createVizCanvasJS() {
 
 
 //
+// This next function is a hack of sorts
+// but it is now pulled out so we can change the implementation.
+// It should online run in offline mode, where offlineData contains the whole log.
+// It sets a reentrance-prevention flag that is observed
+// in the tooltip formatter function (in CanvaJS options)
+// and also in addDataPoint().
+// It then finds the data entries in the offline log that correspond to the 
+// time and device, and all the data (from other devices) immediately preceding it.
+// Then it runs that slice of data back through the visualization update function.
+// Due to the flag, no data points are added to the chart, 
+// but all text data are updated.
+//
+
+function updateCorrespondingText(time, device) {
+    // prevent coming here again recursively
+    tooltipUpdates = false;
+    try {
+        // find the data index belonging to that chart point
+        var index = bSearchLog(time);
+        // go back to just past the previous entry for this device, 
+        var prior = findPrior(index, device);
+        // now run that slice of data through the updater.
+        updateViz(offlineLog.slice(prior, index + 1));
+    } catch (e) {
+        // this is just here so we can get to the end and reset the flag
+        // console.log(e);
+    }
+    tooltipUpdates = true;
+}
+
+//
 // set up the text display on the right of the screen
 // textChannels keeps track of what values we have seen
 // devices keeps track of when we last heard from a device
@@ -160,7 +181,6 @@ function createVizCanvasJS() {
 
 var textChannels = {};
 var devices = {};
-
 function createText() {
     var textDisplay = "";
     for (var channel in vizChannels) {
@@ -170,9 +190,8 @@ function createText() {
             devices[deviceName] = {time: -1};
             var name = vizChannels[channel].shortname;
             name = name + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".substring(0, (14 - name.length) * 6);
-
             textDisplay += name + ":&nbsp;<span id='" + channel + "'>n/c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp"
-                    + vizChannels[channel].unit + "<br>";// + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
+                    + vizChannels[channel].unit + "<br>"; // + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
             textChannels[channel] = {value: 0,
                 last: -1,
                 current: -1,
@@ -189,7 +208,6 @@ function createText() {
 //
 function updateText(channel, value, type, time, deviceTime) {
     var tc = textChannels[channel];
-
     if (tc !== undefined) {
         tc.value = value;
         tc.current = time;
@@ -207,24 +225,23 @@ function renderText(update, secs) {
         var tc = textChannels[channel];
         //var timespan = document.getElementById(channel + ".time");
         var valspan = document.getElementById(channel);
-
         if (((tc.current !== tc.last) && update) || offline) {
-            // value for variable is new, according to its timestamp
+// value for variable is new, according to its timestamp
             valspan.style.color = "gold";
             valspan.style.fontWeight = "bold";
             if (tc.type === "boolean") {
                 valspan.innerHTML = tc.value !== 0 ? "&nbsp;&nbsp;&nbsp;&nbsp;on" : "&nbsp;&nbsp;&nbsp;off";
             } else if (tc.type === "numeric") {
-                // make it a nice 6.2 format
+// make it a nice 6.2 format
                 var text = Number.parseFloat(tc.value).toFixed(2);
                 valspan.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".substring(text.length * 6) + text;
             }
         } else if ((secs > tc.device.time + 3) || !update) {
-            // device has not reported in 3 seconds
+// device has not reported in 3 seconds
             valspan.style.color = "gray";
             valspan.style.fontWeight = "normal";
         } else if ((secs > tc.last + 3) || !update) {
-            // device is there, but variable is stale
+// device is there, but variable is stale
             valspan.style.color = "gold";
             valspan.style.fontWeight = "normal";
         }
@@ -278,36 +295,35 @@ function resetViz() {
 // CanvasJS/CharJS agnostic
 //
 function updateViz(dataArray) {
-    // updates come in JSON array of device entries
+// updates come in JSON array of device entries
     for (var i = 0; i < dataArray.length; i++) {
         var data = dataArray[i];
         var devicename = data["device"];
         var devicedata = data["data"];
-
         // special pseudo device for reset
         if (devicename === "<reset>") {
-            // restart visualization with fresh log data
+// restart visualization with fresh log data
             resetViz();
             continue;
         }
 
-        // if someone was promoted to admin, update the controls
-        // done with another pseudo-device
+// if someone was promoted to admin, update the controls
+// done with another pseudo-device
         if (devicename === "<promote>") {
             checkAdminControls();
             continue;
         }
 
-        //
-        // now add important variables to display
-        // see declaration of vizChannels above to see what is included
-        //
+//
+// now add important variables to display
+// see declaration of vizChannels above to see what is included
+//
         for (var variable in devicedata) {
             try {
                 var vc = vizChannels[devicename + "." + variable];
                 if (vc === undefined) {
-                    // vizChannels are a de-facto view of the data for us
-                    // if this variable is not listed, we are on to the next one
+// vizChannels are a de-facto view of the data for us
+// if this variable is not listed, we are on to the next one
                     continue;
                 }
                 var dataSeries = vc.dataSeries;
@@ -330,7 +346,7 @@ function updateViz(dataArray) {
                     percent = (Math.abs(value) - vc.min) * 100 / (vc.max - vc.min);
                 }
 
-                // get the three relevant timestamps, and do the math
+// get the three relevant timestamps, and do the math
                 var serverTime = Number(data["servertime"]);
                 var deviceTime = Number(devicedata["devicetime"]);
                 if (vc.offset === undefined) {
@@ -347,15 +363,11 @@ function updateViz(dataArray) {
                 varTime -= vc.offset;
                 varTime = Math.max(varTime, 0);
                 var secs = Math.round(varTime * 10) / 10000;
-
                 deviceTime = Number(devicedata["devicetime"]);
                 deviceTime -= vc.offset;
                 deviceTime = Math.max(deviceTime, 0);
                 var deviceSecs = Math.round(deviceTime * 10) / 10000;
-
                 maxTimeTotal = Math.max(maxTime, secs);
-
-
                 //console.log("x: "+varTime+" y: "+percent)
                 addDataPoint(dataSeries, vc.type, secs, percent, value, vc.unit, serverTime, vc.name);
                 updateText(devicename + "." + variable, value, vc.datatype, secs, deviceSecs);
@@ -365,9 +377,9 @@ function updateViz(dataArray) {
         } // for variable
     } // for data item
 
-    //
-    // adjust the view port
-    //
+//
+// adjust the view port
+//
 
     if (liveServer) {
         if (!vizFrozen) {
@@ -387,19 +399,19 @@ function updateViz(dataArray) {
 // this adds one x,y (secs, percent) datapoint, but also more info to show in a tooltip
 //
 function addDataPoint(dataSeries, type, secs, percent, value, unit, time, device) {
-    // reentrancy check - we don't want to go here from within a tooltip update
+// reentrancy check - we don't want to go here from within a tooltip update
     if (!tooltipUpdates) {
         return;
     }
 
-    // some parameter sanitation
+// some parameter sanitation
     if (unit === undefined) {
         unit = "";
     }
 
-    //
-    // get me the right queue depending on the viz library we are using
-    //
+//
+// get me the right queue depending on the viz library we are using
+//
     var dataPoints;
     if (usingChartJS) {
         dataPoints = dataSeries.data;
@@ -408,9 +420,9 @@ function addDataPoint(dataSeries, type, secs, percent, value, unit, time, device
         dataPoints = dataSeries.dataPoints;
     }
 
-    //
-    // this big switch makes different line behavior happen for different devices/variables, as defined in their vizChannel
-    //
+//
+// this big switch makes different line behavior happen for different devices/variables, as defined in their vizChannel
+//
 
     switch (type) {
         case "momentary":
@@ -443,7 +455,7 @@ function addDataPoint(dataSeries, type, secs, percent, value, unit, time, device
             dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
             break;
     }
-    // in live view, constrain ourselves to xxx data points per series
+// in live view, constrain ourselves to xxx data points per series
     if (liveServer) {
         while (data.length > 10000) {
             data.shift();
@@ -500,7 +512,6 @@ function createVizChartJS() {
                         displayFormats: {
                             second: 'XXX.XX'
                         },
-
                         distribution: 'linear',
                         offset: true,
                         ticks: {
