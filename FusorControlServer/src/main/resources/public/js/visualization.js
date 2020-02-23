@@ -2,10 +2,26 @@
 // fusor device status -> graph
 //
 
+var usingChartJS = true;
+
 var vizData = [];
 var chart = null;
-var vizFrozen = false;
-var tooltipUpdates = true;
+var vizFrozen = false; // CanvasJS allows to zoom and pan, I freeze the display for it
+var tooltipUpdates = true; // reentrance flag to avoid doing data updates cause by tooltipUpdates. Might be misnamed. 
+
+//
+// this is the most important data structure here
+// 
+// the key is a concatenation of device name (as reported by its Arduino) and a variable name published by that device
+// 
+// name: is the name of the line in the chart
+// shortname: is the line in the text display on the left. No shortname, no text display
+// unit: is for tooltips and text display
+// factor: if present, will multiply incoming data by this (e.g. Pirani reports Torr, but I want to display microns (milliTorr))
+// min and max: let us calculate a percentage from the actual value, and display that. changing this allows to change the height of "momentary" spikes
+// type: for explanation, see addDataPoint() further down
+// datatype: used for both line and text display
+//
 var vizChannels = {
     'TMP.tmp_stat': {name: 'TMP status', shortname: 'TMP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
@@ -34,7 +50,25 @@ var vizChannels = {
 };
 
 
+
+//
+// create the HTML and chart for whatever library we are using
+//
 function createViz() {
+    var container = document.getElementById("fchart");
+    if (usingChartJS) {
+        container.innerHTML = "<canvas id='chartContainer' style='background-color: white; width:100%;height:100%'></canvas>";
+        createVizChartJS();
+    } else {
+        container.innerHTML = "<div id='chartContainer'></div>";
+        createVizCanvasJS();
+    }
+}
+
+//
+// create the chart for CanvasJS. For a chartJS version, see end of the file
+//
+function createVizCanvasJS() {
     var options = {
         zoomEnabled: true,
         animationEnabled: true,
@@ -88,7 +122,7 @@ function createViz() {
                         // 
                         var index = bSearchLog(d.time);
                         var prior = findPrior(index, d.device);
-                        updateViz(offlineLog.slice(prior, index+1));
+                        updateViz(offlineLog.slice(prior, index + 1));
                     }
                     tooltipUpdates = true;
                     return `${d.device}: t: ${d.x}, y: ${d.value} ${d.unit}`;
@@ -117,6 +151,13 @@ function createViz() {
     chart.render();
 }
 
+
+//
+// set up the text display on the right of the screen
+// textChannels keeps track of what values we have seen
+// devices keeps track of when we last heard from a device
+//
+
 var textChannels = {};
 var devices = {};
 
@@ -142,7 +183,10 @@ function createText() {
     document.getElementById("data").innerHTML = textDisplay;
 }
 
-
+//
+// this is called from within updateViz() to populate the textChannels data structure with new data
+// CanvasJS/CharJS agnostic
+//
 function updateText(channel, value, type, time, deviceTime) {
     var tc = textChannels[channel];
 
@@ -154,6 +198,10 @@ function updateText(channel, value, type, time, deviceTime) {
     }
 }
 
+//
+// this pushes the text data out on to the screen
+// CanvasJS/CharJS agnostic
+//
 function renderText(update, secs) {
     for (var channel in textChannels) {
         var tc = textChannels[channel];
@@ -184,6 +232,11 @@ function renderText(update, secs) {
     }
 }
 
+//
+// this updates the buttons on the left to reflect certain status like Solenoid on/off
+// CanvasJS/CharJS agnostic
+// incomplete/buggy
+//
 function renderButtons() {
     var tc = textChannels["TMP.tmp"];
     if (tc !== undefined && tc.value !== 0) {
@@ -199,10 +252,19 @@ function renderButtons() {
         selectButton("soloff", "solon");
     }
 }
+
+//
+// this resets the visualization for switches between live/offline
+// stale, might have bugs
+//
 function resetViz() {
     for (var channel in vizChannels) {
         var vc = vizChannels[channel];
-        vc.dataSeries.dataPoints = [];
+        if (usingChartJS) {
+            vc.dataSeries.data = [];
+        } else {
+            vc.dataSeries.dataPoints = [];
+        }
         maxTime = 0;
         startTime = undefined;
         logstart = undefined;
@@ -211,29 +273,41 @@ function resetViz() {
     renderChart();
 }
 
+//
+// main function to interpret JSON data, scale data for display, push all updates
+// CanvasJS/CharJS agnostic
+//
 function updateViz(dataArray) {
+    // updates come in JSON array of device entries
     for (var i = 0; i < dataArray.length; i++) {
         var data = dataArray[i];
         var devicename = data["device"];
         var devicedata = data["data"];
+
+        // special pseudo device for reset
         if (devicename === "<reset>") {
             // restart visualization with fresh log data
             resetViz();
             continue;
         }
+
+        // if someone was promoted to admin, update the controls
+        // done with another pseudo-device
         if (devicename === "<promote>") {
             checkAdminControls();
+            continue;
         }
 
         //
         // now add important variables to display
         // see declaration of vizChannels above to see what is included
         //
-
         for (var variable in devicedata) {
             try {
                 var vc = vizChannels[devicename + "." + variable];
                 if (vc === undefined) {
+                    // vizChannels are a de-facto view of the data for us
+                    // if this variable is not listed, we are on to the next one
                     continue;
                 }
                 var dataSeries = vc.dataSeries;
@@ -309,54 +383,218 @@ function updateViz(dataArray) {
     renderChart();
 }
 
+//
+// this adds one x,y (secs, percent) datapoint, but also more info to show in a tooltip
+//
 function addDataPoint(dataSeries, type, secs, percent, value, unit, time, device) {
+    // reentrancy check - we don't want to go here from within a tooltip update
     if (!tooltipUpdates) {
         return;
     }
+
+    // some parameter sanitation
     if (unit === undefined) {
         unit = "";
     }
+
+    //
+    // get me the right queue depending on the viz library we are using
+    //
+    var dataPoints;
+    if (usingChartJS) {
+        dataPoints = dataSeries.data;
+        //secs = moment.unix(secs); // but we don't have the moments library
+    } else {
+        dataPoints = dataSeries.dataPoints;
+    }
+
+    //
+    // this big switch makes different line behavior happen for different devices/variables, as defined in their vizChannel
+    //
+
     switch (type) {
         case "momentary":
-            dataSeries.dataPoints.push({x: secs - 0.0001, y: 0, value: 0, unit: unit, time: time, device: device});
-            dataSeries.dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
-            dataSeries.dataPoints.push({x: secs + 0.0001, y: 0, value: 0, unit: unit, time: time, device: device});
+            // make a spike out of three points
+            dataPoints.push({x: secs - 0.0001, y: 0, value: 0, unit: unit, time: time, device: device});
+            dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
+            dataPoints.push({x: secs + 0.0001, y: 0, value: 0, unit: unit, time: time, device: device});
             break;
         case "discrete":
-            if (dataSeries.dataPoints.length > 0) {
-                var lastPoint = dataSeries.dataPoints[dataSeries.dataPoints.length - 1];
-                dataSeries.dataPoints.push({x: secs - 0.0001, y: lastPoint.y, value: lastPoint.value, unit: unit, time: time, device: device});
+            // flat lines that move at the time of the event
+            // i.e. the datapoint reflects how things are from hereon
+            if (dataPoints.length > 0) {
+                var lastPoint = dataPoints[dataPoints.length - 1];
+                dataPoints.push({x: secs - 0.0001, y: lastPoint.y, value: lastPoint.value, unit: unit, time: time, device: device});
             }
-            dataSeries.dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
+            dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
             break;
         case "discrete trailing":
-            if (dataSeries.dataPoints.length > 0) {
-                var lastPoint = dataSeries.dataPoints[dataSeries.dataPoints.length - 1];
-                dataSeries.dataPoints.push({x: lastPoint.x + 0.0001, y: percent, value: value, unit: unit, time: time, device: device});
+            // flat lines that move at the last event before ours
+            // i.e. the datapoint is interpreted to reflect how things have been since the last datapoint
+            if (dataPoints.length > 0) {
+                var lastPoint = dataPoints[dataPoints.length - 1];
+                dataPoints.push({x: lastPoint.x + 0.0001, y: percent, value: value, unit: unit, time: time, device: device});
             }
-            dataSeries.dataPoints.push({x: secs, y: 0, value: value, unit: unit, time: time, device: device});
+            dataPoints.push({x: secs, y: 0, value: value, unit: unit, time: time, device: device});
             break;
         case "continuous":
+        // just put the point in
         default:
-            dataSeries.dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
+            dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
             break;
     }
     // in live view, constrain ourselves to xxx data points per series
     if (liveServer) {
-        while (dataSeries.dataPoints.length > 10000) {
-            dataSeries.dataPoints.shift();
+        while (data.length > 10000) {
+            data.shift();
         }
     }
 }
 
+//
+// set the view port
+// I don't know how to do this in ChartJS
+//
 function setViewPort(min, max) {
-    chart.axisX[0].set("viewportMinimum", min);
-    chart.axisX[0].set("viewportMaximum", max);
+    if (usingChartJS) {
+    } else {
+        chart.axisX[0].set("viewportMinimum", min);
+        chart.axisX[0].set("viewportMaximum", max);
+    }
+}
+
+//
+// trigger the actual visual update
+//
+function renderChart() {
+    if (usingChartJS) {
+        chart.update();
+    } else {
+        chart.render();
+    }
 }
 
 
-function renderChart() {
-    chart.render();
+//
+// chart.js specific: createViz
+//
+function createVizChartJS() {
+    var color = Chart.helpers.color;
+    var cfg = {
+        data: {
+            datasets: vizData
+        },
+        options: {
+            legend: {
+                position: "bottom"
+            },
+            animation: {
+                duration: 0
+            },
+            scales: {
+                xAxes: [{
+                        type: 'time',
+                        time: {
+                            unit: 'second'
+                        },
+                        displayFormats: {
+                            second: 'XXX.XX'
+                        },
+
+                        distribution: 'linear',
+                        offset: true,
+                        ticks: {
+                            major: {
+                                enabled: true,
+                                fontStyle: 'bold'
+                            },
+                            source: 'data',
+                            autoSkip: true,
+                            autoSkipPadding: 75,
+                            maxRotation: 0,
+                            sampleSize: 100
+                        }
+                    }],
+                yAxes: [{
+                        gridLines: {
+                            drawBorder: false
+                        }
+                    }]
+            },
+            tooltips: {
+                intersect: false,
+                mode: 'index',
+                callbacks: {
+                    label: function (tooltipItem, myData) {
+                        var label = myData.datasets[tooltipItem.datasetIndex].label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        label += parseFloat(tooltipItem.value).toFixed(2);
+                        return label;
+                    }
+                }
+            }
+        }
+    };
+    var ctx = document.getElementById('chartContainer').getContext('2d');
+    chart = new Chart(ctx, cfg);
+    window.chartColors = [
+        'maroon',
+        'brown',
+        'olive',
+        'teal',
+        'navy',
+        'black',
+        'red',
+        'orange',
+        'yellow',
+        'lime',
+        'green',
+        'cyan',
+        'blue',
+        'purple',
+        'magenta',
+        'grey',
+        'pink',
+        'apricot',
+        'beige',
+        'mint',
+        'lavender'
+    ];
+    var i = 0;
+    for (var channel in vizChannels) {
+        var dataset = {
+            label: vizChannels[channel].name,
+            backgroundColor: color(window.chartColors[i]).alpha(0.5).rgbString(),
+            borderColor: window.chartColors[i],
+            data: [],
+            type: 'line',
+            pointRadius: 0,
+            fill: false,
+            lineTension: 0,
+            borderWidth: 2
+        };
+//        switch (vizChannels[channel].type) {
+//            case "momentary":
+//                dataset.steppedLine = 'middle';
+//                break;
+//            case "discrete":
+//                dataset.steppedLine = 'after';
+//                break;
+//            case "discrete trailing":
+//                dataset.steppedLine = 'before';
+//                break;
+//            case "continuous":
+//            default:
+//                dataset.steppedLine = false;
+//                break;
+//        }
+        vizData.push(dataset);
+        vizChannels[channel].dataSeries = dataset;
+        i++;
+    }
+
 }
 
 
