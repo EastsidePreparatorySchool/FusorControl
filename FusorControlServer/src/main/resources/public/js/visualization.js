@@ -321,11 +321,13 @@ function updateViz(dataArray, textOnly) {
                 // get value for this channel
                 var value;
                 var percent;
-                if (vc.datatype === "text" & !textOnly) {
+                if (vc.datatype === "text") {
                     percent = (1 - vc.min) * 100 / (vc.max - vc.min);
                     if (devicedata["observer"] !== undefined) {
                         value = devicedata["observer"]["value"] + ":" + devicedata[variable]["value"];
-                        displayComment(devicedata["observer"]["value"], data["servertime"], devicedata["text"]["value"]);
+                        if (liveServer && !textOnly) {
+                            displayComment(devicedata["observer"]["value"], data["servertime"], devicedata["text"]["value"]);
+                        }
                     } else {
                         value = "\"" + devicedata[variable]["value"] + "\"";
                     }
