@@ -9,7 +9,7 @@
 // reset weblog observer
 //
 offline = false;
-request({url: "/resetobserver", method: "GET"})
+request({url: "/resetobserver", method: "GET", async: false})
         .then(data => {
         })
         .catch(error => {

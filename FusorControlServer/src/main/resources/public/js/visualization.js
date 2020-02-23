@@ -144,7 +144,7 @@ function updateCorrespondingText(dataPoint) {
     if (!offline) {
         return;
     }
-    
+
     // find the data index belonging to that chart point
     var index = bSearchLog(dataPoint.time);
     // go back to just past the previous entry for this device, 
@@ -525,10 +525,13 @@ function createVizChartJS() {
                     }]
             },
             tooltips: {
-                intersect: true,
+                intersect: false,
                 mode: 'nearest',
                 callbacks: {
-                   label: function (tooltipItem, myData) {
+                    title: function () {
+                        return null;
+                    },
+                    label: function (tooltipItem, myData) {
                         var dataPoint = myData.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
                         updateCorrespondingText(dataPoint);
                         return makeTooltipText(dataPoint);
