@@ -2,7 +2,7 @@
 // fusor device status -> graph
 //
 
-var usingChartJS = false;   // switch between chart libraries
+var usingChartJS = true;    // switch between chart libraries
 var vizData = [];           // holds all our data series
 var chart = null;           // holds central chart object
 var vizFrozen = false;      // CanvasJS allows to zoom and pan, we freeze the display for it
@@ -137,7 +137,7 @@ function createVizCanvasJS() {
 
 //
 // Update text data for a corresponding graph point
-// chartJS agnostic
+// CanvasJS/ChartJS agnostic
 //
 
 function updateCorrespondingText(dataPoint) {
@@ -156,7 +156,7 @@ function updateCorrespondingText(dataPoint) {
 
 //
 // make tooltip text
-// chartJS agnostic
+// CanvasJS/ChartJS agnostic
 //
 function makeTooltipText(dataPoint) {
     return `${dataPoint.device}: t: ${Number(dataPoint.x).toFixed(2)}, y: ${Number(dataPoint.value).toFixed(2)} ${dataPoint.unit}`;
@@ -166,6 +166,7 @@ function makeTooltipText(dataPoint) {
 // set up the text display on the right of the screen
 // textChannels keeps track of what values we have seen
 // devices keeps track of when we last heard from a device
+// CanvasJS/ChartJS agnostic
 //
 
 var textChannels = {};
@@ -193,7 +194,7 @@ function createText() {
 
 //
 // this is called from within updateViz() to populate the textChannels data structure with new data
-// CanvasJS/CharJS agnostic
+// CanvasJS/ChartJS agnostic
 //
 function updateText(channel, value, type, time, deviceTime) {
     var tc = textChannels[channel];
@@ -207,7 +208,7 @@ function updateText(channel, value, type, time, deviceTime) {
 
 //
 // this pushes the text data out on to the screen
-// CanvasJS/CharJS agnostic
+// CanvasJS/ChartJS agnostic
 //
 function renderText(update, secs) {
     for (var channel in textChannels) {
@@ -240,7 +241,7 @@ function renderText(update, secs) {
 
 //
 // this updates the buttons on the left to reflect certain status like Solenoid on/off
-// CanvasJS/CharJS agnostic
+// CanvasJS/ChartJS agnostic
 // incomplete/buggy
 //
 function renderButtons() {
@@ -524,18 +525,10 @@ function createVizChartJS() {
                     }]
             },
             tooltips: {
-                intersect: false,
-                mode: 'index',
+                intersect: true,
+                mode: 'nearest',
                 callbacks: {
-                    labelOld: function (tooltipItem, myData) {
-                        var label = myData.datasets[tooltipItem.datasetIndex].label || '';
-                        if (label) {
-                            label += ': ';
-                        }
-                        label += parseFloat(tooltipItem.value).toFixed(2);
-                        return label;
-                    },
-                    label: function (tooltipItem, myData) {
+                   label: function (tooltipItem, myData) {
                         var dataPoint = myData.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
                         updateCorrespondingText(dataPoint);
                         return makeTooltipText(dataPoint);
