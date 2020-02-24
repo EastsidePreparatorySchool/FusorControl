@@ -31,89 +31,7 @@ public class WebServer {
     }
 
     public void init() {
-        // housekeeping routes and filters
-        port(80);
-
-        post("/login", (req, res) -> login(req, res));
-        get ("/autologin", (req,res) -> autoLogin(req,res));
-        post("/logout", (req, res) -> logout(req, res));
-        get("/client", (req, res) -> getClient(req, res));
-        get("/numcameras", (req, res) -> Integer.toString(cs.numCameras));
-        get("/resetobserver", (req, res) -> resetObserver(req, res));
-
-        // HTML pages use this to switch to the "expired" page
-        get("/protected/checktimeout", (req, res) -> {
-            Context ctx = getCtx(req);
-            if (ctx == null || (ctx.checkExpired() && !(ctx instanceof AdminContext))) {
-                System.out.println("filter: expired");
-                internalLogout(req);
-                return "expired";
-            }
-            return "alive";
-        });
-
-        before((req, res) -> {
-//            System.out.println("filter: timer alive?" + req.url());
-            Context ctx = getCtx(req);
-            // liveness check - this actually governs expiration
-            if (ctx != null && !(ctx instanceof AdminContext) && ctx.checkExpired()) {
-                internalLogout(req);
-                res.redirect("/expired.html");
-            }
-        });
-
-        before("/protected/*", (req, res) -> {
-            Context ctx = getCtx(req);
-            if (ctx == null || !(ctx instanceof ObserverContext)) {
-                System.out.println("filter: /protected/*");
-                System.out.println("unauthorized " + req.uri());
-                System.out.println("Ctx: " + ctx);
-                if (ctx != null) {
-                    System.out.println("ClientID: " + ctx.clientID);
-                }
-                res.redirect("/unauthorized.html");
-                return;
-            }
-            // make sure everyone here has a log observer
-            if (ctx.obs == null) {
-                ctx.obs = log.addObserver(ctx.name);
-            }
-        });
-        before("/protected/admin/*", (req, res) -> {
-            Context ctx = getCtx(req);
-            if (ctx == null || !(ctx instanceof AdminContext)) {
-                System.out.println("filter: /protected/admin/*");
-                System.out.println("unauthorized " + req.uri());
-                System.out.println("Ctx: " + ctx);
-                if (ctx != null) {
-                    System.out.println("ClientID: " + ctx.clientID);
-                }
-                res.redirect("/unauthorized.html");
-                return;
-            }
-            // make sure everyone here has a log observer
-            if (ctx.obs == null) {
-                ctx.obs = log.addObserver(ctx.name);
-            }
-        });
-
-        // liveness timer - this keeps the context alive for valid pages and requests
-        before((req, res) -> {
-            Context ctx = getCtx(req);
-            if (ctx != null) {
-                if (!req.url().endsWith("/protected/checktimeout")) {
-                    // System.out.println("timer reset from URL: " + req.url());
-                    ctx.updateTimer();
-                }
-            }
-        });
-
-        // Static files filter is LAST 
-        StaticFilesConfiguration staticHandler = new StaticFilesConfiguration();
-        staticHandler.configure("/public");
-        before((request, response) -> staticHandler.consume(request.raw(), response.raw()));
-
-        //
+               //
         // setup all that fusor stuff
         //
         state = new FusorWebLogState();
@@ -138,7 +56,89 @@ public class WebServer {
         }
         cd.variac.setVoltage(-1);
 
-        //
+
+        
+        // housekeeping routes and filters
+        port(80);
+
+        post("/login", (req, res) -> login(req, res));
+        get("/autologin", (req, res) -> autoLogin(req, res));
+        post("/logout", (req, res) -> logout(req, res));
+        get("/numcameras", (req, res) -> Integer.toString(cs.numCameras));
+        get("/client", (req, res) -> getClient(req, res));
+        get("/resetobserver", (req, res) -> resetObserver(req, res));
+
+        // HTML pages use this to switch to the "expired" page
+        get("/protected/checktimeout", (req, res) -> {
+            Context ctx = getCtx(req);
+            if (ctx == null || (ctx.checkExpired() && !(ctx instanceof AdminContext))) {
+                System.out.println("filter: expired");
+                internalLogout(req);
+                throw halt(401, "expired");
+            }
+            return "alive";
+        });
+
+        before((req, res) -> {
+//            System.out.println("filter: timer alive?" + req.url());
+            Context ctx = getCtx(req);
+            // liveness check - this actually governs expiration
+            if (ctx != null && !(ctx instanceof AdminContext) && ctx.checkExpired()) {
+                internalLogout(req);
+                throw halt(401, "expired");
+            }
+        });
+
+        before("/protected/*", (req, res) -> {
+            Context ctx = getCtx(req);
+            if (ctx == null || !(ctx instanceof ObserverContext)) {
+                System.out.println("filter: /protected/*");
+                System.out.println("unauthorized " + req.uri());
+                System.out.println("Ctx: " + ctx);
+                if (ctx != null) {
+                    System.out.println("ClientID: " + ctx.clientID);
+                }
+                throw halt(401, "unauthorized");
+            }
+            // make sure everyone here has a log observer
+            if (ctx.obs == null) {
+                ctx.obs = log.addObserver(ctx.name);
+            }
+        });
+        before("/protected/admin/*", (req, res) -> {
+            Context ctx = getCtx(req);
+            if (ctx == null || !(ctx instanceof AdminContext)) {
+                System.out.println("filter: /protected/admin/*");
+                System.out.println("unauthorized " + req.uri());
+                System.out.println("Ctx: " + ctx);
+                if (ctx != null) {
+                    System.out.println("ClientID: " + ctx.clientID);
+                }
+                throw halt(401, "unauthorized");
+            }
+            // make sure everyone here has a log observer
+            if (ctx.obs == null) {
+                ctx.obs = log.addObserver(ctx.name);
+            }
+        });
+
+        // liveness timer - this keeps the context alive for valid pages and requests
+        before((req, res) -> {
+            Context ctx = getCtx(req);
+            if (ctx != null) {
+                if (!req.url().endsWith("/protected/checktimeout")) {
+                    // System.out.println("timer reset from URL: " + req.url());
+                    ctx.updateTimer();
+                }
+            }
+        });
+
+        // Static files filter is LAST 
+        StaticFilesConfiguration staticHandler = new StaticFilesConfiguration();
+        staticHandler.configure("/public");
+        before((request, response) -> staticHandler.consume(request.raw(), response.raw()));
+
+         //
         // Observer routes
         // anybody logged in can call these
         //
@@ -299,12 +299,12 @@ public class WebServer {
         }
 
         String client = req.queryParams("clientID");
-        
+
         // if someone reloaded a tab, clientID will not be there. If they have only one tab open, just use that one
         if (client == null && ctxMap.size() == 1) {
             client = ctxMap.values().toArray(new Context[1])[0].clientID;
         }
-        
+
         Context ctx = ctxMap.get(client);
         if (ctx == null) {
             return null;

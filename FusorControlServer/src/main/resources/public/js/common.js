@@ -51,7 +51,7 @@ function request(obj) {
                 reject(xhr.statusText);
             }
         };
-        xhr.onerror = () => reject(xhr.statusText);
+        xhr.onerror = () => reject(xhr.statusText, xhr.status);
         xhr.send(obj.body);
     });
 }
