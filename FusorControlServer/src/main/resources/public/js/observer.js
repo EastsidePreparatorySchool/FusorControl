@@ -34,8 +34,26 @@ var loginInfo = "<unknown>";
 function getLogs() {
     if (offline) {
         filename = prompt("Enter ULR from github", "https://raw.githubusercontent.com/EastsidePreparatorySchool/FusorExperiments/master/logs/keep/fusor-2020-02-11T16-39-19-612Z_small-air-hv-test.json");
-        loadLog(filename);
+        loadLog(filename, false);
     } else {
+//                    var list = document.getElementById("files");
+//                    var listDiv = document.getElementById("filesdiv");
+//                    listDiv.style.display = "block";
+//                    var filesText = "<a class='hover' onclick='loadServerLog(this)'>[sample log]</a><br>";
+//
+//                    for (var i = 0; i < files.length; i++) {
+//                        filesText += "<a class='hover' onclick='loadServerLog(this)'>";
+//                        filesText += files[i];
+//                        filesText += "</a><br>";
+//                    }
+//                    list.innerHTML = filesText;
+//                })
+//                .catch(error => {
+//                    console.log("error: " + error);
+//                });
+//
+//
+//    }
         request({url: "/protected/getlogfilenames", method: "GET"})
                 .then(raw => {
                     var files = JSON.parse(raw);
@@ -46,7 +64,7 @@ function getLogs() {
 
                     for (var i = 0; i < files.length; i++) {
                         filesText += "<a class='hover' onclick='loadServerLog(this)'>";
-                        filesText += files[i];
+                        filesText += files[i].replace(/%20/g, " ");
                         filesText += "</a><br>";
                     }
                     list.innerHTML = filesText;
@@ -75,11 +93,12 @@ function emergency_stop() {
 
 
 function loadServerLog(input) {
-    loadLog(input.text);
+    loadLog(input.text, true);
 }
 
 
-function loadLog(fileName) {
+function loadLog(fileName, addPrefix) {
+ 
     stopStatus();
     console.log("loading log: " + fileName);
     document.getElementById("filesdiv").style.display = "none";
@@ -156,7 +175,7 @@ function findPrior(index, device) {
     while (a > index - 50 && offlineLog[a].device !== device) {
         a--;
     }
-    return a+1;
+    return a + 1;
 }
 
 function displayLiveData() {

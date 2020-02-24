@@ -2,7 +2,7 @@
 // fusor device status -> graph
 //
 
-var usingChartJS = true;    // switch between chart libraries
+var usingChartJS = false;    // switch between chart libraries
 var vizData = [];           // holds all our data series
 var chart = null;           // holds central chart object
 var vizFrozen = false;      // CanvasJS allows to zoom and pan, we freeze the display for it
