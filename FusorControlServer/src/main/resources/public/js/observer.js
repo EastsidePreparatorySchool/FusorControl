@@ -60,7 +60,19 @@ function getLogs() {
                     var list = document.getElementById("files");
                     var listDiv = document.getElementById("filesdiv");
                     listDiv.style.display = "block";
-                    var filesText = "<a class='hover' onclick='loadServerLog(this)'>[sample log]</a><br>";
+                    window.onkeydown = function (e) {
+                        if (e.key === "Escape") {
+                            document.getElementById("filesdiv").style.display = "none";
+                        }
+                    };
+                    listDiv.onclick = function(e) {
+                        e.stopPropagation();
+                    };
+                    window.onclick = function (e) {
+                        document.getElementById("filesdiv").style.display = "none";
+                    };
+
+                    var filesText = ""; // <a class='hover' onclick='loadServerLog(this)'>[sample log]</a><br>";
 
                     for (var i = 0; i < files.length; i++) {
                         filesText += "<a class='hover' onclick='loadServerLog(this)'>";
@@ -98,10 +110,9 @@ function loadServerLog(input) {
 
 
 function loadLog(fileName, addPrefix) {
- 
+
     stopStatus();
     console.log("loading log: " + fileName);
-    document.getElementById("filesdiv").style.display = "none";
     if (fileName === "[sample log]") {
         displayLog(fullData, fullData[0]["servertime"]);
         return;
@@ -141,6 +152,7 @@ function displayLog(data, timestamp) {
     document.getElementById("comment").disabled = true;
     document.getElementById("commentbutton").disabled = true;
     document.getElementById("chat").innerText = "<offline>";
+    document.getElementById("filesdiv").style.display = "none";
     enableAdminControls(false);
 }
 
@@ -219,6 +231,8 @@ createText();
 checkAdminControls();
 initStatus();
 enableCameras();
+
+
 
 
 

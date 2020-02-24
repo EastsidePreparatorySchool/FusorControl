@@ -5,7 +5,7 @@
 var statusTimer = null;
 var logStart = undefined;
 var startTime = undefined;
-var maxTime = 0;
+var maxTimeTotal = 0;
 var updateInterval = 100;
 
 var liveServer = true;
