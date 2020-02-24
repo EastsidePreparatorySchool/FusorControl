@@ -159,6 +159,9 @@ function updateCorrespondingText(dataPoint) {
 // CanvasJS/ChartJS agnostic
 //
 function makeTooltipText(dataPoint) {
+    if (isNaN(dataPoint.value)) {
+        return `${dataPoint.device}: t: ${Number(dataPoint.x).toFixed(2)}, y: ${dataPoint.value} ${dataPoint.unit}`;
+    }
     return `${dataPoint.device}: t: ${Number(dataPoint.x).toFixed(2)}, y: ${Number(dataPoint.value).toFixed(2)} ${dataPoint.unit}`;
 }
 
@@ -273,6 +276,7 @@ function resetViz() {
             vc.dataSeries.dataPoints = [];
         }
         maxTime = 0;
+        maxTimeTotal = 0;
         startTime = undefined;
         logstart = undefined;
         vc.offset = undefined;
