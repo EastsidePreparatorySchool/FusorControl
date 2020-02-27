@@ -396,7 +396,7 @@ function updateViz(dataArray, textOnly) {
                     var next30 = Math.ceil((maxTime + 5) / 30) * 30;
                     setViewPort(Math.max(next30 - 60, 0), Math.max(next30, 60));
                 }
-                console.log ("set view port for "+dataArray.length+" records");
+                //console.log ("set view port for "+dataArray.length+" records");
             }
             // update the big time display on the right
             document.getElementById("logtime").innerText = Number.parseFloat(maxTime).toFixed(2);
@@ -467,7 +467,7 @@ function addDataPoint(dataSeries, type, secs, percent, value, unit, time, device
     }
     // in live view, constrain ourselves to xxx data points per series
     if (liveServer) {
-        while (data.length > 10000) {
+        while (data.length > 1000) {
             data.shift();
         }
     }

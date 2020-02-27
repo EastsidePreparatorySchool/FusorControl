@@ -13,7 +13,7 @@ var liveServer = true;
 
 function updateStatus(data, raw, startTime) {
     if (data !== null) {
-        console.log("updating "+raw.length+" bytes");
+        //console.log("updating "+raw.length+" bytes");
         updateViz(data, false);
     }
 }
