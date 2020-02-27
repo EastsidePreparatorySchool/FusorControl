@@ -141,7 +141,7 @@ function createVizCanvasJS() {
 //
 
 function updateCorrespondingText(dataPoint) {
-    if (!offline) {
+    if (!offline || liveServer) {
         return;
     }
 
@@ -257,7 +257,7 @@ function renderButtons() {
         selectButton("tmpoff", "tmpon");
     }
 
-    tc = textChannels["GAS.solenoid"];
+    tc = textChannels["GAS.sol_stat"];
     if (tc !== undefined && tc.value !== 0) {
         selectButton("solon", "soloff");
     } else {
@@ -387,13 +387,11 @@ function updateViz(dataArray, textOnly) {
     if (liveServer) { // view ports are different for offline - show everything - and live - show the last minute
         if (!textOnly) { // don't do this for just a text update
             if (!vizFrozen) { // leave it alone if live but panning and zooming
-                setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
-                renderChart();
+                var next30 = Math.ceil((maxTime+5)/30)*30;
+                setViewPort(Math.max(next30 - 60, 0), Math.max(next30, 60));
+                //renderChart();
             }
             // update the big time display on the right
-            if (maxTime < 1){
-                console.log("Hah!");
-            }
             document.getElementById("logtime").innerText = Number.parseFloat(maxTime).toFixed(2);
         }
         renderText(true, maxTime);
