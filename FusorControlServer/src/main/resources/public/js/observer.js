@@ -9,8 +9,9 @@
 // reset weblog observer
 //
 offline = false;
-request({url: "/resetobserver", method: "GET", async: false})
+request({url: "/resetobserver", method: "GET"})
         .then(data => {
+            checkAdminControls();
         })
         .catch(error => {
             console.log("error: " + error);

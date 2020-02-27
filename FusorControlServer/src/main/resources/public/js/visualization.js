@@ -22,28 +22,28 @@ var continuousViz = true;
 // datatype: used for both line and text display
 //
 var vizChannels = {
-    'TMP.tmp_stat': { name: 'TMP status', shortname: 'TMP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean" },
-    'TMP.pump_freq': { name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric" },
-    'TMP.pump_curr_amps': { name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric" },
+    'TMP.tmp_stat': {name: 'TMP status', shortname: 'TMP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
+    'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
+    'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
     //    'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', shortname: 'DIAPHRAGM', unit: 'adc', min: 0, max: 200, type: "continuous", datatype: "numeric"},
-    'PIRANI.p3': { name: 'Piezo pressure', shortname: '', unit: 'mTorr', factor: 1000, min: 0, max: 800000, type: "continuous", datatype: "numeric" },
-    'PIRANI.p1': { name: 'Pirani pressure', shortname: 'PRESSURE', unit: 'mTorr', factor: 1000, min: 0, max: 500, type: "continuous", datatype: "numeric" },
-    'PIRANI.p4': { name: 'Pirani pressure (fine)', shortname: '', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric" },
-    'GAS.sol_stat': { name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean" },
-    'GAS.nv_stat': { name: 'Needle valve', shortname: 'NV status', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric" },
-    'VARIAC.input_volts': { name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric" },
-    'VARIAC.dial_volts': { name: 'Variac dial (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric" },
-    'HV-LOWSIDE.variac_rms': { name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric" },
-    'HV-LOWSIDE.nst_rms': { name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'KV', min: 0, max: 15, type: "continuous", datatype: "numeric" },
-    'HV-LOWSIDE.cw_avg': { name: 'CW ABS AVG (kV)', shortname: 'CW volt', unit: 'KV', min: 0, max: 50, type: "continuous", datatype: "numeric" },
-    'HV-HIGHSIDE.hs_current_adc': { name: 'CW current (adc)', shortname: 'CW current', unit: 'adc', min: 0, max: 50, type: "continuous", datatype: "numeric" },
-    'GC-SERIAL.cps': { name: 'GCW (cps)', shortname: 'GCW clicks', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric" },
-    'PN-JUNCTION.total': { name: 'PNJ (adc)', shortname: 'PN-J raw', unit: 'adc', min: 0, max: 100, type: "continuous", datatype: "numeric" },
-    'Heartbeat.beat': { name: 'Heartbeat', shortname: 'HEARTBEAT', unit: '', min: 0, max: 50, type: "momentary", datatype: "numeric" },
-    'Heartbeat.logsize': { name: 'Log size (kEntries)', shortname: 'LOGSIZE', unit: 'kEntries', min: 0, max: 10000, type: "discrete", datatype: "numeric" },
-    'Comment.text': { name: 'Comment', shortname: '', min: 0, max: 30, type: "momentary", datatype: "text" },
-    'Login.text': { name: 'Login', shortname: '', min: 0, max: 40, type: "momentary", datatype: "text" },
-    'Command.text': { name: 'Command', shortname: '', min: 0, max: 20, type: "momentary", datatype: "text" }
+    'PIRANI.p3': {name: 'Piezo pressure', shortname: '', unit: 'mTorr', factor: 1000, min: 0, max: 800000, type: "continuous", datatype: "numeric"},
+    'PIRANI.p1': {name: 'Pirani pressure', shortname: 'PRESSURE', unit: 'mTorr', factor: 1000, min: 0, max: 500, type: "continuous", datatype: "numeric"},
+    'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: '', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric"},
+    'GAS.sol_stat': {name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
+    'GAS.nv_stat': {name: 'Needle valve', shortname: 'NV status', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric"},
+    'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'VARIAC.dial_volts': {name: 'Variac dial (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'KV', min: 0, max: 15, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW volt', unit: 'KV', min: 0, max: 50, type: "continuous", datatype: "numeric"},
+    'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', shortname: 'CW current', unit: 'adc', min: 0, max: 50, type: "continuous", datatype: "numeric"},
+    'GC-SERIAL.cps': {name: 'GCW (cps)', shortname: 'GCW clicks', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
+    'PN-JUNCTION.total': {name: 'PNJ (adc)', shortname: 'PN-J raw', unit: 'adc', min: 0, max: 100, type: "continuous", datatype: "numeric"},
+    'Heartbeat.beat': {name: 'Heartbeat', shortname: 'HEARTBEAT', unit: '', min: 0, max: 50, type: "momentary", datatype: "numeric"},
+    'Heartbeat.logsize': {name: 'Log size (kEntries)', shortname: 'LOGSIZE', unit: 'kEntries', min: 0, max: 10000, type: "discrete", datatype: "numeric"},
+    'Comment.text': {name: 'Comment', shortname: '', min: 0, max: 30, type: "momentary", datatype: "text"},
+    'Login.text': {name: 'Login', shortname: '', min: 0, max: 40, type: "momentary", datatype: "text"},
+    'Command.text': {name: 'Command', shortname: '', min: 0, max: 20, type: "momentary", datatype: "text"}
 
 };
 //
@@ -181,11 +181,11 @@ function createText() {
         if (vizChannels[channel].shortname !== '') {
             // make a device map to keep track of device time
             var deviceName = channel.substring(0, channel.indexOf('.'));
-            devices[deviceName] = { time: -1 };
+            devices[deviceName] = {time: -1};
             var name = vizChannels[channel].shortname;
             name = name + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".substring(0, (14 - name.length) * 6);
             textDisplay += name + ":&nbsp;<span id='" + channel + "'>n/c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp"
-                + vizChannels[channel].unit + "<br>"; // + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
+                    + vizChannels[channel].unit + "<br>"; // + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
             textChannels[channel] = {
                 value: 0,
                 last: -1,
@@ -227,8 +227,8 @@ function renderText(update, secs) {
             valspan.style.fontWeight = "bold";
             if (tc.type === "boolean") {
                 valspan.innerHTML = tc.value !== 0 ?
-                    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on" :
-                    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;off";
+                        "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on" :
+                        "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;off";
             } else if (tc.type === "numeric") {
                 // make it a nice 6.2 format
                 var text = Number.parseFloat(tc.value).toFixed(2);
@@ -245,6 +245,7 @@ function renderText(update, secs) {
         }
         tc.last = tc.current;
     }
+    renderButtons();
 }
 
 //
@@ -253,7 +254,7 @@ function renderText(update, secs) {
 // incomplete/buggy
 //
 function renderButtons() {
-    var tc = textChannels["TMP.tmp"];
+    var tc = textChannels["TMP.tmp_stat"];
     if (tc !== undefined && tc.value !== 0) {
         selectButton("tmpon", "tmpoff");
     } else {
@@ -265,6 +266,16 @@ function renderButtons() {
         selectButton("solon", "soloff");
     } else {
         selectButton("soloff", "solon");
+    }
+
+    tc = textChannels["VARIAC.input_volts"];
+    if (tc !== undefined && !isAdmin) {
+        document.getElementById("variacValue").value = tc.value;
+    }
+
+    tc = textChannels["GAS.nv_stat"];
+    if (tc !== undefined && !isAdmin) {
+        document.getElementById("needleValue").value = tc.value;
     }
 }
 
@@ -437,32 +448,32 @@ function addDataPoint(dataSeries, type, secs, percent, value, unit, time, device
     switch (type) {
         case "momentary":
             // make a spike out of three points
-            dataPoints.push({ x: secs - 0.0001, y: 0, value: 0, unit: unit, time: time, device: device });
-            dataPoints.push({ x: secs, y: percent, value: value, unit: unit, time: time, device: device });
-            dataPoints.push({ x: secs + 0.0001, y: 0, value: 0, unit: unit, time: time, device: device });
+            dataPoints.push({x: secs - 0.0001, y: 0, value: 0, unit: unit, time: time, device: device});
+            dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
+            dataPoints.push({x: secs + 0.0001, y: 0, value: 0, unit: unit, time: time, device: device});
             break;
         case "discrete":
             // flat lines that move at the time of the event
             // i.e. the datapoint reflects how things are from hereon
             if (dataPoints.length > 0) {
                 var lastPoint = dataPoints[dataPoints.length - 1];
-                dataPoints.push({ x: secs - 0.0001, y: lastPoint.y, value: lastPoint.value, unit: unit, time: time, device: device });
+                dataPoints.push({x: secs - 0.0001, y: lastPoint.y, value: lastPoint.value, unit: unit, time: time, device: device});
             }
-            dataPoints.push({ x: secs, y: percent, value: value, unit: unit, time: time, device: device });
+            dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
             break;
         case "discrete trailing":
             // flat lines that move at the last event before ours
             // i.e. the datapoint is interpreted to reflect how things have been since the last datapoint
             if (dataPoints.length > 0) {
                 var lastPoint = dataPoints[dataPoints.length - 1];
-                dataPoints.push({ x: lastPoint.x + 0.0001, y: percent, value: value, unit: unit, time: time, device: device });
+                dataPoints.push({x: lastPoint.x + 0.0001, y: percent, value: value, unit: unit, time: time, device: device});
             }
-            dataPoints.push({ x: secs, y: 0, value: value, unit: unit, time: time, device: device });
+            dataPoints.push({x: secs, y: 0, value: value, unit: unit, time: time, device: device});
             break;
         case "continuous":
         // just put the point in
         default:
-            dataPoints.push({ x: secs, y: percent, value: value, unit: unit, time: time, device: device });
+            dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
             break;
     }
     // in live view, constrain ourselves to xxx data points per series
@@ -515,32 +526,32 @@ function createVizChartJS() {
             },
             scales: {
                 xAxes: [{
-                    type: 'time',
-                    time: {
-                        unit: 'second'
-                    },
-                    displayFormats: {
-                        second: 'XXX.XX'
-                    },
-                    distribution: 'linear',
-                    offset: true,
-                    ticks: {
-                        major: {
-                            enabled: true,
-                            fontStyle: 'bold'
+                        type: 'time',
+                        time: {
+                            unit: 'second'
                         },
-                        source: 'data',
-                        autoSkip: true,
-                        autoSkipPadding: 75,
-                        maxRotation: 0,
-                        sampleSize: 100
-                    }
-                }],
+                        displayFormats: {
+                            second: 'XXX.XX'
+                        },
+                        distribution: 'linear',
+                        offset: true,
+                        ticks: {
+                            major: {
+                                enabled: true,
+                                fontStyle: 'bold'
+                            },
+                            source: 'data',
+                            autoSkip: true,
+                            autoSkipPadding: 75,
+                            maxRotation: 0,
+                            sampleSize: 100
+                        }
+                    }],
                 yAxes: [{
-                    gridLines: {
-                        drawBorder: false
-                    }
-                }]
+                        gridLines: {
+                            drawBorder: false
+                        }
+                    }]
             },
             tooltips: {
                 intersect: false,
