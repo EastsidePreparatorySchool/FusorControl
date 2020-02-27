@@ -21,6 +21,7 @@ import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import net.sourceforge.tess4j.Tesseract;
 
 public class CamStreamer {
 
@@ -29,6 +30,8 @@ public class CamStreamer {
     private ArrayList<Webcam> cams = new ArrayList<>();
     private ArrayList<Thread> camThreads = new ArrayList<>();
     private volatile boolean stopRecording = false;
+    private Tesseract tesseract;
+    private TessWrapper tw;
     private DeviceManager dm;
 
     public CamStreamer(DeviceManager dm) {
@@ -60,6 +63,9 @@ public class CamStreamer {
             // keep track of it, for recording
             this.cams.add(cam);
 
+            SerialDevice sd = new NullSerialDevice("OCR");
+            dm.register(sd);
+
             Dimension size = WebcamResolution.QVGA.getSize();
             cam.setViewSize(size);
             cam.open();
@@ -78,6 +84,13 @@ public class CamStreamer {
 
         WebcamDiscoveryService discovery = Webcam.getDiscoveryService();
         discovery.stop();
+
+        tesseract = new Tesseract();
+        tesseract.setDatapath("tessdata");
+        tesseract.setLanguage("letsgodigital");
+
+        tw = new TessWrapper();
+        tw.init();
     }
 
     void record(Webcam webcam, String fileName, long baseTime) {
@@ -99,6 +112,9 @@ public class CamStreamer {
             return;
         }
 
+        // access our fake serial device in case of OCR
+        SerialDevice sd = dm.get("OCR");
+
         // this thread will do its thing until the logger sets the flag
         Thread t = new Thread(() -> {
             long start = System.currentTimeMillis();
@@ -110,7 +126,19 @@ public class CamStreamer {
                         double secs = ((millis - baseTime) / 100) / 10.0;
                         BufferedImage image = new BufferedImage(size.width, size.height, BufferedImage.TYPE_3BYTE_BGR);
                         Graphics gfx = image.getGraphics();
+                        //Graphics2D gfx = image.createGraphics();
                         gfx.drawImage(webcam.getImage(), 0, 0, null);
+//                        gfx.setComposite(AlphaComposite.SrcOver.derive(0.1f));
+//                        for (int i = 0; i < 20; i++) {
+//                            gfx.drawImage(webcam.getImage(), 0, i, null);
+//                        }
+//                        gfx.dispose();
+
+                        extractNumber(image, millis, sd);
+
+                        if (FusorControlServer.config.saveProcessedVideo) {
+                            image = TessWrapper.prepImage(image);
+                        }
                         image.getGraphics().drawString(Double.toString(secs), 10, 20);
                         image.getGraphics().drawString(file.getName(), 10, size.height - 10);
                         writer.encodeVideo(0, image, System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
@@ -133,6 +161,62 @@ public class CamStreamer {
         });
         t.start();
         this.camThreads.add(t);
+    }
+
+    void extractNumber(BufferedImage image, long millis, SerialDevice sd) {
+        if (true)return;
+
+        TessWrapper.Result result = tw.extract(image);
+        if (result.confidence < 80) {
+            return;
+        }
+        String s = result.text;
+
+        if (s != null && s.length() > 0) {
+            String log = "{";
+            //System.out.println("Recognized: " + s);
+            s = s.replaceAll("[^\\x00-\\x7F]", "");
+            // erases all the ASCII control characters
+            s = s.replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "");
+            // removes non-printable characters from Unicode
+            s = s.replaceAll("\\p{C}", "");
+            s = s.replaceAll("\\. ", ".");
+            s = s.trim();
+
+            //System.out.println("OCR: " + s);
+            // check if we have an actual number of the right format
+            if (s.startsWith(".")) {
+                if (s.length() != 4) {
+                    return;
+                }
+                if (!s.matches("\\.\\d\\d\\d")) {
+                    return;
+                }
+                s = "0" + s;
+            } else {
+                if (s.length() != 3) {
+                    return;
+                }
+                if (!s.matches("\\d\\d\\d")) {
+                    return;
+                }
+            }
+
+            log += "\"text\":{\"value\":\"" + s + "\",\"vartime\":" + millis + "}";
+            log += ",\"confidence\":{\"value\":" + result.confidence + ",\"vartime\":" + millis + "}";
+
+            double d;
+            try {
+                d = Double.parseDouble(s);
+                log += ",\"double\":{\"value\":" + d + ",\"vartime\":" + millis + "}";
+            } catch (Exception e) {
+                //return;
+            }
+            log += ",\"devicetime\":" + millis;
+
+            log += "}";
+            dm.recordStatusForDevice(sd, millis, log);
+        }
     }
 
     public void startRecording(String filePrefix, long baseTime) {

@@ -18,7 +18,7 @@ public class Config {
     public boolean noBlueTooth = false;
     public String logPath = "logs";
     public long cmdTimeOut = 300;
-    public boolean saveProcessedVideo = true;
+    public boolean saveProcessedVideo = false;
     public boolean noCameras = false;
 
     private static Gson gson = new Gson();
