@@ -98,7 +98,7 @@ public class WebLog {
             collapseRead();
             synchronized (observers) {
                 obs = new WebLogObserver(this, client);
-                obs.myState = getNewGameLogState();
+                obs.myState = getNewLogState();
                 obs.maxRead = obs.myState.getEntryCount();
                 observers.add(obs);
             }
@@ -195,7 +195,7 @@ public class WebLog {
         return result;
     }
 
-    public WebLogState getNewGameLogState() {
+    public WebLogState getNewLogState() {
         WebLogState result = null;
         wlock.lock();
         try {

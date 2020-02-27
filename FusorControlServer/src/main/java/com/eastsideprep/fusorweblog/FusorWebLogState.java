@@ -16,13 +16,12 @@ import com.eastsideprep.weblog.WebLogState;
  *
  * @author gmein
  */
-public class FusorWebLogState   implements WebLogState {
+public class FusorWebLogState implements WebLogState {
 
     private WebLog log;
     public int entries;
     public boolean forUpdates;
     private ArrayList<FusorWebLogEntry> list;
- 
 
     // what the console uses initially, 
     // and what "copy" uses internally
@@ -40,27 +39,38 @@ public class FusorWebLogState   implements WebLogState {
     public WebLogState copy() {
         FusorWebLogState copy = new FusorWebLogState();
 
-        // deep-copy information (don't need to copy items in list, they are read-only from here
-        
-        for (FusorWebLogEntry e:list) {
-            copy.addEntry(e);
+        // copy the <reset> record
+        if (list.size() > 0) {
+            copy.addEntry(list.get(0));
         }
-        
+
+        // deep-copy information (don't need to copy items in list, they are read-only from here
+        int dropped = 0;
+        for (FusorWebLogEntry e : list) {
+            // only copy the last 2 min
+            if (e.serverTime > System.currentTimeMillis() - 120000) {
+                copy.addEntry(e);
+            } else {
+                dropped++;
+            }
+        }
+        System.out.println("Initial state: "+copy.entries+", "+dropped+" dropped");
+
         return copy;
     }
 
     // the log uses this to compact itself into the state
     @Override
     public void addEntry(WebLogEntry e) {
-       FusorWebLogEntry tge = null;
-       try {
-           tge = (FusorWebLogEntry) e;
-       } catch (Exception ex) {
-           System.err.println("WebLogState: Invalid log entry added to state: "+ex);
-           return;
-       }
-       list.add(tge);
-       entries++;
+        FusorWebLogEntry tge = null;
+        try {
+            tge = (FusorWebLogEntry) e;
+        } catch (Exception ex) {
+            System.err.println("WebLogState: Invalid log entry added to state: " + ex);
+            return;
+        }
+        list.add(tge);
+        entries++;
     }
 
     // log needs this
@@ -73,7 +83,7 @@ public class FusorWebLogState   implements WebLogState {
     @Override
     public ArrayList<WebLogEntry> getCompactedEntries() {
         ArrayList<WebLogEntry> result = new ArrayList<>();
-        for (FusorWebLogEntry e:list) {
+        for (FusorWebLogEntry e : list) {
             result.add(e);
         }
         return result;
