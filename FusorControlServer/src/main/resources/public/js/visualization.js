@@ -389,6 +389,7 @@ function updateViz(dataArray, textOnly) {
             if (!vizFrozen) { // leave it alone if live but panning and zooming
                 var next30 = Math.ceil((maxTime+5)/30)*30;
                 setViewPort(Math.max(next30 - 60, 0), Math.max(next30, 60));
+                console.log ("set view port for "+dataArray.length+" records");
                 //renderChart();
             }
             // update the big time display on the right
