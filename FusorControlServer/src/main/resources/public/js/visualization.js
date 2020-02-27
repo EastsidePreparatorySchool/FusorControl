@@ -384,7 +384,7 @@ function updateViz(dataArray, textOnly) {
         if (!textOnly) { // don't do this for just a text update
             if (!vizFrozen) { // leave it alone if live but panning and zooming
                 setViewPort(Math.max(maxTimeTotal - 60, 0), Math.max(maxTimeTotal, 60));
-                renderChart();
+                //renderChart();
             }
             // update the big time display on the right
             document.getElementById("logtime").innerText = Number.parseFloat(maxTimeTotal).toFixed(2);
