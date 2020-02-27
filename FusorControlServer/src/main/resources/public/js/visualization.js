@@ -223,7 +223,9 @@ function renderText(update, secs) {
             valspan.style.color = "gold";
             valspan.style.fontWeight = "bold";
             if (tc.type === "boolean") {
-                valspan.innerHTML = tc.value !== 0 ? "&nbsp;&nbsp;&nbsp;&nbsp;on" : "&nbsp;&nbsp;&nbsp;off";
+                valspan.innerHTML = tc.value !== 0 ?
+                        "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on" :
+                        "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;off";
             } else if (tc.type === "numeric") {
                 // make it a nice 6.2 format
                 var text = Number.parseFloat(tc.value).toFixed(2);
@@ -276,7 +278,6 @@ function resetViz() {
             vc.dataSeries.dataPoints = [];
         }
         maxTime = 0;
-        maxTimeTotal = 0;
         startTime = undefined;
         logstart = undefined;
         vc.offset = undefined;
@@ -364,7 +365,10 @@ function updateViz(dataArray, textOnly) {
                 deviceTime -= vc.offset;
                 deviceTime = Math.max(deviceTime, 0);
                 var deviceSecs = Math.round(deviceTime * 10) / 10000;
-                maxTimeTotal = Math.max(maxTime, secs);
+                if (isNaN(maxTime)) {
+                    maxTime = 0;
+                }
+                maxTime = Math.max(maxTime, secs);
                 //console.log("x: "+varTime+" y: "+percent)
                 if (!textOnly) {
                     addDataPoint(dataSeries, vc.type, secs, percent, value, vc.unit, serverTime, vc.name);
@@ -383,13 +387,16 @@ function updateViz(dataArray, textOnly) {
     if (liveServer) { // view ports are different for offline - show everything - and live - show the last minute
         if (!textOnly) { // don't do this for just a text update
             if (!vizFrozen) { // leave it alone if live but panning and zooming
-                setViewPort(Math.max(maxTimeTotal - 60, 0), Math.max(maxTimeTotal, 60));
+                setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
                 renderChart();
             }
             // update the big time display on the right
-            document.getElementById("logtime").innerText = Number.parseFloat(maxTimeTotal).toFixed(2);
+            if (maxTime < 1){
+                console.log("Hah!");
+            }
+            document.getElementById("logtime").innerText = Number.parseFloat(maxTime).toFixed(2);
         }
-        renderText(true, maxTimeTotal);
+        renderText(true, maxTime);
     } else {
         if (!textOnly) { // don't do this for just a text update
             setViewPort(0, maxTime);
