@@ -65,13 +65,13 @@ public class SerialDeviceMap {
         }
         for (String port : this.portMap.keySet()) {
             SerialDevice sd = portMap.get(port);
-            //if (sd.isValid()) {
+            if (sd.isValid() || sd.name.equals("<unknown>")) {
                 //System.out.println("Examining SD:" + sd.name + "(supposedly " + port + ")");
                 if (!set.contains(port)) {
-                    System.out.println("not present, removing: " + port);
+                    System.out.println("not present, removing: " + port + " ("+sd.name+")");
                     removals.add(sd);
                 }
-            //}
+            }
         }
 
         for (SerialDevice sd : removals) {
