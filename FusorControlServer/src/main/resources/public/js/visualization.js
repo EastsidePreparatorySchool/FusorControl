@@ -6,6 +6,7 @@ var usingChartJS = false;    // switch between chart libraries
 var vizData = [];           // holds all our data series
 var chart = null;           // holds central chart object
 var vizFrozen = false;      // CanvasJS allows to zoom and pan, we freeze the display for it
+var continuousViz = true;
 
 //
 // this is the most important data structure here
@@ -390,7 +391,7 @@ function updateViz(dataArray, textOnly) {
         if (!textOnly) { // don't do this for just a text update
             if (!vizFrozen) { // leave it alone if live but panning and zooming
                 if (continuousViz) {
-                    setViewPort(Math.max(maxTimeTotal - 60, 0), Math.max(maxTimeTotal, 60));
+                    setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
                 } else {
                     var next30 = Math.ceil((maxTime + 5) / 30) * 30;
                     setViewPort(Math.max(next30 - 60, 0), Math.max(next30, 60));
