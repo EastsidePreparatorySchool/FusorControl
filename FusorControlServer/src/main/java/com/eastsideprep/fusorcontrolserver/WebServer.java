@@ -158,6 +158,8 @@ public class WebServer {
         get("/protected/admin/stoplog", (req, res) -> getAdminCtx(req).stopLogRoute());
         get("/protected/admin/variac", (req, res) -> getAdminCtx(req).variacRoute(req));
         get("/protected/admin/variac_stop", (req, res) -> getAdminCtx(req).variacStop(req));
+        get("/protected/admin/rpOn", (req, res) -> getAdminCtx(req).rpOnRoute());
+        get("/protected/admin/rpOff", (req, res) -> getAdminCtx(req).rpOffRoute());
         get("/protected/admin/tmpOn", (req, res) -> getAdminCtx(req).tmpOnRoute());
         get("/protected/admin/tmpOff", (req, res) -> getAdminCtx(req).tmpOffRoute());
         get("/protected/admin/needleValve", (req, res) -> getAdminCtx(req).needleValveRoute(req));
