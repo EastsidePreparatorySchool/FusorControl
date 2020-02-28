@@ -6,7 +6,12 @@ var usingChartJS = false;    // switch between chart libraries
 var vizData = [];           // holds all our data series
 var chart = null;           // holds central chart object
 var vizFrozen = false;      // CanvasJS allows to zoom and pan, we freeze the display for it
-var continuousViz = true;
+var continuousViz = false;  // set viewport every time we have new data
+var currentViewMin = -1;    // keep track
+var currentViewMax = -1;    // keep track
+var viewWidth = 60;         // how much data to show in window
+var viewIncrement = 1;      // how often to slide window
+var viewLead = viewIncrement / 5;
 
 //
 // this is the most important data structure here
@@ -402,10 +407,10 @@ function updateViz(dataArray, textOnly) {
         if (!textOnly) { // don't do this for just a text update
             if (!vizFrozen) { // leave it alone if live but panning and zooming
                 if (continuousViz) {
-                    setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
+                    setViewPort(Math.max(maxTime - viewWidth, 0), Math.max(maxTime, viewWidth));
                 } else {
-                    var next30 = Math.ceil((maxTime + 5) / 30) * 30;
-                    setViewPort(Math.max(next30 - 60, 0), Math.max(next30, 60));
+                    var nextIncrement = Math.ceil((maxTime + viewLead) / viewIncrement) * viewIncrement;
+                    setViewPort(Math.max(nextIncrement - viewWidth, 0), Math.max(nextIncrement, viewWidth));
                 }
                 //console.log ("set view port for "+dataArray.length+" records");
             }
@@ -478,8 +483,10 @@ function addDataPoint(dataSeries, type, secs, percent, value, unit, time, device
     }
     // in live view, constrain ourselves to xxx data points per series
     if (liveServer) {
-        while (data.length > 1000) {
-            data.shift();
+        if (data.length > 2000) {
+            while (data.length > 1000) {
+                data.shift();
+            }
         }
     }
 }
@@ -489,11 +496,23 @@ function addDataPoint(dataSeries, type, secs, percent, value, unit, time, device
 // I don't know how to do this in ChartJS
 //
 function setViewPort(min, max) {
+    if (min === currentViewMin || max === currentViewMax) {
+        // let's just render the chart and get out of here if the viewport
+        // has not changed
+        if (usingChartJS) {
+        } else {
+            renderChart();
+        }
+        return;
+    }
+
     if (usingChartJS) {
     } else {
         chart.axisX[0].set("viewportMinimum", min);
         chart.axisX[0].set("viewportMaximum", max);
     }
+    currentViewMin = min;
+    currentViewMax = max;
 }
 
 //
