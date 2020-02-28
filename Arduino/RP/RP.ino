@@ -11,7 +11,7 @@
 int rpstat = false;
 
 void setup(){
-  fusorInit("GAS");
+  fusorInit("RP");
 
   fusorAddVariable("rp_in", FUSOR_VARTYPE_BOOL);
   fusorAddVariable("rp_stat", FUSOR_VARTYPE_BOOL);
