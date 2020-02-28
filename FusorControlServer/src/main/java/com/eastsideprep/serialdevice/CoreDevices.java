@@ -9,6 +9,7 @@ public class CoreDevices {
     public VariacControlDevice variac;
     public TMPControlDevice tmp;
     public GasControlDevice gas;
+    public SerialDevice rp;
 
     public CoreDevices(DeviceManager dm) {
         this.dm = dm;
@@ -28,6 +29,10 @@ public class CoreDevices {
         if (sd != null) {
             this.tmp = (TMPControlDevice) sd;
         }
+        sd = dm.get("RP");
+        if (sd != null) {
+            this.rp = sd;
+        }
     }
 
     public static boolean isCoreDevice(String name) {
@@ -35,6 +40,7 @@ public class CoreDevices {
             case "VARIAC":
             case "TMP":
             case "GAS":
+            case "RP":
                 return true;
         }
         return false;
@@ -43,7 +49,7 @@ public class CoreDevices {
     public boolean complete() {
         // we need all of these. if any of them aren't there, return null
 
-        return !(variac == null || gas == null || tmp == null);
+        return !(variac == null || gas == null || tmp == null || rp == null);
     }
 
     public void fakeMissingCoreDevices() {
@@ -61,6 +67,12 @@ public class CoreDevices {
             System.out.println("Faking missing core device TMP");
             tmp = new TMPControlDevice(new NullSerialDevice("TMP"));
             dm.register(tmp);
+        }
+
+        if (rp == null) {
+            System.out.println("Faking missing core device RP");
+            rp = new TMPControlDevice(new NullSerialDevice("RP"));
+            dm.register(rp);
         }
 
     }

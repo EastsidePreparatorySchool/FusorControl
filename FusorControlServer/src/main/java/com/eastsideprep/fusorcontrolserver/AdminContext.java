@@ -160,6 +160,22 @@ public class AdminContext extends ObserverContext {
         throw halt(500, "TMP control failed");
     }
 
+    String rpOnRoute() {
+        logAdminCommand("RP on");
+        if (cd.rp.set("rp_in", true)) {
+            return "turned on RP";
+        }
+        throw halt(500, "RP control failed");
+    }
+
+    String rpOffRoute() {
+        logAdminCommand("RP off");
+        if (cd.rp.set("rp_in", false)) {
+            return "turned off RP";
+        }
+        throw halt(500, "RP control failed");
+    }
+
     String solenoidOnRoute() {
         logAdminCommand("Solenoid open");
 

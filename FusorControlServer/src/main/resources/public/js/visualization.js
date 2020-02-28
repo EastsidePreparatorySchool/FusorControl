@@ -22,6 +22,7 @@ var continuousViz = true;
 // datatype: used for both line and text display
 //
 var vizChannels = {
+    'RP.rp_stat': {name: 'RP status', shortname: 'RP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
     'TMP.tmp_stat': {name: 'TMP status', shortname: 'TMP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
     'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
@@ -254,6 +255,13 @@ function renderText(update, secs) {
 // incomplete/buggy
 //
 function renderButtons() {
+    var tc = textChannels["RP.rp_stat"];
+    if (tc !== undefined && tc.value !== 0) {
+        selectButton("rpon", "rpoff");
+    } else {
+        selectButton("rpoff", "rpon");
+    }
+
     var tc = textChannels["TMP.tmp_stat"];
     if (tc !== undefined && tc.value !== 0) {
         selectButton("tmpon", "tmpoff");

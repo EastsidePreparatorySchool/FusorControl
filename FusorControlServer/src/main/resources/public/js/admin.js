@@ -25,7 +25,7 @@ function enableAdminControls(enable) {
 
     var adminControls = [
         "startLog", "stopLog", "getStatus", "kill",
-        "tmpon", "tmpoff", "variacValue", "variacButton",
+        "rpon", "rpoff", "tmpon", "tmpoff", "variacValue", "variacButton",
         "solon", "soloff", "needleValue", "needleButton",
         "variacStop", "variacZero"
     ];
@@ -167,6 +167,36 @@ function tmpOff() {
                 .then(data => {
                     console.log(data);
                     selectButton("tmpoff", "tmpon");
+                })
+                .catch(error => {
+                    console.log("error: " + error);
+                });
+    } catch (error) {
+        console.log("Error: " + error);
+    }
+}
+//control rp
+function rpOn() {
+    try {
+        request({url: "/protected/admin/rpOn", method: "GET"})
+                .then(data => {
+                    console.log(data);
+                    selectButton("rpon", "rpoff");
+                })
+                .catch(error => {
+                    console.log("error: " + error);
+                });
+    } catch (error) {
+        console.log("Error: " + error);
+    }
+}
+
+function rpOff() {
+    try {
+        request({url: "/protected/admin/rpOff", method: "GET"})
+                .then(data => {
+                    console.log(data);
+                    selectButton("rpoff", "rpon");
                 })
                 .catch(error => {
                     console.log("error: " + error);
