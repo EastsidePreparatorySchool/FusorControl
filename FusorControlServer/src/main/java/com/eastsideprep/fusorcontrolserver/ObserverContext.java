@@ -95,16 +95,16 @@ public class ObserverContext extends Context {
         return result;
     }
 
-    private String getURL(String url) {
+    private byte[] getURL(String url) {
         url = url.replace(" ", "%20");
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .build();
 
-        HttpResponse<String> response = null;
+        HttpResponse<byte[]> response = null;
         try {
-            response = client.send(request, BodyHandlers.ofString());
+            response = client.send(request, BodyHandlers.ofByteArray());
         } catch (Exception ex) {
             System.out.println("Exc in getting file from souce: " + ex);
         }
@@ -113,7 +113,7 @@ public class ObserverContext extends Context {
     }
 
     private ArrayList<String> getGithubFusorLogs() {
-        String s = getURL("https://github.com/EastsidePreparatorySchool/FusorExperiments/tree/master/logs/keep");
+        String s = new String(getURL("https://github.com/EastsidePreparatorySchool/FusorExperiments/tree/master/logs/keep"));
         return match(s, "\\/EastsidePreparatorySchool\\/FusorExperiments\\/blob\\/master\\/logs\\/keep\\/fusor-[^\\. ]*\\.json");
     }
 
@@ -133,9 +133,9 @@ public class ObserverContext extends Context {
         System.out.println("logfile requested: " + filename);
         try {
             filename = "https://raw.githubusercontent.com/EastsidePreparatorySchool/FusorExperiments/master/logs/keep/" + filename;
-            String s = getURL(filename);
+            byte[] ab = getURL(filename);
             HttpServletResponse raw = res.raw();
-            raw.getOutputStream().print(s);
+            raw.getOutputStream().write(ab);
             raw.getOutputStream().flush();
             raw.getOutputStream().close();
             res.header("Content-Type", "application/JSON");
