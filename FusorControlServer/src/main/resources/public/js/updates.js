@@ -14,6 +14,9 @@ var liveServer = true;
 function updateStatus(data, raw, startTime) {
     if (data !== null) {
         //console.log("updating "+raw.length+" bytes");
+        data.sort(function (a, b) {
+            return a["servertime"] - b["servertime"];
+        });
         updateViz(data, false);
     }
 }

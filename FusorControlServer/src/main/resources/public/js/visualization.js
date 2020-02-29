@@ -32,7 +32,6 @@ var vizChannels = {
     'TMP.tmp_stat': {name: 'TMP status', shortname: 'TMP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
     'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
-    //    'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', shortname: 'DIAPHRAGM', unit: 'adc', min: 0, max: 200, type: "continuous", datatype: "numeric"},
     'PIRANI.p3': {name: 'Piezo pressure', shortname: '', unit: 'mTorr', factor: 1000, min: 0, max: 800000, type: "continuous", datatype: "numeric"},
     'PIRANI.p1': {name: 'Pirani pressure', shortname: 'PRESSURE', unit: 'mTorr', factor: 1000, min: 0, max: 500, type: "continuous", datatype: "numeric"},
     'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: '', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric"},
@@ -47,7 +46,7 @@ var vizChannels = {
     'GC-SERIAL.cps': {name: 'GCW (cps)', shortname: 'GCW clicks', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
     'PN-JUNCTION.total': {name: 'PNJ (adc)', shortname: 'PN-J raw', unit: 'adc', min: 0, max: 100, type: "continuous", datatype: "numeric"},
     'Heartbeat.beat': {name: 'Heartbeat', shortname: 'HEARTBEAT', unit: '', min: 0, max: 50, type: "momentary", datatype: "numeric"},
-    'Heartbeat.logsize': {name: 'Log size (kEntries)', shortname: 'LOGSIZE', unit: 'kEntries', min: 0, max: 10000, type: "discrete", datatype: "numeric"},
+    //'Heartbeat.logsize': {name: 'Log size (kEntries)', shortname: 'LOGSIZE', unit: 'kEntries', min: 0, max: 10000, type: "discrete", datatype: "numeric"},
     'Comment.text': {name: 'Comment', shortname: '', min: 0, max: 30, type: "momentary", datatype: "text"},
     'Login.text': {name: 'Login', shortname: '', min: 0, max: 40, type: "momentary", datatype: "text"},
     'Command.text': {name: 'Command', shortname: '', min: 0, max: 20, type: "momentary", datatype: "text"}
@@ -130,13 +129,15 @@ function createVizCanvasJS() {
         rangeChanging: function (e) {
             vizFrozen = (e.trigger !== "reset");
         }
+
     };
     for (var channel in vizChannels) {
         var dataSeries = {
             type: "line",
             name: vizChannels[channel].name,
             showInLegend: true,
-            dataPoints: []
+            dataPoints: [],
+            markerType: "none"
         };
         vizData.push(dataSeries);
         vizChannels[channel].dataSeries = dataSeries;

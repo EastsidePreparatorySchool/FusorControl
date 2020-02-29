@@ -28,7 +28,7 @@ public class WebLog {
     private int start = 0;
     private int end = 0;
     private int minRead = 0;
-    private final int COLLAPSE_THRESHOLD = 10;
+    private final int COLLAPSE_THRESHOLD = 1000;
     public static WebLog instance;
     public long baseTime;
 
