@@ -35,17 +35,22 @@ public class ObserverContext extends Context {
     }
 
     String getStatusRoute() {
-        //System.out.println("/getstatus");
-        if (WebServer.dl == null) {
-            return "not logging";
-        }
+        try {
+            //System.out.println("/getstatus");
+            if (WebServer.dl == null) {
+                return "not logging";
+            }
 
-        String s = DataLogger.getNewLogEntryBatch(obs);
+            String s = DataLogger.getNewLogEntryBatch(obs);
 
-        if (FusorControlServer.config.superVerbose) {
-            //System.out.println("  Status:" + s);
+            if (FusorControlServer.config.superVerbose) {
+                //System.out.println("  Status:" + s);
+            }
+            return s;
+        } catch (Throwable t) {
+            System.out.println("Exception in getstatus: "+t.getMessage());
+            return t.toString();
         }
-        return s;
     }
 
     String comment(spark.Request req) {
