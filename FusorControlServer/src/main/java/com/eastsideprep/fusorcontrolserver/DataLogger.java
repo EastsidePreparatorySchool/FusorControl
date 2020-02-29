@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DataLogger {
 
@@ -34,7 +36,7 @@ public class DataLogger {
 
     }
 
-    public void init(DeviceManager dm, CamStreamer cs, String customName) throws IOException {
+    public void init(DeviceManager dm, CamStreamer cs, String customName) {
         this.dm = dm;
         this.currentFile = "";
 
@@ -44,14 +46,18 @@ public class DataLogger {
 
             // create time info for logfile and cam files
             Date date = new Date();
-            long millis = System.currentTimeMillis();
             Instant instant1 = date.toInstant();
             String ts = instant1.toString();
             String fileName = makeFileName(ts);
 
             // create logfile
             this.baseTime = WebServer.log.baseTime;
-            open(fileName + (customName != null ? "_" + customName : ""), ts);
+            try {
+                open(fileName + (customName != null ? "_" + customName : ""), ts);
+            } catch (IOException ex) {
+                System.out.println("Could not create log file, no permanent log on this run");
+                writer = null;
+            }
             this.cs = cs;
             cs.startRecording(fileName + "_cam_", this.baseTime);
 
@@ -178,15 +184,17 @@ public class DataLogger {
                 }
                 Thread.sleep(200);
 
-                StringBuilder sb = new StringBuilder();
-                sb.ensureCapacity(10000);
-                getNewLogEntries(obs, sb);
-                String s = sb.toString();
-                if (s != null && s.length() > 0) {
-                    try {
-                        write(s);
-                    } catch (IOException ex) {
-                        System.out.println("DataLogger:write:ioexception: " + ex);
+                if (writer != null) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.ensureCapacity(10000);
+                    getNewLogEntries(obs, sb);
+                    String s = sb.toString();
+                    if (s != null && s.length() > 0) {
+                        try {
+                            write(s);
+                        } catch (IOException ex) {
+                            System.out.println("DataLogger:write:ioexception: " + ex);
+                        }
                     }
                 }
             }
@@ -210,15 +218,15 @@ public class DataLogger {
 
     static void getNewLogEntries(WebLogObserver obs, StringBuilder sb) {
         ArrayList<WebLogEntry> list = obs.getNewItems();
-        if (list == null) {
+        if (list == null || list.size() == 0) {
             return;
         }
         if (FusorControlServer.config.superVerbose) {
             //System.out.println("Obs: " + obs + ", updates: " + list.size());
         }
-        
-        //list.sort((a,b)->(int)(a.time-b.time));
 
+        // Frankly, the client can do this
+        // list.sort((a,b)->(int)(a.time-b.time));
         for (WebLogEntry e : list) {
             FusorWebLogEntry fe = (FusorWebLogEntry) e;
             sb.append(DataLogger.makeLogResponse(fe.device, fe.time, fe.data));
@@ -284,11 +292,21 @@ public class DataLogger {
         WebServer.logPath = this.logPath;
     }
 
-    public static void createFolder(String folder) {
+    public void createFolder(String folder) {
         File file = new File(folder);
         if (!file.exists()) {
             if (!file.mkdirs()) {
-                System.err.println("Log folder " + folder + "does not exist and cannot be created");
+                System.err.println("Log folder " + folder + " does not exist and cannot be created");
+                System.out.println("Logging to .\\logs instead");
+
+                this.logPath = System.getProperty("user.dir") + System.getProperty("file.separator") + "logs";
+
+                file = new File(this.logPath);
+                if (!file.exists()) {
+                    if (!file.mkdirs()) {
+                        System.err.println("Default log folder .\\logs does not exist and cannot be created");
+                    }
+                }
             }
         }
     }

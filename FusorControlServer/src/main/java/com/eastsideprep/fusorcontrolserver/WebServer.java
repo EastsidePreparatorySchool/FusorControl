@@ -32,7 +32,7 @@ public class WebServer {
         //
         // setup all that fusor stuff
         //
-        
+
         // create a new log and reset it
         state = new FusorWebLogState();
         log = new WebLog(state);
@@ -42,14 +42,10 @@ public class WebServer {
         dm = new DeviceManager();
         cs = new CamStreamer(dm);
         cd = dm.init();
-        
+
         // create the data logger (an observer of the log that writes everything to disk)
         dl = new DataLogger();
-        try {
-            dl.init(dm, cs, null);
-        } catch (IOException ex) {
-            System.out.println("initial startLog IO exception: " + ex);
-        }
+        dl.init(dm, cs, null);
         dm.autoStatusOn();
         System.out.println("New log started");
 
