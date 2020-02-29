@@ -2,7 +2,8 @@
 // fusor device status -> graph
 //
 
-var usingChartJS = false;    // switch between chart libraries
+var urlParams = new URLSearchParams(window.location.search);
+var usingChartJS = (urlParams.get("chartjs") === "1");
 var vizData = [];           // holds all our data series
 var chart = null;           // holds central chart object
 var vizFrozen = false;      // CanvasJS allows to zoom and pan, we freeze the display for it
@@ -15,9 +16,9 @@ var viewLead = viewIncrement / 5;
 
 //
 // this is the most important data structure here
-// 
+//
 // the key is a concatenation of device name (as reported by its Arduino) and a variable name published by that device
-// 
+//
 // name: is the name of the line in the chart
 // shortname: is the line in the text display on the left. No shortname, no text display
 // unit: is for tooltips and text display
@@ -57,12 +58,16 @@ var vizChannels = {
 //
 function createViz() {
     var container = document.getElementById("fchart");
+    var chart;
     if (usingChartJS) {
         container.innerHTML = "<canvas id='chartContainer' style='background-color: white; width:100%;height:100%'></canvas>";
-        createVizChartJS();
+        chart = createVizChartJS();
+        container.ondblclk = function() {
+            chart.resetZoom();
+        }
     } else {
         container.innerHTML = "<div id='chartContainer'></div>";
-        createVizCanvasJS();
+        chart = createVizCanvasJS();
     }
 }
 
@@ -139,6 +144,7 @@ function createVizCanvasJS() {
 
     chart = new CanvasJS.Chart("chartContainer", options);
     chart.render();
+    return chart;
 }
 
 
@@ -154,7 +160,7 @@ function updateCorrespondingText(dataPoint) {
 
     // find the data index belonging to that chart point
     var index = bSearchLog(dataPoint.time);
-    // go back to just past the previous entry for this device, 
+    // go back to just past the previous entry for this device,
     var prior = findPrior(index, dataPoint.device);
     // now run that slice of data through the updater.
     updateViz(offlineLog.slice(prior, index + 1), true);
@@ -501,7 +507,6 @@ function addDataPoint(dataSeries, type, secs, percent, value, unit, time, device
 
 //
 // set the view port
-// I don't know how to do this in ChartJS
 //
 function setViewPort(min, max) {
     if (min === currentViewMin || max === currentViewMax) {
@@ -591,6 +596,26 @@ function createVizChartJS() {
                         var dataPoint = myData.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
                         updateCorrespondingText(dataPoint);
                         return makeTooltipText(dataPoint);
+                    }
+                }
+            },
+
+            plugins: {
+                zoom: {
+                    pan: {
+                        enabled: true,
+                        mode: 'x',
+                    },
+
+                    // Container for zoom options
+                    zoom: {
+                        enabled: true,
+                        drag: true,
+                        mode: 'x',
+
+                        // Speed of zoom via mouse wheel
+                        // (percentage of zoom on a wheel event)
+                        speed: 0.1
                     }
                 }
             }
