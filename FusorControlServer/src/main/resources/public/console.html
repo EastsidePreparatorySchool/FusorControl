@@ -26,7 +26,7 @@
 
                     TMP:<br>
                     <button disabled class="btn btn-primary btn-large" id="tmpon" style="width: 48%; background-color: #39a82a;" onclick="tmpOn()">On</button>
-                    <button disabled class="btn btn-primary btn-large" id="tmpoff" 
+                    <button disabled class="btn btn-primary btn-large" id="tmpoff"
                             style="width: 48%; border:2px solid black; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif"
                             onclick="tmpOff()">Off</button>
                     <br>
@@ -43,7 +43,7 @@
 
                     Solenoid Valve:<br>
                     <button disabled class="btn btn-primary btn-large" id="solon" style="width: 48%; background-color: #39a82a;" onclick="SolenoidOn()">Open</button>
-                    <button disabled class="btn btn-primary btn-large" id="soloff" 
+                    <button disabled class="btn btn-primary btn-large" id="soloff"
                             style="border:2px solid black;width: 48%; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;"
                             onclick="SolenoidOff()">Closed</button>
                     <br>
@@ -60,7 +60,7 @@
 
                 </div>
 
-            </div>  
+            </div>
             <div class="fchart" id="fchart">
                 <div id="chartContainer">
                 </div>
@@ -73,7 +73,7 @@
             </div>
             <div class="fcamview" onclick="window.open('cameras.html', 'popup_window', 'width=1920,height=1040'); return false;">
                 <img id="cam1" style="width:48%;height:100%;display:none;padding:0%" src="">
-                <img id="cam2" style="width:48%;height:100%;display:none;padding:0%" src=""> 
+                <img id="cam2" style="width:48%;height:100%;display:none;padding:0%" src="">
             </div>
             <div class="finput">
                 <form method="post" onsubmit="return submitComment(this);">
@@ -87,7 +87,11 @@
             </div>
         </div>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.js" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.js"></script>
+        <!--script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/0.6.6/chartjs-plugin-zoom.js"></script-->
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.5/dist/chartjs-plugin-zoom.js"></script>
+
         <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
         <script type="text/javascript" src="js/common.js"></script>
         <script type="text/javascript" src="js/sample_data.js"></script>

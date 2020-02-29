@@ -2,17 +2,18 @@
 // fusor device status -> graph
 //
 
-var usingChartJS = false;
+var urlParams = new URLSearchParams(window.location.search);
+var usingChartJS = (urlParams.get("chartjs") === "1");
 var vizData = [];
 var chart = null;
 var vizFrozen = false; // CanvasJS allows to zoom and pan, I freeze the display for it
-var tooltipUpdates = true; // reentrance flag to avoid doing data updates cause by tooltipUpdates. Might be misnamed. 
+var tooltipUpdates = true; // reentrance flag to avoid doing data updates cause by tooltipUpdates. Might be misnamed.
 
 //
 // this is the most important data structure here
-// 
+//
 // the key is a concatenation of device name (as reported by its Arduino) and a variable name published by that device
-// 
+//
 // name: is the name of the line in the chart
 // shortname: is the line in the text display on the left. No shortname, no text display
 // unit: is for tooltips and text display
@@ -51,12 +52,16 @@ var vizChannels = {
 //
 function createViz() {
     var container = document.getElementById("fchart");
+    var chart;
     if (usingChartJS) {
         container.innerHTML = "<canvas id='chartContainer' style='background-color: white; width:100%;height:100%'></canvas>";
-        createVizChartJS();
+        chart = createVizChartJS();
+        container.ondblclk = function() {
+            chart.resetZoom();
+        }
     } else {
         container.innerHTML = "<div id='chartContainer'></div>";
-        createVizCanvasJS();
+        chart = createVizCanvasJS();
     }
 }
 
@@ -139,6 +144,7 @@ function createVizCanvasJS() {
 
     chart = new CanvasJS.Chart("chartContainer", options);
     chart.render();
+    return chart;
 }
 
 
@@ -149,10 +155,10 @@ function createVizCanvasJS() {
 // It sets a reentrance-prevention flag that is observed
 // in the tooltip formatter function (in CanvaJS options)
 // and also in addDataPoint().
-// It then finds the data entries in the offline log that correspond to the 
+// It then finds the data entries in the offline log that correspond to the
 // time and device, and all the data (from other devices) immediately preceding it.
 // Then it runs that slice of data back through the visualization update function.
-// Due to the flag, no data points are added to the chart, 
+// Due to the flag, no data points are added to the chart,
 // but all text data are updated.
 //
 
@@ -162,7 +168,7 @@ function updateCorrespondingText(time, device) {
     try {
         // find the data index belonging to that chart point
         var index = bSearchLog(time);
-        // go back to just past the previous entry for this device, 
+        // go back to just past the previous entry for this device,
         var prior = findPrior(index, device);
         // now run that slice of data through the updater.
         updateViz(offlineLog.slice(prior, index + 1));
@@ -465,7 +471,6 @@ function addDataPoint(dataSeries, type, secs, percent, value, unit, time, device
 
 //
 // set the view port
-// I don't know how to do this in ChartJS
 //
 function setViewPort(min, max) {
     if (usingChartJS) {
@@ -545,6 +550,26 @@ function createVizChartJS() {
                         return label;
                     }
                 }
+            },
+
+            plugins: {
+                zoom: {
+                    pan: {
+                        enabled: true,
+                        mode: 'x',
+                    },
+
+                    // Container for zoom options
+                    zoom: {
+                        enabled: true,
+                        drag: true,
+                        mode: 'x',
+
+                        // Speed of zoom via mouse wheel
+                        // (percentage of zoom on a wheel event)
+                        speed: 0.1
+                    }
+                }
             }
         }
     };
@@ -614,4 +639,3 @@ function createVizChartJS() {
 
 
 
-        
