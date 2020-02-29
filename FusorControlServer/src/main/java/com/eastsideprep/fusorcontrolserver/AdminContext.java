@@ -11,7 +11,6 @@ import static com.eastsideprep.fusorcontrolserver.WebServer.dl;
 import static com.eastsideprep.fusorcontrolserver.WebServer.dm;
 import com.eastsideprep.fusorweblog.FusorWebLogEntry;
 import com.eastsideprep.fusorweblog.FusorWebLogState;
-import java.io.IOException;
 import static spark.Spark.halt;
 import static spark.Spark.stop;
 

@@ -6,7 +6,6 @@ import com.eastsideprep.fusorweblog.FusorWebLogState;
 import com.eastsideprep.serialdevice.DeviceManager;
 import com.eastsideprep.serialdevice.CoreDevices;
 import com.eastsideprep.weblog.WebLog;
-import java.io.*;
 import java.util.HashMap;
 import javax.servlet.MultipartConfigElement;
 import static spark.Spark.*;
