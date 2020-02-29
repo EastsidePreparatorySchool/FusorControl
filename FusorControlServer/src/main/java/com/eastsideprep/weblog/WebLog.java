@@ -28,8 +28,9 @@ public class WebLog {
     private int start = 0;
     private int end = 0;
     private int minRead = 0;
-    private final int COLLAPSE_THRESHOLD = 1000;
+    private final int COLLAPSE_THRESHOLD = 10;
     public static WebLog instance;
+    public long baseTime;
 
     public WebLog(WebLogState state) {
         rlock = rwl.readLock();
@@ -48,11 +49,12 @@ public class WebLog {
             minRead = 0;
             state = resetState;
             state.setLog(this);
-            
+
             resetObservers();
 
             if (resetEntry != null) {
                 addLogEntry(resetEntry);
+                baseTime = resetEntry.time;
             }
         } finally {
             wlock.unlock();
@@ -169,7 +171,11 @@ public class WebLog {
             int items = end - obs.maxRead;
             if (items > 0) {
                 // copy the new items to the result
-                result.addAll(log.subList(obs.maxRead - start, end - start));
+                try {
+                    result.addAll(log.subList(obs.maxRead - start, end - start));
+                } catch (Exception e) {
+                    System.out.println("Exception in log.getNewItems: "+e.getMessage());
+                }
 
                 // update maxRead, and possibly minRead
                 // need to lock this, multiple threads might want to do it

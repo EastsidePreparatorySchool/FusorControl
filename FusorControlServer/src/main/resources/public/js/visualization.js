@@ -62,7 +62,7 @@ function createViz() {
     if (usingChartJS) {
         container.innerHTML = "<canvas id='chartContainer' style='background-color: white; width:100%;height:100%'></canvas>";
         chart = createVizChartJS();
-        container.ondblclk = function() {
+        container.ondblclk = function () {
             chart.resetZoom();
         }
     } else {
@@ -333,6 +333,9 @@ function updateViz(dataArray, textOnly) {
         if (devicename === "<reset>") {
             // restart visualization with fresh log data
             resetViz();
+            console.log("<reset> ts " + data["servertime"]);
+            startTime = Number(data["servertime"]);
+            logStart = startTime;
             continue;
         }
 

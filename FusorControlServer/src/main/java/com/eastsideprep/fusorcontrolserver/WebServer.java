@@ -8,8 +8,6 @@ import com.eastsideprep.serialdevice.CoreDevices;
 import com.eastsideprep.weblog.WebLog;
 import java.io.*;
 import java.util.HashMap;
-import java.net.URL;
-import java.net.HttpURLConnection;
 import javax.servlet.MultipartConfigElement;
 import static spark.Spark.*;
 import spark.staticfiles.StaticFilesConfiguration;
@@ -31,21 +29,27 @@ public class WebServer {
     }
 
     public void init() {
-               //
+        //
         // setup all that fusor stuff
         //
+        
+        // create a new log and reset it
         state = new FusorWebLogState();
         log = new WebLog(state);
+        WebServer.log.clear(state, new FusorWebLogEntry("<reset>", System.currentTimeMillis(), "{}"));
+
+        // create the serial device manager and camera streams
         dm = new DeviceManager();
         cs = new CamStreamer(dm);
         cd = dm.init();
+        
+        // create the data logger (an observer of the log that writes everything to disk)
         dl = new DataLogger();
         try {
             dl.init(dm, cs, null);
         } catch (IOException ex) {
             System.out.println("initial startLog IO exception: " + ex);
         }
-        WebServer.log.clear(new FusorWebLogState(), new FusorWebLogEntry("<reset>", System.currentTimeMillis(), "{}"));
         dm.autoStatusOn();
         System.out.println("New log started");
 
@@ -56,8 +60,6 @@ public class WebServer {
         }
         cd.variac.setVoltage(-1);
 
-
-        
         // housekeeping routes and filters
         port(80);
 
@@ -80,7 +82,7 @@ public class WebServer {
         });
 
         before((req, res) -> {
-//            System.out.println("filter: timer alive?" + req.url());
+            // System.out.println("filter: timer alive?" + req.url());
             Context ctx = getCtx(req);
             // liveness check - this actually governs expiration
             if (ctx != null && !(ctx instanceof AdminContext) && ctx.checkExpired()) {
@@ -101,24 +103,37 @@ public class WebServer {
                 throw halt(401, "unauthorized");
             }
             // make sure everyone here has a log observer
-            if (ctx.obs == null) {
-                ctx.obs = log.addObserver(ctx.name);
+            try {
+                if (ctx.obs == null) {
+                    ctx.obs = log.addObserver(ctx.name);
+                }
+            } catch (Exception e) {
+                System.out.println("exception in /protected filter while adding context");
             }
+
         });
         before("/protected/admin/*", (req, res) -> {
-            Context ctx = getCtx(req);
-            if (ctx == null || !(ctx instanceof AdminContext)) {
-                System.out.println("filter: /protected/admin/*");
-                System.out.println("unauthorized " + req.uri());
-                System.out.println("Ctx: " + ctx);
-                if (ctx != null) {
-                    System.out.println("ClientID: " + ctx.clientID);
+            try {
+                Context ctx = getCtx(req);
+                if (ctx == null || !(ctx instanceof AdminContext)) {
+                    System.out.println("filter: /protected/admin/*");
+                    System.out.println("unauthorized " + req.uri());
+                    System.out.println("Ctx: " + ctx);
+                    if (ctx != null) {
+                        System.out.println("ClientID: " + ctx.clientID);
+                    }
+                    throw halt(401, "unauthorized");
                 }
-                throw halt(401, "unauthorized");
-            }
-            // make sure everyone here has a log observer
-            if (ctx.obs == null) {
-                ctx.obs = log.addObserver(ctx.name);
+                // make sure everyone here has a log observer
+                try {
+                    if (ctx.obs == null) {
+                        ctx.obs = log.addObserver(ctx.name);
+                    }
+                } catch (Exception e) {
+                    System.out.println("exception in /protected filter while adding context");
+                }
+            } catch (Throwable t) {
+                System.out.println("exception in /protected/admin filter");
             }
         });
 
@@ -138,7 +153,7 @@ public class WebServer {
         staticHandler.configure("/public");
         before((request, response) -> staticHandler.consume(request.raw(), response.raw()));
 
-         //
+        //
         // Observer routes
         // anybody logged in can call these
         //

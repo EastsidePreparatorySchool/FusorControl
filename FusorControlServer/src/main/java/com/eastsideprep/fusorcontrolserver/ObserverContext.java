@@ -6,19 +6,12 @@
 package com.eastsideprep.fusorcontrolserver;
 
 import static com.eastsideprep.fusorcontrolserver.WebServer.cd;
-import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletResponse;
@@ -35,6 +28,7 @@ public class ObserverContext extends Context {
     }
 
     String getStatusRoute() {
+        try{
         //System.out.println("/getstatus");
         if (WebServer.dl == null) {
             return "not logging";
@@ -46,6 +40,16 @@ public class ObserverContext extends Context {
             //System.out.println("  Status:" + s);
         }
         return s;
+        } catch (Throwable t) {
+            System.out.println("");
+            System.out.println("Exception in getStatus:"+t.getMessage());
+            StackTraceElement[] aste = t.getStackTrace();
+            for (int i = 0; i < aste.length; i++) {
+                System.out.println(aste[i].toString());
+            }
+            System.out.println("exception in getStatus");
+            return "exception";
+        }
     }
 
     String comment(spark.Request req) {

@@ -21,7 +21,7 @@ public class DataLogger {
     private DeviceManager dm;
     public String logPath;
     private CamStreamer cs;
-    private long baseTime;
+    public long baseTime;
     public String currentFile;
 
     public static String makeLogResponse(SerialDevice sd, long time, String response) {
@@ -50,7 +50,7 @@ public class DataLogger {
             String fileName = makeFileName(ts);
 
             // create logfile
-            this.baseTime = System.currentTimeMillis();
+            this.baseTime = WebServer.log.baseTime;
             open(fileName + (customName != null ? "_" + customName : ""), ts);
             this.cs = cs;
             cs.startRecording(fileName + "_cam_", this.baseTime);
@@ -216,10 +216,12 @@ public class DataLogger {
         if (FusorControlServer.config.superVerbose) {
             //System.out.println("Obs: " + obs + ", updates: " + list.size());
         }
+        
+        //list.sort((a,b)->(int)(a.time-b.time));
 
         for (WebLogEntry e : list) {
             FusorWebLogEntry fe = (FusorWebLogEntry) e;
-            sb.append(DataLogger.makeLogResponse(fe.device, fe.serverTime, fe.data));
+            sb.append(DataLogger.makeLogResponse(fe.device, fe.time, fe.data));
             sb.append(",\n");
         }
     }

@@ -62,8 +62,8 @@ public class WebLogObserver {
             return true;
         }
 
-        // kill it after 60 seconds of no reading
-        if ((System.currentTimeMillis() - timeLastObserved) > 60000) {
+        // kill it after 5 min of no reading
+        if ((System.currentTimeMillis() - timeLastObserved) > 300000) {
             stale = true;
             return true;
         }

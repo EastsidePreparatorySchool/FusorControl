@@ -9,4 +9,5 @@ package com.eastsideprep.weblog;
  * @author gmein
  */
 public abstract class WebLogEntry {
+    public long time;
 }

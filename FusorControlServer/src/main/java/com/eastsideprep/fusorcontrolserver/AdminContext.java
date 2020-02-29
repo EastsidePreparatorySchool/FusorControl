@@ -93,6 +93,7 @@ public class AdminContext extends ObserverContext {
             if (dl != null) {
                 dl.shutdown();
             }
+            WebServer.log.clear(new FusorWebLogState(), new FusorWebLogEntry("<reset>", System.currentTimeMillis(), "{}"));
             dl = new DataLogger();
             try {
                 dl.init(dm, cs, req.queryParams("filename"));
@@ -100,7 +101,6 @@ public class AdminContext extends ObserverContext {
                 System.out.println("startLog IO exception: " + ex);
             }
 
-            WebServer.log.clear(new FusorWebLogState(), new FusorWebLogEntry("<reset>", System.currentTimeMillis(), "{}"));
 
             dm.autoStatusOn();
             System.out.println("New log started");
