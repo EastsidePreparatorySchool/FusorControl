@@ -4,10 +4,10 @@
 
 var urlParams = new URLSearchParams(window.location.search);
 var usingChartJS = (urlParams.get("chartjs") === "1");
-var vizData = [];
-var chart = null;
-var vizFrozen = false; // CanvasJS allows to zoom and pan, I freeze the display for it
-var tooltipUpdates = true; // reentrance flag to avoid doing data updates cause by tooltipUpdates. Might be misnamed.
+var vizData = [];           // holds all our data series
+var chart = null;           // holds central chart object
+var vizFrozen = false;      // CanvasJS allows to zoom and pan, we freeze the display for it
+var continuousViz = true;
 
 //
 // this is the most important data structure here
@@ -23,28 +23,28 @@ var tooltipUpdates = true; // reentrance flag to avoid doing data updates cause 
 // datatype: used for both line and text display
 //
 var vizChannels = {
-    'TMP.tmp_stat': {name: 'TMP status', shortname: 'TMP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
-    'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
-    'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
-//    'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', shortname: 'DIAPHRAGM', unit: 'adc', min: 0, max: 200, type: "continuous", datatype: "numeric"},
-    'PIRANI.p3': {name: 'Piezo pressure', shortname: '', unit: 'mTorr', factor: 1000, min: 0, max: 800000, type: "continuous", datatype: "numeric"},
-    'PIRANI.p1': {name: 'Pirani pressure', shortname: 'PRESSURE', unit: 'mTorr', factor: 1000, min: 0, max: 500, type: "continuous", datatype: "numeric"},
-    'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: '', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric"},
-    'GAS.sol_stat': {name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
-    'GAS.nv_stat': {name: 'Needle valve', shortname: 'NV status', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric"},
-    'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'VARIAC.dial_volts': {name: 'Variac dial (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'KV', min: 0, max: 15, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW volt', unit: 'KV', min: 0, max: 50, type: "continuous", datatype: "numeric"},
-    'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', shortname: 'CW current', unit: 'adc', min: 0, max: 50, type: "continuous", datatype: "numeric"},
-    'GC-SERIAL.cps': {name: 'GCW (cps)', shortname: 'GCW clicks', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
-    'PN-JUNCTION.total': {name: 'PNJ (adc)', shortname: 'PN-J raw', unit: 'adc', min: 0, max: 100, type: "continuous", datatype: "numeric"},
-    'Heartbeat.beat': {name: 'Heartbeat', shortname: 'HEARTBEAT', unit: '', min: 0, max: 50, type: "momentary", datatype: "numeric"},
-    'Heartbeat.logsize': {name: 'Log size (kEntries)', shortname: 'LOGSIZE', unit: 'kEntries', min: 0, max: 10000, type: "discrete", datatype: "numeric"},
-    'Comment.text': {name: 'Comment', shortname: '', min: 0, max: 30, type: "momentary", datatype: "text"},
-    'Login.text': {name: 'Login', shortname: '', min: 0, max: 40, type: "momentary", datatype: "text"},
-    'Command.text': {name: 'Command', shortname: '', min: 0, max: 20, type: "momentary", datatype: "text"}
+    'TMP.tmp_stat': { name: 'TMP status', shortname: 'TMP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean" },
+    'TMP.pump_freq': { name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric" },
+    'TMP.pump_curr_amps': { name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric" },
+    //    'DIAPHRAGM.diaphragm_adc': {name: 'Rough pressure (adc)', shortname: 'DIAPHRAGM', unit: 'adc', min: 0, max: 200, type: "continuous", datatype: "numeric"},
+    'PIRANI.p3': { name: 'Piezo pressure', shortname: '', unit: 'mTorr', factor: 1000, min: 0, max: 800000, type: "continuous", datatype: "numeric" },
+    'PIRANI.p1': { name: 'Pirani pressure', shortname: 'PRESSURE', unit: 'mTorr', factor: 1000, min: 0, max: 500, type: "continuous", datatype: "numeric" },
+    'PIRANI.p4': { name: 'Pirani pressure (fine)', shortname: '', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric" },
+    'GAS.sol_stat': { name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean" },
+    'GAS.nv_stat': { name: 'Needle valve', shortname: 'NV status', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric" },
+    'VARIAC.input_volts': { name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric" },
+    'VARIAC.dial_volts': { name: 'Variac dial (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric" },
+    'HV-LOWSIDE.variac_rms': { name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric" },
+    'HV-LOWSIDE.nst_rms': { name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'KV', min: 0, max: 15, type: "continuous", datatype: "numeric" },
+    'HV-LOWSIDE.cw_avg': { name: 'CW ABS AVG (kV)', shortname: 'CW volt', unit: 'KV', min: 0, max: 50, type: "continuous", datatype: "numeric" },
+    'HV-HIGHSIDE.hs_current_adc': { name: 'CW current (adc)', shortname: 'CW current', unit: 'adc', min: 0, max: 50, type: "continuous", datatype: "numeric" },
+    'GC-SERIAL.cps': { name: 'GCW (cps)', shortname: 'GCW clicks', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric" },
+    'PN-JUNCTION.total': { name: 'PNJ (adc)', shortname: 'PN-J raw', unit: 'adc', min: 0, max: 100, type: "continuous", datatype: "numeric" },
+    'Heartbeat.beat': { name: 'Heartbeat', shortname: 'HEARTBEAT', unit: '', min: 0, max: 50, type: "momentary", datatype: "numeric" },
+    'Heartbeat.logsize': { name: 'Log size (kEntries)', shortname: 'LOGSIZE', unit: 'kEntries', min: 0, max: 10000, type: "discrete", datatype: "numeric" },
+    'Comment.text': { name: 'Comment', shortname: '', min: 0, max: 30, type: "momentary", datatype: "text" },
+    'Login.text': { name: 'Login', shortname: '', min: 0, max: 40, type: "momentary", datatype: "text" },
+    'Command.text': { name: 'Command', shortname: '', min: 0, max: 20, type: "momentary", datatype: "text" }
 
 };
 //
@@ -115,15 +115,9 @@ function createVizCanvasJS() {
             shared: false,
             content: "{name}: t: {x}, y: {value} {unit}",
             contentFormatter: function (e) {
-                if (tooltipUpdates) {
-                    var d = e.entries[0].dataPoint;
-                    if (offline) {
-                        updateCorrespondingText(d.time, d.device)
-                    }
-                    return `${d.device}: t: ${d.x}, y: ${d.value} ${d.unit}`;
-                } else {
-                    return "";
-                }
+                var dataPoint = e.entries[0].dataPoint;
+                updateCorrespondingText(dataPoint);
+                return makeTooltipText(dataPoint);
             }
         },
         data: vizData,
@@ -149,40 +143,40 @@ function createVizCanvasJS() {
 
 
 //
-// This next function is a hack of sorts
-// but it is now pulled out so we can change the implementation.
-// It should online run in offline mode, where offlineData contains the whole log.
-// It sets a reentrance-prevention flag that is observed
-// in the tooltip formatter function (in CanvaJS options)
-// and also in addDataPoint().
-// It then finds the data entries in the offline log that correspond to the
-// time and device, and all the data (from other devices) immediately preceding it.
-// Then it runs that slice of data back through the visualization update function.
-// Due to the flag, no data points are added to the chart,
-// but all text data are updated.
+// Update text data for a corresponding graph point
+// CanvasJS/ChartJS agnostic
 //
 
-function updateCorrespondingText(time, device) {
-    // prevent coming here again recursively
-    tooltipUpdates = false;
-    try {
-        // find the data index belonging to that chart point
-        var index = bSearchLog(time);
-        // go back to just past the previous entry for this device,
-        var prior = findPrior(index, device);
-        // now run that slice of data through the updater.
-        updateViz(offlineLog.slice(prior, index + 1));
-    } catch (e) {
-        // this is just here so we can get to the end and reset the flag
-        // console.log(e);
+function updateCorrespondingText(dataPoint) {
+    if (!offline || liveServer) {
+        return;
     }
-    tooltipUpdates = true;
+
+    // find the data index belonging to that chart point
+    var index = bSearchLog(dataPoint.time);
+    // go back to just past the previous entry for this device,
+    var prior = findPrior(index, dataPoint.device);
+    // now run that slice of data through the updater.
+    updateViz(offlineLog.slice(prior, index + 1), true);
+}
+
+
+//
+// make tooltip text
+// CanvasJS/ChartJS agnostic
+//
+function makeTooltipText(dataPoint) {
+    if (isNaN(dataPoint.value)) {
+        return `${dataPoint.device}: t: ${Number(dataPoint.x).toFixed(2)}, y: ${dataPoint.value} ${dataPoint.unit}`;
+    }
+    return `${dataPoint.device}: t: ${Number(dataPoint.x).toFixed(2)}, y: ${Number(dataPoint.value).toFixed(2)} ${dataPoint.unit}`;
 }
 
 //
 // set up the text display on the right of the screen
 // textChannels keeps track of what values we have seen
 // devices keeps track of when we last heard from a device
+// CanvasJS/ChartJS agnostic
 //
 
 var textChannels = {};
@@ -193,16 +187,18 @@ function createText() {
         if (vizChannels[channel].shortname !== '') {
             // make a device map to keep track of device time
             var deviceName = channel.substring(0, channel.indexOf('.'));
-            devices[deviceName] = {time: -1};
+            devices[deviceName] = { time: -1 };
             var name = vizChannels[channel].shortname;
             name = name + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".substring(0, (14 - name.length) * 6);
             textDisplay += name + ":&nbsp;<span id='" + channel + "'>n/c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp"
-                    + vizChannels[channel].unit + "<br>"; // + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
-            textChannels[channel] = {value: 0,
+                + vizChannels[channel].unit + "<br>"; // + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
+            textChannels[channel] = {
+                value: 0,
                 last: -1,
                 current: -1,
                 type: vizChannels[channel].datatype,
-                device: devices[deviceName]};
+                device: devices[deviceName]
+            };
         }
     }
     document.getElementById("data").innerHTML = textDisplay;
@@ -210,7 +206,7 @@ function createText() {
 
 //
 // this is called from within updateViz() to populate the textChannels data structure with new data
-// CanvasJS/CharJS agnostic
+// CanvasJS/ChartJS agnostic
 //
 function updateText(channel, value, type, time, deviceTime) {
     var tc = textChannels[channel];
@@ -224,7 +220,7 @@ function updateText(channel, value, type, time, deviceTime) {
 
 //
 // this pushes the text data out on to the screen
-// CanvasJS/CharJS agnostic
+// CanvasJS/ChartJS agnostic
 //
 function renderText(update, secs) {
     for (var channel in textChannels) {
@@ -232,22 +228,24 @@ function renderText(update, secs) {
         //var timespan = document.getElementById(channel + ".time");
         var valspan = document.getElementById(channel);
         if (((tc.current !== tc.last) && update) || offline) {
-// value for variable is new, according to its timestamp
+            // value for variable is new, according to its timestamp
             valspan.style.color = "gold";
             valspan.style.fontWeight = "bold";
             if (tc.type === "boolean") {
-                valspan.innerHTML = tc.value !== 0 ? "&nbsp;&nbsp;&nbsp;&nbsp;on" : "&nbsp;&nbsp;&nbsp;off";
+                valspan.innerHTML = tc.value !== 0 ?
+                    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on" :
+                    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;off";
             } else if (tc.type === "numeric") {
-// make it a nice 6.2 format
+                // make it a nice 6.2 format
                 var text = Number.parseFloat(tc.value).toFixed(2);
                 valspan.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".substring(text.length * 6) + text;
             }
-        } else if ((secs > tc.device.time + 3) || !update) {
-// device has not reported in 3 seconds
+        } else if ((secs > tc.device.time + 10) || !update) {
+            // device has not reported in n seconds
             valspan.style.color = "gray";
             valspan.style.fontWeight = "normal";
-        } else if ((secs > tc.last + 3) || !update) {
-// device is there, but variable is stale
+        } else if ((secs > tc.last + 10) || !update) {
+            // device is there, but variable is stale
             valspan.style.color = "gold";
             valspan.style.fontWeight = "normal";
         }
@@ -257,7 +255,7 @@ function renderText(update, secs) {
 
 //
 // this updates the buttons on the left to reflect certain status like Solenoid on/off
-// CanvasJS/CharJS agnostic
+// CanvasJS/ChartJS agnostic
 // incomplete/buggy
 //
 function renderButtons() {
@@ -268,7 +266,7 @@ function renderButtons() {
         selectButton("tmpoff", "tmpon");
     }
 
-    tc = textChannels["GAS.solenoid"];
+    tc = textChannels["GAS.sol_stat"];
     if (tc !== undefined && tc.value !== 0) {
         selectButton("solon", "soloff");
     } else {
@@ -299,48 +297,51 @@ function resetViz() {
 //
 // main function to interpret JSON data, scale data for display, push all updates
 // CanvasJS/CharJS agnostic
+// textOnly: don't update the chart. Don't add datapoints to series. just update the text display
 //
-function updateViz(dataArray) {
-// updates come in JSON array of device entries
+function updateViz(dataArray, textOnly) {
+    // updates come in JSON array of device entries
     for (var i = 0; i < dataArray.length; i++) {
         var data = dataArray[i];
         var devicename = data["device"];
         var devicedata = data["data"];
         // special pseudo device for reset
         if (devicename === "<reset>") {
-// restart visualization with fresh log data
+            // restart visualization with fresh log data
             resetViz();
             continue;
         }
 
-// if someone was promoted to admin, update the controls
-// done with another pseudo-device
+        // if someone was promoted to admin, update the controls
+        // done with another pseudo-device
         if (devicename === "<promote>") {
             checkAdminControls();
             continue;
         }
 
-//
-// now add important variables to display
-// see declaration of vizChannels above to see what is included
-//
+        //
+        // now add important variables to display
+        // see declaration of vizChannels above to see what is included
+        //
         for (var variable in devicedata) {
             try {
                 var vc = vizChannels[devicename + "." + variable];
                 if (vc === undefined) {
-// vizChannels are a de-facto view of the data for us
-// if this variable is not listed, we are on to the next one
+                    // vizChannels are a de-facto view of the data for us
+                    // if this variable is not listed, we are on to the next one
                     continue;
                 }
                 var dataSeries = vc.dataSeries;
                 // get value for this channel
                 var value;
                 var percent;
-                if (vc.datatype === "text" & tooltipUpdates) {
+                if (vc.datatype === "text") {
                     percent = (1 - vc.min) * 100 / (vc.max - vc.min);
                     if (devicedata["observer"] !== undefined) {
                         value = devicedata["observer"]["value"] + ":" + devicedata[variable]["value"];
-                        displayComment(devicedata["observer"]["value"], data["servertime"], devicedata["text"]["value"]);
+                        if (liveServer && !textOnly) {
+                            displayComment(devicedata["observer"]["value"], data["servertime"], devicedata["text"]["value"]);
+                        }
                     } else {
                         value = "\"" + devicedata[variable]["value"] + "\"";
                     }
@@ -352,7 +353,7 @@ function updateViz(dataArray) {
                     percent = (Math.abs(value) - vc.min) * 100 / (vc.max - vc.min);
                 }
 
-// get the three relevant timestamps, and do the math
+                // get the three relevant timestamps, and do the math
                 var serverTime = Number(data["servertime"]);
                 var deviceTime = Number(devicedata["devicetime"]);
                 if (vc.offset === undefined) {
@@ -373,9 +374,14 @@ function updateViz(dataArray) {
                 deviceTime -= vc.offset;
                 deviceTime = Math.max(deviceTime, 0);
                 var deviceSecs = Math.round(deviceTime * 10) / 10000;
-                maxTimeTotal = Math.max(maxTime, secs);
+                if (isNaN(maxTime)) {
+                    maxTime = 0;
+                }
+                maxTime = Math.max(maxTime, secs);
                 //console.log("x: "+varTime+" y: "+percent)
-                addDataPoint(dataSeries, vc.type, secs, percent, value, vc.unit, serverTime, vc.name);
+                if (!textOnly) {
+                    addDataPoint(dataSeries, vc.type, secs, percent, value, vc.unit, serverTime, vc.name);
+                }
                 updateText(devicename + "." + variable, value, vc.datatype, secs, deviceSecs);
             } catch (error) {
                 console.log(error);
@@ -383,41 +389,46 @@ function updateViz(dataArray) {
         } // for variable
     } // for data item
 
-//
-// adjust the view port
-//
+    //
+    // adjust the view port
+    //
 
-    if (liveServer) {
-        if (!vizFrozen) {
-            setViewPort(Math.max(maxTimeTotal - 60, 0), Math.max(maxTimeTotal, 60));
+    if (liveServer) { // view ports are different for offline - show everything - and live - show the last minute
+        if (!textOnly) { // don't do this for just a text update
+            if (!vizFrozen) { // leave it alone if live but panning and zooming
+                if (continuousViz) {
+                    setViewPort(Math.max(maxTime - 60, 0), Math.max(maxTime, 60));
+                } else {
+                    var next30 = Math.ceil((maxTime + 5) / 30) * 30;
+                    setViewPort(Math.max(next30 - 60, 0), Math.max(next30, 60));
+                }
+                //console.log ("set view port for "+dataArray.length+" records");
+            }
+            // update the big time display on the right
+            document.getElementById("logtime").innerText = Number.parseFloat(maxTime).toFixed(2);
         }
-        document.getElementById("logtime").innerText = Number.parseFloat(maxTimeTotal).toFixed(2);
-        renderText(true, maxTimeTotal);
+        renderText(true, maxTime);
     } else {
-        setViewPort(0, maxTime);
+        if (!textOnly) { // don't do this for just a text update
+            setViewPort(0, maxTime);
+            renderChart();
+        }
         renderText(true, secs);
     }
-
-    renderChart();
 }
 
 //
 // this adds one x,y (secs, percent) datapoint, but also more info to show in a tooltip
 //
 function addDataPoint(dataSeries, type, secs, percent, value, unit, time, device) {
-// reentrancy check - we don't want to go here from within a tooltip update
-    if (!tooltipUpdates) {
-        return;
-    }
-
-// some parameter sanitation
+    // some parameter sanitation
     if (unit === undefined) {
         unit = "";
     }
 
-//
-// get me the right queue depending on the viz library we are using
-//
+    //
+    // get me the right queue depending on the viz library we are using
+    //
     var dataPoints;
     if (usingChartJS) {
         dataPoints = dataSeries.data;
@@ -426,44 +437,43 @@ function addDataPoint(dataSeries, type, secs, percent, value, unit, time, device
         dataPoints = dataSeries.dataPoints;
     }
 
-//
-// this big switch makes different line behavior happen for different devices/variables, as defined in their vizChannel
-//
-
+    //
+    // this big switch makes different line behavior happen for different devices/variables, as defined in their vizChannel
+    //
     switch (type) {
         case "momentary":
             // make a spike out of three points
-            dataPoints.push({x: secs - 0.0001, y: 0, value: 0, unit: unit, time: time, device: device});
-            dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
-            dataPoints.push({x: secs + 0.0001, y: 0, value: 0, unit: unit, time: time, device: device});
+            dataPoints.push({ x: secs - 0.0001, y: 0, value: 0, unit: unit, time: time, device: device });
+            dataPoints.push({ x: secs, y: percent, value: value, unit: unit, time: time, device: device });
+            dataPoints.push({ x: secs + 0.0001, y: 0, value: 0, unit: unit, time: time, device: device });
             break;
         case "discrete":
             // flat lines that move at the time of the event
             // i.e. the datapoint reflects how things are from hereon
             if (dataPoints.length > 0) {
                 var lastPoint = dataPoints[dataPoints.length - 1];
-                dataPoints.push({x: secs - 0.0001, y: lastPoint.y, value: lastPoint.value, unit: unit, time: time, device: device});
+                dataPoints.push({ x: secs - 0.0001, y: lastPoint.y, value: lastPoint.value, unit: unit, time: time, device: device });
             }
-            dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
+            dataPoints.push({ x: secs, y: percent, value: value, unit: unit, time: time, device: device });
             break;
         case "discrete trailing":
             // flat lines that move at the last event before ours
             // i.e. the datapoint is interpreted to reflect how things have been since the last datapoint
             if (dataPoints.length > 0) {
                 var lastPoint = dataPoints[dataPoints.length - 1];
-                dataPoints.push({x: lastPoint.x + 0.0001, y: percent, value: value, unit: unit, time: time, device: device});
+                dataPoints.push({ x: lastPoint.x + 0.0001, y: percent, value: value, unit: unit, time: time, device: device });
             }
-            dataPoints.push({x: secs, y: 0, value: value, unit: unit, time: time, device: device});
+            dataPoints.push({ x: secs, y: 0, value: value, unit: unit, time: time, device: device });
             break;
         case "continuous":
         // just put the point in
         default:
-            dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
+            dataPoints.push({ x: secs, y: percent, value: value, unit: unit, time: time, device: device });
             break;
     }
-// in live view, constrain ourselves to xxx data points per series
+    // in live view, constrain ourselves to xxx data points per series
     if (liveServer) {
-        while (data.length > 10000) {
+        while (data.length > 1000) {
             data.shift();
         }
     }
@@ -510,44 +520,44 @@ function createVizChartJS() {
             },
             scales: {
                 xAxes: [{
-                        type: 'time',
-                        time: {
-                            unit: 'second'
+                    type: 'time',
+                    time: {
+                        unit: 'second'
+                    },
+                    displayFormats: {
+                        second: 'XXX.XX'
+                    },
+                    distribution: 'linear',
+                    offset: true,
+                    ticks: {
+                        major: {
+                            enabled: true,
+                            fontStyle: 'bold'
                         },
-                        displayFormats: {
-                            second: 'XXX.XX'
-                        },
-                        distribution: 'linear',
-                        offset: true,
-                        ticks: {
-                            major: {
-                                enabled: true,
-                                fontStyle: 'bold'
-                            },
-                            source: 'data',
-                            autoSkip: true,
-                            autoSkipPadding: 75,
-                            maxRotation: 0,
-                            sampleSize: 100
-                        }
-                    }],
+                        source: 'data',
+                        autoSkip: true,
+                        autoSkipPadding: 75,
+                        maxRotation: 0,
+                        sampleSize: 100
+                    }
+                }],
                 yAxes: [{
-                        gridLines: {
-                            drawBorder: false
-                        }
-                    }]
+                    gridLines: {
+                        drawBorder: false
+                    }
+                }]
             },
             tooltips: {
                 intersect: false,
-                mode: 'index',
+                mode: 'nearest',
                 callbacks: {
+                    title: function () {
+                        return null;
+                    },
                     label: function (tooltipItem, myData) {
-                        var label = myData.datasets[tooltipItem.datasetIndex].label || '';
-                        if (label) {
-                            label += ': ';
-                        }
-                        label += parseFloat(tooltipItem.value).toFixed(2);
-                        return label;
+                        var dataPoint = myData.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                        updateCorrespondingText(dataPoint);
+                        return makeTooltipText(dataPoint);
                     }
                 }
             },
@@ -573,6 +583,7 @@ function createVizChartJS() {
             }
         }
     };
+
     var ctx = document.getElementById('chartContainer').getContext('2d');
     chart = new Chart(ctx, cfg);
     window.chartColors = [
@@ -611,21 +622,21 @@ function createVizChartJS() {
             lineTension: 0,
             borderWidth: 2
         };
-//        switch (vizChannels[channel].type) {
-//            case "momentary":
-//                dataset.steppedLine = 'middle';
-//                break;
-//            case "discrete":
-//                dataset.steppedLine = 'after';
-//                break;
-//            case "discrete trailing":
-//                dataset.steppedLine = 'before';
-//                break;
-//            case "continuous":
-//            default:
-//                dataset.steppedLine = false;
-//                break;
-//        }
+        //        switch (vizChannels[channel].type) {
+        //            case "momentary":
+        //                dataset.steppedLine = 'middle';
+        //                break;
+        //            case "discrete":
+        //                dataset.steppedLine = 'after';
+        //                break;
+        //            case "discrete trailing":
+        //                dataset.steppedLine = 'before';
+        //                break;
+        //            case "continuous":
+        //            default:
+        //                dataset.steppedLine = false;
+        //                break;
+        //        }
         vizData.push(dataset);
         vizChannels[channel].dataSeries = dataset;
         i++;

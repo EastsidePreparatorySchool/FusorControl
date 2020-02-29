@@ -7,13 +7,20 @@ package com.eastsideprep.fusorcontrolserver;
 
 import static com.eastsideprep.fusorcontrolserver.WebServer.cd;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import javax.servlet.MultipartConfigElement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletResponse;
 import static spark.Spark.halt;
 
@@ -71,22 +78,44 @@ public class ObserverContext extends Context {
         }
     }
 
-    ArrayList<String> getLogFileNames() {
+    private static ArrayList<String> match(String text, String pattern) {
+        Pattern r = Pattern.compile(pattern);
+        Matcher m = r.matcher(text);
+
         ArrayList<String> result = new ArrayList<>();
-        File dir = new File(WebServer.logPath);
-        File[] directoryListing = dir.listFiles();
-
-        Arrays.sort(directoryListing, (a, b) -> Long.signum(b.lastModified() - a.lastModified()));
-
-        if (directoryListing != null) {
-            for (File child : directoryListing) {
-                String name = child.getName().toLowerCase();
-                if (name.endsWith(".json") && (WebServer.dl == null || !name.equals(WebServer.dl.currentFile))) {
-                    result.add(name);
-                }
-            }
+        while (m.find()) {
+            String s = m.group();
+            result.add(s.substring(s.lastIndexOf("/") + 1));
         }
 
+        return result;
+    }
+
+    private String getURL(String url) {
+        url = url.replace(" ", "%20");
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .build();
+
+        HttpResponse<String> response = null;
+        try {
+            response = client.send(request, BodyHandlers.ofString());
+        } catch (Exception ex) {
+            System.out.println("Exc in getting file from souce: " + ex);
+        }
+
+        return response.body();
+    }
+
+    private ArrayList<String> getGithubFusorLogs() {
+        String s = getURL("https://github.com/EastsidePreparatorySchool/FusorExperiments/tree/master/logs/keep");
+        return match(s, "\\/EastsidePreparatorySchool\\/FusorExperiments\\/blob\\/master\\/logs\\/keep\\/fusor-[^\\. ]*\\.json");
+    }
+
+    ArrayList<String> getLogFileNames() {
+        ArrayList<String> result = new ArrayList<>();
+        result = getGithubFusorLogs();
         return result;
     }
 
@@ -99,10 +128,10 @@ public class ObserverContext extends Context {
 
         System.out.println("logfile requested: " + filename);
         try {
-            byte[] bytes;
-            bytes = Files.readAllBytes(Paths.get(WebServer.logPath + filename));
+            filename = "https://raw.githubusercontent.com/EastsidePreparatorySchool/FusorExperiments/master/logs/keep/" + filename;
+            String s = getURL(filename);
             HttpServletResponse raw = res.raw();
-            raw.getOutputStream().write(bytes);
+            raw.getOutputStream().print(s);
             raw.getOutputStream().flush();
             raw.getOutputStream().close();
             res.header("Content-Type", "application/JSON");

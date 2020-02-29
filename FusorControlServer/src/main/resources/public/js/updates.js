@@ -13,7 +13,8 @@ var liveServer = true;
 
 function updateStatus(data, raw, startTime) {
     if (data !== null) {
-        updateViz(data);
+        //console.log("updating "+raw.length+" bytes");
+        updateViz(data, false);
     }
 }
 
@@ -39,16 +40,28 @@ function getStatus() {
                     //console.log(data);
                 })
                 .catch(error => {
-                    console.log("getstatus error: " + error);
-                    console.log(globalData);
-                    //console.log("stopping status requests to server");
-                    if (isAdmin) {
-                        //stopStatus();
-                        selectButton("stopLog", "startLog");
+                    if (error === "Unauthorized") {
+                        setTimeout(reload, 5000);
+                    } else if (error === "expired") {
+                        setTimeout(reload, 5000);
+                    } else {
+                        console.log("getstatus error: " + error);
+                        console.log(globalData);
+                        //console.log("stopping status requests to server");
+                        if (isAdmin) {
+                            //stopStatus();
+                            selectButton("stopLog", "startLog");
+                        }
+                        setTimeout(getStatus, updateInterval);
                     }
-                    setTimeout(getStatus, updateInterval);
                 });
     }
+}
+
+
+function reload() {
+    location.assign("/");
+
 }
 
 

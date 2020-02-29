@@ -230,9 +230,11 @@ public class DeviceManager {
         // paired lists: knownMacs, ports to ignore. Ugly, but I am too lazy to make another class for this
         byte[][] knownMacs = {
             {84, -31, -83, 59, -109, -98}, // GM laptop main MAC
+            {-16, -34, -15, -3, 124, 35},  // fusor2
         };
         String[] ignorePorts = {
             "Intel(R) Active Management Technology - SOL (COM4)", // Intel management port on GM's laptop
+            "Intel(R) Active Management Technology - SOL (COM3)", // same on fusor2
         };
 
         // cull down the ignore list, leave only ports that are on this machine

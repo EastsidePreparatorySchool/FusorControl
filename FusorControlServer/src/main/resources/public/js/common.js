@@ -38,8 +38,12 @@ function request(obj) {
             }
             obj.url += "clientID=" + getClientID();
         }
+        
+        if (obj.async === undefined) {
+            obj.async = true;
+        }
 
-        xhr.open(obj.method || "GET", obj.url);
+        xhr.open(obj.method || "GET", obj.url, obj.async);
         xhr.onload = () => {
             if (xhr.status >= 200 && xhr.status < 300) {
                 resolve(xhr.response);
@@ -47,7 +51,7 @@ function request(obj) {
                 reject(xhr.statusText);
             }
         };
-        xhr.onerror = () => reject(xhr.statusText);
+        xhr.onerror = () => reject(xhr.statusText, xhr.status);
         xhr.send(obj.body);
     });
 }
