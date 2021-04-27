@@ -92,9 +92,10 @@ function xmlRequest(verb, url) {
 async function waitForSite() {
     request({url: "/index.html", method: "get"})
             .then(data => {
-                location.assign("/index.html");
+                location.assign("/");
             })
             .catch(error => {
+                print(".");
                 waitForSite();
             });
     for (; ; ) {

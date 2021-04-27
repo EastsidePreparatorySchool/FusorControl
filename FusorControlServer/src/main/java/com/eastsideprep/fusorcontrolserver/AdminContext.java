@@ -189,7 +189,7 @@ public class AdminContext extends ObserverContext {
     }
 
     String needleValveRoute(spark.Request req) {
-        int value = Integer.parseInt(req.queryParams("value"));
+        float value = Float.parseFloat(req.queryParams("value"));
         logAdminCommand("Set needle valve:" + value);
         System.out.println("Received needle valve Set " + value);
         if (cd.gas.set("nv_in", value)) {

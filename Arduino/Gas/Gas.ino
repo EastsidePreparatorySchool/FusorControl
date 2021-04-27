@@ -16,7 +16,6 @@ int MAX_MS = 2000.0f;
 int SERVO_PWM_PORT = 2;
 
 int solstat = false;
-int needlevalvestat = 0;
 
 void setup(){
   fusorInit("GAS");
@@ -25,7 +24,7 @@ void setup(){
   fusorAddVariable("sol_stat", FUSOR_VARTYPE_BOOL);
   
   fusorAddVariable("nv_in", FUSOR_VARTYPE_FLOAT);
-  fusorAddVariable("nv_stat", FUSOR_VARTYPE_INT);
+  fusorAddVariable("nv_angle", FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("nv_ms", FUSOR_VARTYPE_INT);
   
   // relay control for solenoid valve
@@ -34,11 +33,8 @@ void setup(){
   fusorSetBoolVariable("sol_stat", false);
   solstat = false;
 
-  needleValve(0);
   needlevalveservo.attach(SERVO_PWM_PORT);
-  fusorSetIntVariable("nv_stat", 0);
-  fusorSetIntVariable("nv_ms", 0);
-  needlevalvestat = 0;
+  needleValve(0.0f);
   
   FUSOR_LED_ON();
   delay(300);
@@ -58,15 +54,15 @@ void updateAll() {
   }
   if (fusorVariableUpdated("nv_in")) {
     needleValve(fusorGetFloatVariable("nv_in"));
-    fusorSetIntVariable("nv_stat", needlevalvestat);
   }
   fusorSetBoolVariable("sol_stat", solstat);
-  fusorSetIntVariable("nv_stat", needlevalvestat);
 }
 
 void needleValve(float percent) {
   int ms = (int) (MIN_MS + ((MAX_MS - MIN_MS) * percent) / 100.0f);
   fusorSetIntVariable("nv_ms", ms);
-  needlevalvestat = percent;
   needlevalveservo.writeMicroseconds(ms);
+  
+  float angle = ((float)(ms - MIN_MS))/(MAX_MS - MIN_MS) * 180.0f;
+  fusorSetFloatVariable("nv_angle", angle);
 }

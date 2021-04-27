@@ -133,6 +133,7 @@ public class DeviceManager {
     public void recordStatus(String device, long time, String data) {
         WebLog.staticAddLogEntry(new FusorWebLogEntry(device, time, data));
         //System.out.println("Recorded status for "+device+" "+System.currentTimeMillis());
+        //System.out.println("Data: "+data);
     }
 
     public CoreDevices init() {

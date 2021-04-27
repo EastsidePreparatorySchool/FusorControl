@@ -26,4 +26,9 @@ function displayComment(observer, time, text) {
     chat.scrollTop = chat.scrollHeight;
 }
 
+function print(msg) {
+    var chat = document.getElementById("chat");
+    chat.innerText += msg;
+}
+
 

@@ -332,6 +332,9 @@ void _fusorCmdGetAll()
         break;
       case FUSOR_VARTYPE_FLOAT:
         // we processed the float earlier, just send the string
+        if (pfv->value[0] == 0) {
+          strcpy(pfv->value, "0.0");
+        }
         fusorAddResponse(pfv->value); 
         break;
       case FUSOR_VARTYPE_BOOL:
@@ -619,7 +622,7 @@ void fusorAddVariable(const char *name, int type)
   pfv->type = type;
   pfv->updated = false;
   pfv->value[0] = 0;
-  pfv->floatValue = 0.0;
+  pfv->floatValue = 0.0f;
   pfv->intValue = 0;
   pfv->boolValue = 0;
   pfv->timestamp = 0;
