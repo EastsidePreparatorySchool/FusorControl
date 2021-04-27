@@ -12,8 +12,9 @@ public class TMPControlDevice extends SerialDevice {
     }
 
     public boolean setOff() {
+        boolean result =  this.set("tmp", false);
         this.set("reset", true);
-        return this.set("tmp", false);
+        return result;
     }
     
     public boolean setLow() {
