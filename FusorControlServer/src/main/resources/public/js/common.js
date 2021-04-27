@@ -38,7 +38,7 @@ function request(obj) {
             }
             obj.url += "clientID=" + getClientID();
         }
-        
+
         if (obj.async === undefined) {
             obj.async = true;
         }
@@ -51,7 +51,9 @@ function request(obj) {
                 reject(xhr.statusText);
             }
         };
-        xhr.onerror = () => reject(xhr.statusText, xhr.status);
+        xhr.onerror = () => {
+            reject(xhr.statusText, xhr.status);
+        };
         xhr.send(obj.body);
     });
 }
@@ -84,6 +86,21 @@ function xmlRequest(verb, url) {
     xhr.send();
 }
 
+
+// wait for website
+
+async function waitForSite() {
+    request({url: "/index.html", method: "get"})
+            .then(data => {
+                location.assign("/index.html");
+            })
+            .catch(error => {
+                waitForSite();
+            });
+    for (; ; ) {
+        await sleep(5000);
+    }
+}
 
 //
 // timeout/logout

@@ -8,6 +8,8 @@
 
 #define TMP_ON    2  // pin for TMP on(high)/off(low)
 #define TMP_SPEED 3  // pin for TMP speed low/high
+#define TMP_ERROR 4  // pin will have "signal present" for errors
+#define TMP_RESET 5  // ground this pin to reset error condition
 #define TMP_AMPS  A0 // pin for pump amps 0-10V = 0 - 2.5A
 #define TMP_FREQ  A1 // pin for pump freq 0-10V = 0 - 1250Hz
 
@@ -18,21 +20,25 @@ void setup() {
   fusorAddVariable("tmp", FUSOR_VARTYPE_BOOL);
   fusorAddVariable("tmp_stat", FUSOR_VARTYPE_BOOL);
   fusorAddVariable("lowspeed", FUSOR_VARTYPE_BOOL);
-  //fusorAddVariable("pump_freq_adc", FUSOR_VARTYPE_INT);
+  fusorAddVariable("error", FUSOR_VARTYPE_BOOL);
+  fusorAddVariable("reset", FUSOR_VARTYPE_BOOL);
+  
   fusorAddVariable("pump_curr_amps", FUSOR_VARTYPE_FLOAT);
-  //fusorAddVariable("pump_curr_adc", FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("pump_freq", FUSOR_VARTYPE_FLOAT);
 
   fusorSetBoolVariable("tmp", false);  
   fusorSetBoolVariable("tmp_stat", false);  
+  fusorSetBoolVariable("error", false);  
+  fusorSetBoolVariable("reset", false);  
   fusorSetBoolVariable("lowspeed", false);
-  //fusorSetIntVariable("pump_freq_adc", 0);
-  //fusorSetIntVariable("pump_curr_adc", 0);
   fusorSetFloatVariable("pump_curr_amps", 0.0);
   fusorSetFloatVariable("pump_freq", 0.0);
 
   pinMode(TMP_ON, OUTPUT);
   pinMode(TMP_SPEED, OUTPUT);
+  pinMode(TMP_RESET, OUTPUT);
+  pinMode(TMP_ERROR, INPUT);
+  
 
   tmpOff();
   tmpHigh();
@@ -61,8 +67,6 @@ void updateAll() {
   for (int i = 0; i < 10; analogRead(TMP_FREQ), i++);
   int freq = analogRead(TMP_FREQ);
 
-  //fusorSetIntVariable("pump_curr_adc", amps);
-  //fusorSetIntVariable("pump_freq_adc", freq);
   fusorSetFloatVariable("pump_curr_amps", ((float)amps) * 2.5f / 1024.0f); // full adc 1024 = 2.5A
   fusorSetFloatVariable("pump_freq", ((float)freq) * 1250.0f / 1024.0f); // full adc 1024 = 1250 Hz
 
@@ -72,10 +76,8 @@ void updateAll() {
   if (fusorVariableUpdated("tmp")) {
     if (fusorGetBoolVariable("tmp")) {
       tmpOn();
-      //fusorSetBoolVariable("tmp", true);
     } else {
       tmpOff();
-      //fusorSetBoolVariable("tmp", false);
     }
   }
   fusorSetBoolVariable("tmp_stat", stat);  
@@ -84,14 +86,20 @@ void updateAll() {
   //fusorSendResponse("done processing tmp sets ...");
 
 
+  // if "reset" was updated, execute reset
+  if (fusorVariableUpdated("reset")) {
+    if (fusorGetBoolVariable("reset")) {
+      tmpReset();
+      fusorSetBoolVariable("reset", false);
+    }
+  }
+
   // if "lowspeed" was updated, read it, switch the pump to high speed / low speed accordingly
   if (fusorVariableUpdated("speed")) {
     if (fusorGetBoolVariable("lowspeed")) {
       tmpLow();
-      //fusorSetBoolVariable("lowspeed", true);
     } else {
       tmpHigh();
-      //fusorSetBoolVariable("lowspeed", false);
     }
   }
   //fusorSendResponse("done updating");
@@ -124,5 +132,18 @@ void tmpHigh() {
   FUSOR_LED_ON();
   digitalWrite(TMP_SPEED, HIGH);
   //delay(100);
+  FUSOR_LED_OFF();
+}
+
+
+bool tmpError() {
+  return digitalRead(TMP_ERROR) == HIGH;
+}
+
+void tmpReset() {
+  FUSOR_LED_ON();
+  digitalWrite(TMP_RESET, LOW);
+  delay(1200);
+  digitalWrite(TMP_RESET, HIGH);
   FUSOR_LED_OFF();
 }

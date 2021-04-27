@@ -7,6 +7,7 @@ import com.eastsideprep.serialdevice.SerialDevice;
 import com.eastsideprep.weblog.WebLog;
 import com.eastsideprep.weblog.WebLogEntry;
 import com.eastsideprep.weblog.WebLogObserver;
+import org.json.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -227,9 +228,25 @@ public class DataLogger {
         // list.sort((a,b)->(int)(a.time-b.time));
         for (WebLogEntry e : list) {
             FusorWebLogEntry fe = (FusorWebLogEntry) e;
-            sb.append(DataLogger.makeLogResponse(fe.device, fe.time, fe.data));
-            sb.append(",\n");
+            if (isJson(fe.data)) {
+                String s = DataLogger.makeLogResponse(fe.device, fe.time, fe.data);
+                sb.append(s);
+                sb.append(",\n");
+            }
         }
+    }
+
+    public static boolean isJson(String Json) {
+        try {
+            new JSONObject(Json);
+        } catch (JSONException ex) {
+            try {
+                new JSONArray(Json);
+            } catch (JSONException ex1) {
+                return false;
+            }
+        }
+        return true;
     }
 
     void logAll() {

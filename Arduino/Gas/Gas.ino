@@ -11,8 +11,8 @@
 #define SOL 15 // digital out pin for solenoid
 
 Servo needlevalveservo;
-int MIN_DEG = 0;
-int MAX_DEG = 180;
+int MIN_MS = 1000.0f;
+int MAX_MS = 2000.0f;
 int SERVO_PWM_PORT = 2;
 
 int solstat = false;
@@ -24,9 +24,9 @@ void setup(){
   fusorAddVariable("sol_in", FUSOR_VARTYPE_BOOL);
   fusorAddVariable("sol_stat", FUSOR_VARTYPE_BOOL);
   
-  fusorAddVariable("nv_in", FUSOR_VARTYPE_INT);
+  fusorAddVariable("nv_in", FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("nv_stat", FUSOR_VARTYPE_INT);
-  fusorAddVariable("nv_angle", FUSOR_VARTYPE_INT);
+  fusorAddVariable("nv_ms", FUSOR_VARTYPE_INT);
   
   // relay control for solenoid valve
   pinMode(SOL, OUTPUT);
@@ -37,7 +37,7 @@ void setup(){
   needleValve(0);
   needlevalveservo.attach(SERVO_PWM_PORT);
   fusorSetIntVariable("nv_stat", 0);
-  fusorSetIntVariable("nv_angle", 0);
+  fusorSetIntVariable("nv_ms", 0);
   needlevalvestat = 0;
   
   FUSOR_LED_ON();
@@ -57,16 +57,16 @@ void updateAll() {
     digitalWrite(SOL, solstat?HIGH:LOW);
   }
   if (fusorVariableUpdated("nv_in")) {
-    needleValve(fusorGetIntVariable("nv_in"));
+    needleValve(fusorGetFloatVariable("nv_in"));
     fusorSetIntVariable("nv_stat", needlevalvestat);
   }
   fusorSetBoolVariable("sol_stat", solstat);
   fusorSetIntVariable("nv_stat", needlevalvestat);
 }
 
-void needleValve(int percent) {
-  int angle = MIN_DEG + (MAX_DEG - MIN_DEG) * percent / 100;
-  fusorSetIntVariable("nv_angle", angle);
+void needleValve(float percent) {
+  int ms = (int) (MIN_MS + ((MAX_MS - MIN_MS) * percent) / 100.0f);
+  fusorSetIntVariable("nv_ms", ms);
   needlevalvestat = percent;
-  needlevalveservo.write(angle);
+  needlevalveservo.writeMicroseconds(ms);
 }
