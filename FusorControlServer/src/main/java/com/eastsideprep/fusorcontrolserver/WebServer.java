@@ -191,8 +191,7 @@ public class WebServer {
         Context ctx;
 
         //System.out.println("\"" + login + "\"");
-        if ((req.ip()
-                .equals("10.20.82.127") /* GMEIN's LAPTOP */
+        if ((req.ip().equals("10.20.82.127") /* GMEIN's LAPTOP */
                 || req.ip().equals("0:0:0:0:0:0:0:1") /* LOCALHOST */)
                 && login.equalsIgnoreCase("gmein")) {
             System.out.println("login: Admin: " + login);
