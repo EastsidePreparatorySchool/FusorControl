@@ -1,6 +1,6 @@
 //
 // Fusor project
-// Pirani2
+// Pirani
 // Serial Reader for MSK 901 Pirani/Micro-piezo
 // Arduino Mega 2560 (need extra UART, could use EPS32 as well)
 //
@@ -15,14 +15,14 @@ int newPercent = 10;
 void setup(){
   // must do this in init, the rest is optional
   fusorInit("PIRANI");
-  fusorAddVariable("p1",FUSOR_VARTYPE_FLOAT);
+  //fusorAddVariable("p1",FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("p2",FUSOR_VARTYPE_FLOAT);
-  fusorAddVariable("p3",FUSOR_VARTYPE_FLOAT);
+  //fusorAddVariable("p3",FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("p4",FUSOR_VARTYPE_FLOAT);
   //fusorAddVariable("pa_adc",FUSOR_VARTYPE_INT);
   //fusorAddVariable("pa",FUSOR_VARTYPE_FLOAT);
 
-  avgSignal = analogRead(A0);
+  //avgSignal = analogRead(A0);
 
   pinMode(LED_BUILTIN, OUTPUT);
   
@@ -109,12 +109,12 @@ bool command(char *str) {
 
 // query device and set all variables 
 void updateAll() {
-  queryPressure ("p1", 1);
+  //queryPressure ("p1", 1);
   queryPressure ("p2", 2);
-  queryPressure ("p3", 3);
+  //queryPressure ("p3", 3);
   queryPressure ("p4", 4);
-  long newSignal = analogRead(A0);
-  avgSignal = (avgSignal*(100-newPercent) + newSignal*newPercent)/100;
+//  long newSignal = analogRead(A0);
+//  avgSignal = (avgSignal*(100-newPercent) + newSignal*newPercent)/100;
   //fusorSetIntVariable("pa_adc", avgSignal);
   //fusorSetFloatVariable("pa", 0); // todo: real math for voltage divider and log scale here
 }
