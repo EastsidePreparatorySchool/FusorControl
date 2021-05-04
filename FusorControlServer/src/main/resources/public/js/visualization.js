@@ -30,7 +30,7 @@ var viewLead = viewIncrement / 5;
 var vizChannels = {
     'RP.rp_in': {name: 'RP status', shortname: 'RP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
     'TMP.tmp': {name: 'TMP status', shortname: 'TMP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
-    'TMP.error': {name: 'TMP error', shortname: 'TMP error', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
+    'TMP.error': {name: 'TMP error', shortname: 'TMP error', unit: '', min: 0, max: 2, type: "discrete", datatype: "error"},
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
     'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
     'PIRANI.p2': {name: 'Piezo relative pressure', shortname: 'P piezo rel', unit: 'mTorr', factor: 1000, min: -77000, max: 0, type: "continuous", datatype: "numeric"},
@@ -245,6 +245,10 @@ function renderText(update, secs) {
                 valspan.innerHTML = tc.value !== 0 ?
                         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on" :
                         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;off";
+            }if (tc.type === "error") {
+                valspan.innerHTML = tc.value !== 0 ?
+                        "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ok" :
+                        "&nbsp;&nbsp;&nbsp;&nbsp;<span style='color:red'>error</span>";
             } else if (tc.type === "numeric") {
                 // make it a nice 6.2 format
                 var text = Number.parseFloat(tc.value).toFixed(2);
