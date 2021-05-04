@@ -55,8 +55,8 @@ function getStatus() {
                             //stopStatus();
                             selectButton("stopLog", "startLog");
                         }
-                        //setTimeout(getStatus, updateInterval);
-                        waitForSite();
+                        setTimeout(getStatus, updateInterval);
+                        //waitForSite();
                     }
                 });
     }
