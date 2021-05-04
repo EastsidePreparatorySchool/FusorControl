@@ -55,7 +55,7 @@ void updateAll() {
   if (fusorVariableUpdated("nv_in")) {
     needleValve(fusorGetFloatVariable("nv_in"));
   }
-  fusorSetBoolVariable("sol_stat", solstat);
+  //fusorSetBoolVariable("sol_stat", solstat);
 }
 
 void needleValve(float percent) {

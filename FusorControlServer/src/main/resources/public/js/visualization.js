@@ -28,21 +28,21 @@ var viewLead = viewIncrement / 5;
 // datatype: used for both line and text display
 //
 var vizChannels = {
-    'RP.rp_stat': {name: 'RP status', shortname: 'RP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
-    'TMP.tmp_stat': {name: 'TMP status', shortname: 'TMP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
+    'RP.rp_in': {name: 'RP status', shortname: 'RP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
+    'TMP.tmp': {name: 'TMP status', shortname: 'TMP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
+    'TMP.error': {name: 'TMP error', shortname: 'TMP error', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
     'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
-    'PIRANI.p3': {name: 'Piezo pressure', shortname: 'P-PIEZO', unit: 'mTorr', factor: 1000, min: 0, max: 800000, type: "continuous", datatype: "numeric"},
-    'PIRANI.p1': {name: 'Pirani pressure', shortname: 'P-PIRANI', unit: 'mTorr', factor: 1000, min: 0, max: 500, type: "continuous", datatype: "numeric"},
-    'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: 'P-COMB', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric"},
+    'PIRANI.p2': {name: 'Piezo relative pressure', shortname: 'P piezo rel', unit: 'mTorr', factor: 1000, min: -77000, max: 0, type: "continuous", datatype: "numeric"},
+    'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: 'P pirani', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric"},
     'GAS.sol_stat': {name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
     'GAS.nv_in': {name: 'Needle valve percent', shortname: 'NV %', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric"},
     'GAS.nv_angle': {name: 'Needle valve degrees', shortname: 'NV deg', unit: 'deg', min: 0, max: 180, type: "discrete", datatype: "numeric"},
     'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'VARIAC.dial_volts': {name: 'Variac dial (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'KV', min: 0, max: 15, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW volt', unit: 'KV', min: 0, max: 50, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'kV', min: 0, max: 15, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW abs volt', unit: 'kV', min: 0, max: 50, type: "continuous", datatype: "numeric"},
     'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', shortname: 'CW current', unit: 'adc', min: 0, max: 50, type: "continuous", datatype: "numeric"},
     'GC-SERIAL.cps': {name: 'GCW (cps)', shortname: 'GCW clicks', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
     'PN-JUNCTION.total': {name: 'PNJ (adc)', shortname: 'PN-J raw', unit: 'adc', min: 0, max: 100, type: "continuous", datatype: "numeric"},
@@ -270,14 +270,14 @@ function renderText(update, secs) {
 // incomplete/buggy
 //
 function renderButtons() {
-    var tc = textChannels["RP.rp_stat"];
+    var tc = textChannels["RP.rp_in"];
     if (tc !== undefined && tc.value !== 0) {
         selectButton("rpon", "rpoff");
     } else {
         selectButton("rpoff", "rpon");
     }
 
-    var tc = textChannels["TMP.tmp_stat"];
+    var tc = textChannels["TMP.tmp"];
     if (tc !== undefined && tc.value !== 0) {
         selectButton("tmpon", "tmpoff");
     } else {
@@ -292,12 +292,12 @@ function renderButtons() {
     }
 
     tc = textChannels["VARIAC.input_volts"];
-    if (tc !== undefined && !isAdmin) {
+    if (tc !== undefined && tc.current !== tc.last) {
         document.getElementById("variacValue").value = tc.value;
     }
 
-    tc = textChannels["GAS.nv_stat"];
-    if (tc !== undefined && !isAdmin) {
+    tc = textChannels["GAS.nv_in"];
+    if (tc !== undefined && tc.current !== tc.last) {
         document.getElementById("needleValue").value = tc.value;
     }
 }
@@ -494,7 +494,7 @@ function addDataPoint(dataSeries, type, secs, percent, value, unit, time, device
                 var lastPoint = dataPoints[dataPoints.length - 1];
                 dataPoints.push({x: lastPoint.x + 0.0001, y: percent, value: value, unit: unit, time: time, device: device});
             }
-            dataPoints.push({x: secs, y: 0, value: value, unit: unit, time: time, device: device});
+            dataPoints.push({x: secs, y: percent, value: value, unit: unit, time: time, device: device});
             break;
         case "continuous":
         // just put the point in

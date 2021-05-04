@@ -80,7 +80,7 @@ void updateAll() {
       tmpOff();
     }
   }
-  fusorSetBoolVariable("tmp_stat", stat);  
+  //fusorSetBoolVariable("tmp_stat", stat);  
 
 
   //fusorSendResponse("done processing tmp sets ...");

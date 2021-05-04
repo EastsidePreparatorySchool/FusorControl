@@ -11,15 +11,14 @@
 int rpstat = false;
 
 void setup(){
-  fusorInit("RP");
+  fusorInit("RP", 1000); // longer interval because RP data is not important
 
   fusorAddVariable("rp_in", FUSOR_VARTYPE_BOOL);
-  fusorAddVariable("rp_stat", FUSOR_VARTYPE_BOOL);
   
   // relay control for solenoid valve
   pinMode(RELAY, OUTPUT);
   digitalWrite(RELAY, LOW);
-  fusorSetBoolVariable("rp_stat", false);
+  //fusorSetBoolVariable("rp_stat", false);
   rpstat = false;
 
   FUSOR_LED_ON();
@@ -37,6 +36,6 @@ void updateAll() {
   if (fusorVariableUpdated("rp_in")) {
     rpstat = fusorGetBoolVariable("rp_in");
     digitalWrite(RELAY, rpstat?HIGH:LOW);
+    fusorForceUpdate();
   }
-  fusorSetBoolVariable("rp_stat", rpstat);
 }

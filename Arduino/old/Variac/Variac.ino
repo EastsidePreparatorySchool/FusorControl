@@ -1,22 +1,22 @@
 //
 // Fusor project code for control Arduino
-// "VARIAC2"
-// Adafruit Feather EPS32 with Motor/Stepper Wing
+// "VARIAC"
+// Arduino Uno
 //
 
 #include "fusor.h"
-#include <Adafruit_MotorShield.h>
-
 
 
 #define MINVOLTS 0
 #define MAXVOLTS 120
 #define MINSTEPS 0
-#define MAXSTEPS 486
+#define MAXSTEPS 3830
 
-Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
-Adafruit_StepperMotor *myMotor;
+#define PUL 4 // stepper motor controller PULSE
+#define ENA 3 // stepper motor controller ENABLE
+#define DIR 2 // stepper motor controller DIRECTION
 
+#define REL 9  // relay to cut power to controller
 
 int currentVolts = 0;
 
@@ -27,13 +27,16 @@ void setup() {
   fusorAddVariable("stop", FUSOR_VARTYPE_INT);
 
   // stepper control for varaic
-  AFMS.begin(); 
-  myMotor = AFMS.getStepper(200, 1);  // 200 steps per rotation, port 1
-  myMotor->setSpeed(60);              // 60 rpm = 1 rps 
-  
+  pinMode(PUL, OUTPUT);
+  pinMode(ENA, OUTPUT);
+  pinMode(DIR, OUTPUT);
+  pinMode(REL, OUTPUT);
+
+  // stepper controller power relay
+  digitalWrite(REL, LOW);
+
   currentVolts = 0;
   fusorSetIntVariable("dial_volts", 0);
-
   FUSOR_LED_ON();
   fusorDelay(300);
   FUSOR_LED_OFF();
@@ -46,27 +49,36 @@ int stepsToVolts(int steps) {
   return map(steps, MINSTEPS, MAXSTEPS, MINVOLTS, MAXVOLTS);
 }
 
-void setVoltage(int volts) {
+void setVoltage(int volts, bool emergency) {
   int diff, steps, sign;
 
   if (volts > MAXVOLTS || volts < 0) return;
 
   steps = voltToSteps(abs(volts - currentVolts));
+  digitalWrite(DIR, ((volts - currentVolts) < 0) ? LOW : HIGH);
   sign = ((volts - currentVolts) < 0) ? -1 : 1;
 
   FUSOR_LED_ON();
+  digitalWrite(ENA, LOW);
+  digitalWrite(REL, HIGH);
   for (int i = 0; i<steps; i++) {
-    myMotor->onestep(sign>0?FORWARD:BACKWARD, INTERLEAVE); 
-
-    // update our variables
-    if ((i+1)%100 == 0) {
-      fusorSetIntVariable("dial_volts", currentVolts + sign*stepsToVolts(i));
-      fusorSetIntVariable("input_volts", volts);
-      fusorDelayMicroseconds(5);
+    digitalWrite(PUL, HIGH);
+    delayMicroseconds(200);
+    digitalWrite(PUL, LOW);
+    delayMicroseconds(200);
+    
+    if (!emergency){
+      // try to delay it to something reasonable
+      fusorDelayMicroseconds(5700);
+    
+      if ((i+1)%100 == 0) {
+        fusorSetIntVariable("dial_volts", currentVolts + sign*stepsToVolts(i));
+        fusorSetIntVariable("input_volts", volts);
+      }
     }
   }
-  // we don't need to hold this by force, turn it off
-  myMotor->release();
+  digitalWrite(ENA, HIGH);
+  digitalWrite(REL, LOW);
   FUSOR_LED_OFF();
 
   currentVolts = volts;
@@ -77,23 +89,41 @@ void setVoltage(int volts) {
 
 void zeroVoltage() {
   //set the variac as low as we can
-  setVoltage(MINVOLTS);
+  setVoltage(MINVOLTS, true);
 
-  //drive down 200 bonus steps, so we get to actual zero
+  //drive down some bonus steps, so we get to actual zero
   FUSOR_LED_ON();
-  for (int i=0; i<200; i++) {
-    myMotor->onestep(BACKWARD, SINGLE); 
+  digitalWrite(ENA, LOW);
+  digitalWrite(REL, HIGH);
+
+  digitalWrite(DIR, LOW);
+  for (int i = 0; i < 200; i++) {
+    digitalWrite(PUL, HIGH);
+    delayMicroseconds(400);
+    digitalWrite(PUL, LOW);
+    delayMicroseconds(400);
+    fusorDelayMicroseconds(5);
   }
-  myMotor->release();
+  digitalWrite(ENA, HIGH);
+  digitalWrite(REL, LOW);
   FUSOR_LED_OFF();
 }
 
 void calibrate() {
   FUSOR_LED_ON();
-  for (int i=0; i<500; i++) {
-    myMotor->onestep(BACKWARD, DOUBLE); 
+  digitalWrite(ENA, LOW);
+  digitalWrite(REL, HIGH);
+
+  digitalWrite(DIR, LOW);
+  for (int i = 0; i < 4000; i++) {
+    digitalWrite(PUL, HIGH);
+    delayMicroseconds(400);
+    digitalWrite(PUL, LOW);
+    delayMicroseconds(400);
+    fusorDelayMicroseconds(5);
   }
-  myMotor->release();
+  digitalWrite(ENA, HIGH);
+  digitalWrite(REL, LOW);
   FUSOR_LED_OFF();
   currentVolts = 0;
 }
@@ -110,7 +140,7 @@ void updateAll() {
   int volts;
 
 
-  // stop (used to be fast, but now isn't
+  // emergency shutdown
   if (fusorVariableUpdated("stop")) {
     int value = fusorGetIntVariable("stop");
     if (value == 0) {
@@ -126,7 +156,7 @@ void updateAll() {
       calibrate();
       volts = 0;
     } else {
-      setVoltage(volts);
+      setVoltage(volts, false); // in non-emergency mode
       if (volts == 0) {
         zeroVoltage();
     }

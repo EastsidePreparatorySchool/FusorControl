@@ -1,7 +1,7 @@
 //
 // Fusor project code for HV-lowside Arduino
 // 
-// Adafruit - Mega 2560 with bluetooth module
+// Adafruit - Mega 2560
 //
 
 #include "fusor.h"

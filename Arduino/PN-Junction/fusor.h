@@ -39,6 +39,7 @@ static FusorVariable fusorVariables[FUSOR_MAX_VARIABLES];
 static bool _fusorAutoStatus = false;
 static long _fusorLastStatus = 0;
 static char _buffer[16];
+static int _fusorUpdateInterval = 100;
 
 
 static const char *_fusorCmd = "CMD[";
@@ -54,20 +55,23 @@ BluetoothSerial SerialBT;
 #define FSERIAL Serial
 #endif
 
-void fusorSendResponse(const char *msg);
 void fusorStartResponse(const char *response);
 void fusorAddResponse(const char *response);
+void fusorSendResponse(const char *msg);
+void fusorCancelResponse();
 
-void fusorInitWithBaudRate(const char *name, long baudRate);
+void fusorInitWithBaudRate(const char *name, long baudRate, int updateInterval);
+void fusorInit(const char *name, int updateInterval);
 void fusorInit(const char *name);
 void fusorLoop();
+void fusorForceUpdate();
 
 int _fusorReadToCmdBuffer();
 char *_fusorGetCommand(char *sCommand);
 char *_fusorSkipCommand(char *current);
 char *_fusorParseCommand(char *full, char **command, char **var, char **val);
 void _fusorCmdExecute(char *sCmd, char *sVar, char *sVal);
-void _fusorCmdGetAll();
+void _fusorCmdGetAll(bool forceUpdate);
 void _fusorCmdAutoStatusOn();
 void _fusorCmdAutoStatusOff();
 
@@ -101,6 +105,11 @@ void fusorStartResponse(const char *response)
   {
     fusorAddResponse(response);
   }
+}
+
+void fusorCancelResponse()
+{
+  fusorResponseBuffer[0] = 0;
 }
 
 void fusorAddResponse(const char *response)
@@ -292,7 +301,7 @@ void _fusorCmdExecute(char *sCmd, char *sVar, char *sVal)
   }
   else if (strcmp(sCmd, "GETALL") == 0)
   {
-    _fusorCmdGetAll();
+    _fusorCmdGetAll(true);
   }
   else if (strcmp(sCmd, "AUTOSTATUSON") == 0)
   {
@@ -306,15 +315,25 @@ void _fusorCmdExecute(char *sCmd, char *sVar, char *sVal)
   sCmd[0] = 0;
 }
 
-void _fusorCmdGetAll()
+void fusorForceUpdate() 
+{
+  _fusorCmdGetAll(true);  
+}
+
+void _fusorCmdGetAll(bool forceUpdate)
 {
   int skip = 0;
+  int count = 0;
   fusorStartResponse("STATUS:{");
 
   for (int i = 0; i < fusorNumVars; i++)
   {
-    fusorAddResponse("\"");
     FusorVariable *pfv = &fusorVariables[i];
+    if (pfv->timestamp <= _fusorLastStatus && !forceUpdate){
+      continue;
+    }
+    count++;
+    fusorAddResponse("\"");
     fusorAddResponse(pfv->name);
     fusorAddResponse("\":{");
 
@@ -356,17 +375,22 @@ void _fusorCmdGetAll()
   fusorAddResponse(_buffer);
 
   fusorAddResponse("}");
-  fusorSendResponse(NULL);
+  if (count > 0) {
+    fusorSendResponse(NULL);
+  } else {
+    fusorCancelResponse();
+  }
   _fusorLastStatus = millis();
 }
 
 void _fusorDoAutoStatus()
 {
+  static int count = 0;
   if (_fusorAutoStatus)
   {
-    if ((millis() - _fusorLastStatus) > 100)
     {
-      _fusorCmdGetAll();
+      _fusorCmdGetAll(count % 10 == 0);
+      count++;
     }
   }
 }
@@ -471,7 +495,7 @@ void _fusorCmdGetVariable(char *var)
 void _fusorCmdAutoStatusOn()
 {
   fusorSendResponse("AUTOSTATUSON");
-  _fusorCmdGetAll();
+  _fusorCmdGetAll(true);
   _fusorAutoStatus = true;
 }
 
@@ -629,12 +653,20 @@ void fusorAddVariable(const char *name, int type)
   fusorNumVars++;
 }
 
+// default init with high baud rate and 10 updates/s
 void fusorInit(const char *name)
 {
-  fusorInitWithBaudRate(name, 115200);
+  fusorInitWithBaudRate(name, 115200, 100);
 }
 
-void fusorInitWithBaudRate(const char *name, long baudRate)
+// init with high baud rate and custom update interval
+void fusorInit(const char *name, int updateInterval)
+{
+  fusorInitWithBaudRate(name, 115200, updateInterval);
+}
+
+// init with custom everything
+void fusorInitWithBaudRate(const char *name, long baudRate, int updateInterval)
 {
 #ifdef BLUETOOTH
   SerialBT.begin(name);
@@ -650,6 +682,7 @@ void fusorInitWithBaudRate(const char *name, long baudRate)
   fusorCmdBuffer[0] = 0;
   fusorCmdBufpos = 0;
   fusorNumVars = 0;
+  _fusorUpdateInterval = updateInterval;
   _fusorAutoStatus = false;
 }
 
