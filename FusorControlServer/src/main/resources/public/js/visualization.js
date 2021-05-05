@@ -66,7 +66,7 @@ function createViz() {
         chart = createVizChartJS();
         container.ondblclk = function () {
             chart.resetZoom();
-        }
+        };
     } else {
         container.innerHTML = "<div id='chartContainer'></div>";
         chart = createVizCanvasJS();
