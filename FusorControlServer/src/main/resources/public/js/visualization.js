@@ -209,7 +209,8 @@ function createText() {
                 last: -1,
                 current: -1,
                 type: vizChannels[channel].datatype,
-                device: devices[deviceName]
+                device: devices[deviceName],
+                updated: false
             };
         }
     }
@@ -227,6 +228,7 @@ function updateText(channel, value, type, time, deviceTime) {
         tc.current = time;
         tc.type = type;
         tc.device.time = deviceTime;
+        tc.updated = true;
     }
 }
 
@@ -239,8 +241,9 @@ function renderText(update, secs) {
         var tc = textChannels[channel];
         //var timespan = document.getElementById(channel + ".time");
         var valspan = document.getElementById(channel);
-        if (((tc.current !== tc.last) && update) || offline) {
-            // value for variable is new, according to its timestamp
+        if ((tc.updated && update) || offline) {
+            // value for variable is new, according to its "updated" marker
+            tc.updated = false;
             valspan.style.color = "gold";
             valspan.style.fontWeight = "bold";
             if (tc.type === "boolean") {
