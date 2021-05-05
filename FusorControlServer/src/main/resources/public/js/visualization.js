@@ -33,14 +33,15 @@ var vizChannels = {
     'TMP.error': {name: 'TMP error', shortname: 'TMP error', unit: '', min: 0, max: 2, type: "discrete", datatype: "error"},
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
     'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
-    'PIRANI.p2': {name: 'Piezo relative pressure', shortname: 'P rel coarse', unit: 'mTorr', factor: 1000, min: -77000, max: 0, type: "continuous", datatype: "numeric"},
-    'PIRANI.p3': {name: 'Pirani pressure (coarse)', shortname: 'P abs coarse', unit: 'mTorr', factor: 1000, min: 0, max: 500, type: "continuous", datatype: "numeric"},
+    'PIRANI.p2': {name: 'Piezo relative pressure', shortname: 'P piezo rel', unit: 'Torr', factor: 1, min: -770, max: 0, type: "continuous", datatype: "numeric"},
+    'PIRANI.p3': {name: 'Pirani pressure (coarse)', shortname: 'P abs coarse', unit: 'mTorr', factor: 1000, min: 0, max: 1000, type: "continuous", datatype: "numeric"},
     'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: 'P abs fine', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric"},
     'GAS.sol_stat': {name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
     'GAS.nv_in': {name: 'Needle valve percent', shortname: 'NV %', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric"},
     'GAS.nv_angle': {name: 'Needle valve degrees', shortname: 'NV deg', unit: 'deg', min: 0, max: 180, type: "discrete", datatype: "numeric"},
     'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'VARIAC.dial_volts': {name: 'Variac dial (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'HV-RELAY.in': {name: 'Variac relay', shortname: 'VAR relay', unit: '', min: 0, max: 1.8, type: "discrete", datatype: "boolean"},
     'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'kV', min: 0, max: 15, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW abs volt', unit: 'kV', min: 0, max: 50, type: "continuous", datatype: "numeric"},
@@ -246,11 +247,11 @@ function renderText(update, secs) {
                 valspan.innerHTML = tc.value !== 0 ?
                         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on" :
                         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;off";
-            }
-            if (tc.type === "error") {
-                valspan.innerHTML = tc.value !== 0 ?
+            }if (tc.type === "error") {
+                valspan.innerHTML = tc.value === 0 ?
                         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ok" :
                         "&nbsp;&nbsp;&nbsp;&nbsp;<span style='color:red'>error</span>";
+                console.log(tc.value);
             } else if (tc.type === "numeric") {
                 // make it a nice 6.2 format
                 var text = Number.parseFloat(tc.value).toFixed(2);
