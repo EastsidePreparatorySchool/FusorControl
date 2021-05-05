@@ -33,8 +33,9 @@ var vizChannels = {
     'TMP.error': {name: 'TMP error', shortname: 'TMP error', unit: '', min: 0, max: 2, type: "discrete", datatype: "error"},
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
     'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
-    'PIRANI.p2': {name: 'Piezo relative pressure', shortname: 'P piezo rel', unit: 'mTorr', factor: 1000, min: -77000, max: 0, type: "continuous", datatype: "numeric"},
-    'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: 'P pirani', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric"},
+    'PIRANI.p2': {name: 'Piezo relative pressure', shortname: 'P rel coarse', unit: 'mTorr', factor: 1000, min: -77000, max: 0, type: "continuous", datatype: "numeric"},
+    'PIRANI.p3': {name: 'Pirani pressure (coarse)', shortname: 'P abs coarse', unit: 'mTorr', factor: 1000, min: 0, max: 500, type: "continuous", datatype: "numeric"},
+    'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: 'P abs fine', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric"},
     'GAS.sol_stat': {name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
     'GAS.nv_in': {name: 'Needle valve percent', shortname: 'NV %', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric"},
     'GAS.nv_angle': {name: 'Needle valve degrees', shortname: 'NV deg', unit: 'deg', min: 0, max: 180, type: "discrete", datatype: "numeric"},
@@ -199,8 +200,8 @@ function createText() {
             var name = vizChannels[channel].shortname;
             name = name + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".substring(0, (14 - name.length) * 6);
             textDisplay += name + ":&nbsp;<span id='" + channel + "'>n/c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp"
-                    + (vizChannels[channel].unit.length > 0? (vizChannels[channel].min + "&nbsp;-&nbsp;" + vizChannels[channel].max + "&nbsp;"
-                    + vizChannels[channel].unit): "")
+                    + (vizChannels[channel].unit.length > 0 ? (vizChannels[channel].min + "&nbsp;-&nbsp;" + vizChannels[channel].max + "&nbsp;"
+                            + vizChannels[channel].unit) : "")
                     + "<br>"; // + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
             textChannels[channel] = {
                 value: 0,
@@ -245,7 +246,8 @@ function renderText(update, secs) {
                 valspan.innerHTML = tc.value !== 0 ?
                         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on" :
                         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;off";
-            }if (tc.type === "error") {
+            }
+            if (tc.type === "error") {
                 valspan.innerHTML = tc.value !== 0 ?
                         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ok" :
                         "&nbsp;&nbsp;&nbsp;&nbsp;<span style='color:red'>error</span>";
@@ -391,28 +393,29 @@ function updateViz(dataArray, textOnly) {
                 // get the three relevant timestamps, and do the math
                 var serverTime = Number(data["servertime"]);
                 var deviceTime = Number(devicedata["devicetime"]);
-                if (vc.offset === undefined) {
-                    if (startTime === undefined) {
-                        startTime = serverTime;
-                        logStart = serverTime;
-                    }
-                    var offset = deviceTime - (serverTime - startTime);
-                    if (!isNaN(offset)) {
-                        vc.offset = offset;
-                    }
-                }
                 var varTime = Number(devicedata[variable]["vartime"]);
-                varTime -= vc.offset;
-                varTime = Math.max(varTime, 0);
+                if (startTime === undefined) {
+                    startTime = serverTime;
+                    logStart = serverTime;
+                }
+                varTime -= deviceTime; // we care about when the variable was read relative to the device timestamp
+                varTime += serverTime - startTime; // and we want the start of the log to be at 0 s
+                varTime = Math.max(varTime, 0); // but no negative times please
+                
+                // we will call the rounded output "secs"
                 var secs = Math.round(varTime * 10) / 10000;
-                deviceTime = Number(devicedata["devicetime"]);
-                deviceTime -= vc.offset;
+                
+                // also, convert and record the device timestamp so we can keep track of it and idenitfy stale devices
+                deviceTime += serverTime - startTime;
                 deviceTime = Math.max(deviceTime, 0);
                 var deviceSecs = Math.round(deviceTime * 10) / 10000;
+                
+                // lastly, maxTime helps us make the chart wide enough
                 if (isNaN(maxTime)) {
                     maxTime = 0;
                 }
                 maxTime = Math.max(maxTime, secs);
+                
                 //console.log("x: "+varTime+" y: "+percent)
                 if (!textOnly) {
                     addDataPoint(dataSeries, vc.type, secs, percent, value, vc.unit, serverTime, vc.name);

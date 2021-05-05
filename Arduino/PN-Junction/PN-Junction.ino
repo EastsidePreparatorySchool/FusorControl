@@ -1,6 +1,6 @@
 //
 // Fusor project - PN-junction x-ray sensor code for Arduino
-//
+// Arduino Uno
 // #define BLUETOOTH
 
 #include "fusor.h"
@@ -11,8 +11,9 @@ int newPercent = 10;
 void setup(){
   fusorInit("PN-JUNCTION");
 
-  //fusorAddVariable("total", FUSOR_VARTYPE_INT);
+  fusorAddVariable("total", FUSOR_VARTYPE_INT);
   //fusorAddVariable("left", FUSOR_VARTYPE_INT);
+  //
   fusorAddVariable("right", FUSOR_VARTYPE_INT);
   
   int left = analogRead(A0);
