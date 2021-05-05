@@ -1,8 +1,9 @@
 //
 // Fusor project
-// Pirani
+// PIRANI
 // Serial Reader for MSK 901 Pirani/Micro-piezo
-// Arduino Mega 2560 (need extra UART, could use EPS32 as well)
+// Arduino AVR boards/Arduino Mega 2560 
+// (we need the extra UART, could use ESP32 as well)
 //
 
 #include "fusor.h"
@@ -17,7 +18,7 @@ void setup(){
   fusorInit("PIRANI");
   //fusorAddVariable("p1",FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("p2",FUSOR_VARTYPE_FLOAT);
-  //fusorAddVariable("p3",FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("p3",FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("p4",FUSOR_VARTYPE_FLOAT);
   //fusorAddVariable("pa_adc",FUSOR_VARTYPE_INT);
   //fusorAddVariable("pa",FUSOR_VARTYPE_FLOAT);
@@ -111,7 +112,7 @@ bool command(char *str) {
 void updateAll() {
   //queryPressure ("p1", 1);
   queryPressure ("p2", 2);
-  //queryPressure ("p3", 3);
+  queryPressure ("p3", 3);
   queryPressure ("p4", 4);
 //  long newSignal = analogRead(A0);
 //  avgSignal = (avgSignal*(100-newPercent) + newSignal*newPercent)/100;

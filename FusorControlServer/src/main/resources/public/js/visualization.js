@@ -388,7 +388,7 @@ function updateViz(dataArray, textOnly) {
                     if (vc.factor !== undefined) {
                         value *= vc.factor;
                     }
-                    percent = (Math.abs(value) - vc.min) * 100 / (vc.max - vc.min);
+                    percent = (value - vc.min) * 100 / (vc.max - vc.min);
                 }
 
                 // get the three relevant timestamps, and do the math
