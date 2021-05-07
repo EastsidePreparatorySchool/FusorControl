@@ -122,7 +122,7 @@ public class AdminContext extends ObserverContext {
         int variacValue = Integer.parseInt(req.queryParams("value"));
         logAdminCommand("variac:set:" + variacValue);
         System.out.println("Received Variac Set " + variacValue);
-        if (cd.variac.setVoltage(variacValue)) {
+        if (cd.variac.setVoltage(variacValue, cd)) {
             return "set value as " + req.queryParams("value");
         }
         throw halt("Variac control failed");
@@ -150,6 +150,22 @@ public class AdminContext extends ObserverContext {
         logAdminCommand("TMP off");
         if (cd.tmp.setOff()) {
             return "turned off TMP";
+        }
+        throw halt(500, "TMP control failed");
+    }
+
+    String tmpLowRoute() {
+        logAdminCommand("TMP low");
+        if (cd.tmp.setLow()) {
+            return "set TMP to low speed";
+        }
+        throw halt(500, "TMP control failed");
+    }
+
+    String tmpHighRoute() {
+        logAdminCommand("TMP high");
+        if (cd.tmp.setHigh()) {
+            return "set TMP to high speed";
         }
         throw halt(500, "TMP control failed");
     }

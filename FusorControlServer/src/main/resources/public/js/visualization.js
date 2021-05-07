@@ -294,6 +294,13 @@ function renderButtons() {
         selectButton("tmpoff", "tmpon");
     }
 
+    var tc = textChannels["TMP.lowspeed"];
+    if (tc !== undefined && tc.value !== 0) {
+        selectButton("tmplow", "tmphigh");
+    } else {
+        selectButton("tmphigh", "tmplow");
+    }
+
     tc = textChannels["GAS.sol_stat"];
     if (tc !== undefined && tc.value !== 0) {
         selectButton("solon", "soloff");
