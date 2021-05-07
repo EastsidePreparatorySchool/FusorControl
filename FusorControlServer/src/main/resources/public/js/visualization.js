@@ -36,12 +36,12 @@ var vizChannels = {
     'PIRANI.p2': {name: 'Piezo relative pressure', shortname: 'P piezo rel', unit: 'Torr', factor: 1, min: -770, max: 0, type: "continuous", datatype: "numeric"},
     'PIRANI.p3': {name: 'Pirani pressure (coarse)', shortname: 'P abs coarse', unit: 'mTorr', factor: 1000, min: 0, max: 1000, type: "continuous", datatype: "numeric"},
     'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: 'P abs fine', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric"},
-    'GAS.sol_stat': {name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
+    'GAS.sol_in': {name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
     'GAS.nv_in': {name: 'Needle valve percent', shortname: 'NV %', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric"},
     'GAS.nv_angle': {name: 'Needle valve degrees', shortname: 'NV deg', unit: 'deg', min: 0, max: 180, type: "discrete", datatype: "numeric"},
+    'HV-RELAY.in': {name: 'Variac relay', shortname: 'VAR relay', unit: '', min: 0, max: 1.8, type: "discrete", datatype: "boolean"},
     'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'VARIAC.dial_volts': {name: 'Variac dial (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'HV-RELAY.in': {name: 'Variac relay', shortname: 'VAR relay', unit: '', min: 0, max: 1.8, type: "discrete", datatype: "boolean"},
     'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'kV', min: 0, max: 15, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW abs volt', unit: 'kV', min: 0, max: 50, type: "continuous", datatype: "numeric"},
@@ -207,7 +207,9 @@ function createText() {
             textChannels[channel] = {
                 value: 0,
                 last: -1,
+                lastS: -1,
                 current: -1,
+                currentS: -1,
                 type: vizChannels[channel].datatype,
                 device: devices[deviceName],
                 updated: false
@@ -221,14 +223,16 @@ function createText() {
 // this is called from within updateViz() to populate the textChannels data structure with new data
 // CanvasJS/ChartJS agnostic
 //
-function updateText(channel, value, type, time, deviceTime) {
+function updateText(channel, value, type, varTime, varTimeS, deviceTime, deviceTimeS) {
     var tc = textChannels[channel];
     if (tc !== undefined) {
         tc.value = value;
-        tc.current = time;
+        tc.current = varTime;
+        tc.currentS = varTimeS;
         tc.type = type;
         tc.device.time = deviceTime;
-        tc.updated = true;
+        tc.device.timeS = deviceTimeS;
+        tc.updated = varTime !== tc.last;
     }
 }
 
@@ -236,7 +240,7 @@ function updateText(channel, value, type, time, deviceTime) {
 // this pushes the text data out on to the screen
 // CanvasJS/ChartJS agnostic
 //
-function renderText(update, secs) {
+function renderText(update, now) {
     for (var channel in textChannels) {
         var tc = textChannels[channel];
         //var timespan = document.getElementById(channel + ".time");
@@ -244,32 +248,44 @@ function renderText(update, secs) {
         if ((tc.updated && update) || offline) {
             // value for variable is new, according to its "updated" marker
             tc.updated = false;
+            if (channel === "HV-RELAY.in")
+                console.log("BOLD "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
             valspan.style.color = "gold";
             valspan.style.fontWeight = "bold";
             if (tc.type === "boolean") {
                 valspan.innerHTML = tc.value !== 0 ?
                         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on" :
                         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;off";
-            }if (tc.type === "error") {
+            }
+            if (tc.type === "error") {
                 valspan.innerHTML = tc.value === 0 ?
                         "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ok" :
                         "&nbsp;&nbsp;&nbsp;&nbsp;<span style='color:red'>error</span>";
-                console.log(tc.value);
+                //console.log(tc.value);
             } else if (tc.type === "numeric") {
                 // make it a nice 6.2 format
                 var text = Number.parseFloat(tc.value).toFixed(2);
                 valspan.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".substring(text.length * 6) + text;
             }
-        } else if ((secs > tc.device.time + 10) || !update) {
+        } else if ((now > tc.device.timeS + 10) || !update) {
             // device has not reported in n seconds
+            //console.log(channel+" D: "+tc.device.time+", L: "+secs);
+            if (channel === "HV-RELAY.in")
+                console.log("OFFLINE "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
             valspan.style.color = "gray";
             valspan.style.fontWeight = "normal";
-        } else if ((secs > tc.last + 10) || !update) {
+        } else if ((now > tc.lastS + 10) || !update) {
             // device is there, but variable is stale
+            if (channel === "HV-RELAY.in")
+                console.log("STALE "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
             valspan.style.color = "gold";
             valspan.style.fontWeight = "normal";
+        } else {
+            if (channel === "HV-RELAY.in")
+                console.log("WTF "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
         }
         tc.last = tc.current;
+        tc.lastS = tc.currentS;
     }
     renderButtons();
 }
@@ -301,7 +317,7 @@ function renderButtons() {
         selectButton("tmphigh", "tmplow");
     }
 
-    tc = textChannels["GAS.sol_stat"];
+    tc = textChannels["GAS.sol_in"];
     if (tc !== undefined && tc.value !== 0) {
         selectButton("solon", "soloff");
     } else {
@@ -409,29 +425,31 @@ function updateViz(dataArray, textOnly) {
                     startTime = serverTime;
                     logStart = serverTime;
                 }
-                varTime -= deviceTime; // we care about when the variable was read relative to the device timestamp
-                varTime += serverTime - startTime; // and we want the start of the log to be at 0 s
-                varTime = Math.max(varTime, 0); // but no negative times please
-                
+                var varTimeS = varTime - deviceTime; // we care about when the variable was read relative to the device timestamp
+                varTimeS += serverTime - startTime; // and we want the start of the log to be at 0 s
+                varTimeS = Math.max(varTimeS, 0); // but no negative times please
+
                 // we will call the rounded output "secs"
-                var secs = Math.round(varTime * 10) / 10000;
-                
+                var secs = Math.round(varTimeS * 10) / 10000;
+
                 // also, convert and record the device timestamp so we can keep track of it and idenitfy stale devices
-                deviceTime += serverTime - startTime;
-                deviceTime = Math.max(deviceTime, 0);
+                var deviceTimeS = deviceTime + serverTime - startTime;
+                deviceTimeS = Math.max(deviceTimeS, 0);
                 var deviceSecs = Math.round(deviceTime * 10) / 10000;
-                
+
                 // lastly, maxTime helps us make the chart wide enough
                 if (isNaN(maxTime)) {
                     maxTime = 0;
                 }
                 maxTime = Math.max(maxTime, secs);
-                
+
                 //console.log("x: "+varTime+" y: "+percent)
                 if (!textOnly) {
                     addDataPoint(dataSeries, vc.type, secs, percent, value, vc.unit, serverTime, vc.name);
                 }
-                updateText(devicename + "." + variable, value, vc.datatype, secs, deviceSecs);
+                updateText(devicename + "." + variable, value, vc.datatype,
+                    varTime/1000, varTimeS/1000,
+                    deviceTime/1000, deviceTimeS/1000);
             } catch (error) {
                 console.log(error);
             }
