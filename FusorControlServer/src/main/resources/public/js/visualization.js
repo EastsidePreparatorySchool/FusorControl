@@ -248,8 +248,8 @@ function renderText(update, now) {
         if ((tc.updated && update) || offline) {
             // value for variable is new, according to its "updated" marker
             tc.updated = false;
-            if (channel === "HV-RELAY.in")
-                console.log("BOLD "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
+//            if (channel === "HV-RELAY.in")
+//                console.log("BOLD "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
             valspan.style.color = "gold";
             valspan.style.fontWeight = "bold";
             if (tc.type === "boolean") {
@@ -270,19 +270,19 @@ function renderText(update, now) {
         } else if ((now > tc.device.timeS + 10) || !update) {
             // device has not reported in n seconds
             //console.log(channel+" D: "+tc.device.time+", L: "+secs);
-            if (channel === "HV-RELAY.in")
-                console.log("OFFLINE "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
+//            if (channel === "HV-RELAY.in")
+//                console.log("OFFLINE "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
             valspan.style.color = "gray";
             valspan.style.fontWeight = "normal";
         } else if ((now > tc.lastS + 10) || !update) {
             // device is there, but variable is stale
-            if (channel === "HV-RELAY.in")
-                console.log("STALE "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
+//            if (channel === "HV-RELAY.in")
+//                console.log("STALE "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
             valspan.style.color = "gold";
             valspan.style.fontWeight = "normal";
         } else {
-            if (channel === "HV-RELAY.in")
-                console.log("WTF "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
+//            if (channel === "HV-RELAY.in")
+//                console.log("WTF "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
         }
         tc.last = tc.current;
         tc.lastS = tc.currentS;
