@@ -53,7 +53,7 @@ public class WebServer {
             dm.shutdown();
             throw new IllegalArgumentException("missing core devices after dm.init()");
         }
-        cd.variac.setVoltage(-1);
+        cd.variac.setVoltage(-1, cd);
 
         // housekeeping routes and filters
         port(80);
@@ -172,6 +172,8 @@ public class WebServer {
         get("/protected/admin/rpOff", (req, res) -> getAdminCtx(req).rpOffRoute());
         get("/protected/admin/tmpOn", (req, res) -> getAdminCtx(req).tmpOnRoute());
         get("/protected/admin/tmpOff", (req, res) -> getAdminCtx(req).tmpOffRoute());
+        get("/protected/admin/tmpLow", (req, res) -> getAdminCtx(req).tmpLowRoute());
+        get("/protected/admin/tmpHigh", (req, res) -> getAdminCtx(req).tmpHighRoute());
         get("/protected/admin/needleValve", (req, res) -> getAdminCtx(req).needleValveRoute(req));
         get("/protected/admin/solenoidOn", (req, res) -> getAdminCtx(req).solenoidOnRoute());
         get("/protected/admin/solenoidOff", (req, res) -> getAdminCtx(req).solenoidOffRoute());

@@ -6,6 +6,7 @@ public class CoreDevices {
 
     DeviceManager dm;
 
+    public HvRelayControlDevice hvrelay;
     public VariacControlDevice variac;
     public TMPControlDevice tmp;
     public GasControlDevice gas;
@@ -20,6 +21,10 @@ public class CoreDevices {
         sd = dm.get("VARIAC");
         if (sd != null) {
             this.variac = (VariacControlDevice) sd;
+        }
+        sd = dm.get("HV-RELAY");
+        if (sd != null) {
+            this.hvrelay = (HvRelayControlDevice) sd;
         }
         sd = dm.get("GAS");
         if (sd != null) {
@@ -38,6 +43,7 @@ public class CoreDevices {
     public static boolean isCoreDevice(String name) {
         switch (name) {
             case "VARIAC":
+            case "HV-RELAY":
             case "TMP":
             case "GAS":
             case "RP":
@@ -53,6 +59,11 @@ public class CoreDevices {
     }
 
     public void fakeMissingCoreDevices() {
+        if (hvrelay == null) {
+            System.out.println("Faking missing core device HV-RELAY");
+            hvrelay = new HvRelayControlDevice(new NullSerialDevice("HV-RELAY"));
+            dm.register(hvrelay);
+        }
         if (variac == null) {
             System.out.println("Faking missing core device VARIAC");
             variac = new VariacControlDevice(new NullSerialDevice("VARIAC"));

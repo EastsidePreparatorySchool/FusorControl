@@ -27,7 +27,7 @@ function enableAdminControls(enable) {
         "startLog", "stopLog", "getStatus", "kill",
         "rpon", "rpoff", "tmpon", "tmpoff", "variacValue", "variacButton",
         "solon", "soloff", "needleValue", "needleButton",
-        "variacStop", "variacZero"
+        "variacStop", "variacZero", "tmplow", "tmphigh"
     ];
 
     for (var i = 0; i < adminControls.length; i++) {
@@ -175,6 +175,39 @@ function tmpOff() {
         console.log("Error: " + error);
     }
 }
+
+function tmpLow() {
+    try {
+        request({url: "/protected/admin/tmpLow", method: "GET"})
+                .then(data => {
+                    console.log(data);
+                    selectButton("tmplow", "tmphigh");
+                })
+                .catch(error => {
+                    console.log("error: " + error);
+                });
+    } catch (error) {
+        console.log("Error: " + error);
+    }
+}
+
+function tmpHigh() {
+    try {
+        request({url: "/protected/admin/tmpHigh", method: "GET"})
+                .then(data => {
+                    console.log(data);
+                    selectButton("tmphigh", "tmplow");
+                })
+                .catch(error => {
+                    console.log("error: " + error);
+                });
+    } catch (error) {
+        console.log("Error: " + error);
+    }
+}
+
+
+
 //control rp
 function rpOn() {
     try {
