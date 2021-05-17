@@ -518,6 +518,11 @@ public class DeviceManager {
                 sd.function = "Gas control";
                 break;
 
+             case "HV-RELAY":
+                sd = new HvRelayControlDevice(sd);
+                sd.function = "HV relay control";
+                break;
+
             //
             // non-core: web server may start without them
             //
