@@ -12,19 +12,19 @@
 
 #include "fusor.h"
 
-volatile int d2 = 0;
-volatile int d3 = 0;
+volatile int d2 = 0; // d2 is inside enclosure
+volatile int d3 = 0; // d3 is outside enclosure
 volatile long lastCounterTime = 0;
 
 void setup(){
   // must do this in init, the rest is optional
   fusorInit("SENSORARRAY");
-  fusorAddVariable("cps",FUSOR_VARTYPE_INT);
+  fusorAddVariable("gc1",FUSOR_VARTYPE_INT);
   fusorAddVariable("pin",FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("pnj",FUSOR_VARTYPE_FLOAT);
-  fusorAddVariable("gc1",FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("gc2",FUSOR_VARTYPE_FLOAT);
-  fusorSetIntVariable("cps",0);
+  fusorAddVariable("gc3",FUSOR_VARTYPE_FLOAT);
+  fusorSetIntVariable("gc1",0);
   fusorSetFloatVariable("pin",0.0);
   fusorSetFloatVariable("pnj",0.0);
   fusorSetFloatVariable("gc1",0.0);
@@ -56,7 +56,7 @@ void updateAll() {
       last = current;
       current = Serial3.read();
     }
-    fusorSetIntVariable("cps", (current * 256) + last);
+    fusorSetIntVariable("gc1", (current * 256) + last);
   }
 
   // read the latest message from the PIN diode sensor if there is one
@@ -106,8 +106,8 @@ void updateAll() {
     interrupts();
     interval = (now-lastTime)/1000.0;
   
-    fusorSetFloatVariable("gc1", (d2/2)/interval); // 2 edges per click (really, 2 pulses!)
-    fusorSetFloatVariable("gc2", (d3/2)/interval); // same here
+    fusorSetFloatVariable("gc2", (d2/2)/interval); // 2 edges per click (really, 2 pulses!)
+    fusorSetFloatVariable("gc3", (d3/2)/interval); // same here
   }
 }
 
