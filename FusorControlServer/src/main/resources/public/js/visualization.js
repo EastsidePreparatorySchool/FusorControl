@@ -38,14 +38,14 @@ var vizChannels = {
     'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: 'P abs fine', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric"},
     'GAS.sol_in': {name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
     'GAS.nv_in': {name: 'Needle valve percent', shortname: 'NV %', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric"},
-    'GAS.nv_angle': {name: 'Needle valve degrees', shortname: 'NV deg', unit: 'deg', min: 0, max: 180, type: "discrete", datatype: "numeric"},
+    //'GAS.nv_angle': {name: 'Needle valve degrees', shortname: 'NV deg', unit: 'deg', min: 0, max: 180, type: "discrete", datatype: "numeric"},
     'HV-RELAY.in': {name: 'Variac relay', shortname: 'VAR relay', unit: '', min: 0, max: 1.8, type: "discrete", datatype: "boolean"},
     'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'VARIAC.dial_volts': {name: 'Variac dial (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'kV', min: 0, max: 15, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW abs voltage', unit: 'kV', min: 0, max: 50, factor: -1, type: "continuous", datatype: "numeric"},
-    'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', shortname: 'CW current', unit: 'adc', min: 0, max: 50, type: "continuous", datatype: "numeric"},
+    //'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', shortname: 'CW current', unit: 'adc', min: 0, max: 50, type: "continuous", datatype: "numeric"},
     'SENSORARRAY.pnj': {name: 'PNJ (%)', shortname: 'PN-J %', unit: '%', min: 0, max: 1, type: "continuous", datatype: "numeric"},
     'SENSORARRAY.pin': {name: 'PIN (uSv/h)', shortname: 'PIN', unit: 'mSv/h', min: 0, max: 100, type: "continuous", datatype: "numeric"},
     'SENSORARRAY.gc1': {name: 'GC1 (Whitmer, inside) (cps)', shortname: 'GC1 (W)', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
@@ -273,19 +273,14 @@ function renderText(update, now) {
         } else if ((now > tc.device.timeS + 10) || !update) {
             // device has not reported in n seconds
             //console.log(channel+" D: "+tc.device.time+", L: "+secs);
-//            if (channel === "HV-RELAY.in")
-//                console.log("OFFLINE "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
             valspan.style.color = "gray";
             valspan.style.fontWeight = "normal";
         } else if ((now > tc.lastS + 10) || !update) {
             // device is there, but variable is stale
-//            if (channel === "HV-RELAY.in")
-//                console.log("STALE "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
             valspan.style.color = "gold";
             valspan.style.fontWeight = "normal";
         } else {
-//            if (channel === "HV-RELAY.in")
-//                console.log("WTF "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
+                console.log("WTF "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
         }
         tc.last = tc.current;
         tc.lastS = tc.currentS;

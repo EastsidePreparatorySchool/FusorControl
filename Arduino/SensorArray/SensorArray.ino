@@ -33,6 +33,9 @@ void setup(){
   Serial2.begin(19200); // PIN gamma sensor (8N1 ?)
   Serial3.begin(9600);  // Dr. Whitmer's Geiger counter (8N1)
 
+  pinMode(2, INPUT);
+  pinMode(3, INPUT);
+
   attachInterrupt(digitalPinToInterrupt(2), ISR2, RISING);
   attachInterrupt(digitalPinToInterrupt(3), ISR3, RISING);
   
@@ -90,24 +93,24 @@ void updateAll() {
   fusorSetFloatVariable("pnj", (a0+a1)/2048.0);
 
   // get the edge-detected Geiger counts
-  int now, lastTime, d2now, d3now;
+  long now;
+  static long lastSec = 0; 
+  int d2now, d3now;
   float interval;
   
-  lastTime = lastCounterTime;
-  if (millis() - last > 1000)  // update only once per second
+  now = millis()/1000;
+  if (now > lastSec)  // update only once per second
   {
+    lastSec = now;
     noInterrupts();
     d2now = d2;
     d3now = d3;
-    now = millis();
     d2 = 0;
     d3 = 0;
-    lastCounterTime = now;
     interrupts();
-    interval = (now-lastTime)/1000.0;
-  
-    fusorSetFloatVariable("gc2", (d2/2)/interval); // 2 edges per click (really, 2 pulses!)
-    fusorSetFloatVariable("gc3", (d3/2)/interval); // same here
+    
+    fusorSetFloatVariable("gc2", d2now/2.0); // 2 edges per click (really, 2 pulses!)
+    fusorSetFloatVariable("gc3", d3now/2.0); // same here
   }
 }
 
