@@ -329,7 +329,7 @@ void _fusorCmdGetAll(bool forceUpdate)
   for (int i = 0; i < fusorNumVars; i++)
   {
     FusorVariable *pfv = &fusorVariables[i];
-    if (pfv->timestamp <= _fusorLastStatus && !forceUpdate){
+    if (pfv->timestamp <= (_fusorLastStatus+10) && !forceUpdate){
       continue;
     }
     count++;
