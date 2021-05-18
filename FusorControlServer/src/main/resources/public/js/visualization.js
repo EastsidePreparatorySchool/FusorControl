@@ -38,7 +38,6 @@ var vizChannels = {
     'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: 'P abs fine', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric"},
     'GAS.sol_in': {name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
     'GAS.nv_in': {name: 'Needle valve percent', shortname: 'NV %', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric"},
-    //'GAS.nv_angle': {name: 'Needle valve degrees', shortname: 'NV deg', unit: 'deg', min: 0, max: 180, type: "discrete", datatype: "numeric"},
     'HV-RELAY.in': {name: 'Variac relay', shortname: 'VAR relay', unit: '', min: 0, max: 1.8, type: "discrete", datatype: "boolean"},
     'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'VARIAC.dial_volts': {name: 'Variac dial (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
@@ -47,10 +46,10 @@ var vizChannels = {
     'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW abs voltage', unit: 'kV', min: 0, max: 50, factor: -1, type: "continuous", datatype: "numeric"},
     //'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', shortname: 'CW current', unit: 'adc', min: 0, max: 50, type: "continuous", datatype: "numeric"},
     'SENSORARRAY.pnj': {name: 'PNJ (%)', shortname: 'PN-J %', unit: '%', min: 0, max: 1, type: "continuous", datatype: "numeric"},
-    'SENSORARRAY.pin': {name: 'PIN (uSv/h)', shortname: 'PIN', unit: 'mSv/h', min: 0, max: 100, type: "continuous", datatype: "numeric"},
+    'SENSORARRAY.pin': {name: 'Gamma Sensor (uSv/h)', shortname: 'GDK101', unit: 'uSv/h', min: 0, max: 100, type: "continuous", datatype: "numeric"},
     'SENSORARRAY.gc1': {name: 'GC1 (Whitmer, inside) (cps)', shortname: 'GC1 (W)', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
-    'SENSORARRAY.gc2': {name: 'GC2 (inside) (cps)', shortname: 'GC2', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
-    'SENSORARRAY.gc3': {name: 'GC2 (outside) (cps)', shortname: 'GC3', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
+    'SENSORARRAY.gc2': {name: 'GC2 (inside) (cps)', shortname: 'GC2 inside', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
+    'SENSORARRAY.gc3': {name: 'GC2 (outside) (cps)', shortname: 'GC3 outside', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
     'Heartbeat.beat': {name: 'Heartbeat', shortname: 'HEARTBEAT', unit: '', min: 0, max: 50, type: "momentary", datatype: "numeric"},
     //'Heartbeat.logsize': {name: 'Log size (kEntries)', shortname: 'LOGSIZE', unit: 'kEntries', min: 0, max: 10000, type: "discrete", datatype: "numeric"},
     'Comment.text': {name: 'Comment', shortname: '', min: 0, max: 30, type: "momentary", datatype: "text"},
@@ -410,7 +409,11 @@ function updateViz(dataArray, textOnly) {
                 } else {
                     value = Number(devicedata[variable]["value"]);
                     if (vc.factor !== undefined) {
-                        value *= vc.factor;
+                        if (vc.factor === 0) {
+                            value = Math.abs(value);
+                        } else {
+                            value *= vc.factor;
+                        }
                     }
                     percent = (value - vc.min) * 100 / (vc.max - vc.min);
                 }
