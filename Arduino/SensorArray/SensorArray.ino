@@ -14,7 +14,6 @@
 
 volatile int d2 = 0; // d2 is inside enclosure
 volatile int d3 = 0; // d3 is outside enclosure
-volatile long lastCounterTime = 0;
 
 void setup(){
   // must do this in init, the rest is optional
@@ -30,7 +29,7 @@ void setup(){
   fusorSetFloatVariable("gc1",0.0);
   fusorSetFloatVariable("gc2",0.0);
 
-  Serial2.begin(19200); // PIN gamma sensor (8N1 ?)
+  Serial1.begin(19200); // PIN gamma sensor (8N1 ?)
   Serial3.begin(9600);  // Dr. Whitmer's Geiger counter (8N1)
 
   pinMode(2, INPUT);
@@ -52,7 +51,11 @@ void loop() {
 }
 
 void updateAll() {
+  static char text[12];
+  static char *str = text;
+ 
   // read the latest message from the serial GC if there is one
+  // format: low byte, high byte
   int current, last;
   if (Serial3.available()) {
     while(Serial3.available()) {
@@ -63,20 +66,24 @@ void updateAll() {
   }
 
   // read the latest message from the PIN diode sensor if there is one
-  if (Serial2.available()) {
-    char text[24];
-    char *str = text;
-    while(Serial2.available()) {
-      // format: ┐M:1.24<CR><LF>
-      // could assert "┐M:" but won't
-      char b = Serial2.read();
-      if (b == 0x0D) 
-      {
-        b = 0; // insert 0 instead of <CR>
+  if (Serial1.available()) {   
+    while(Serial1.available()) {
+      // format: <x02>M:1.24<CR><LF>
+      // could assert "<0x02>M:" but won't
+      char b = Serial1.read();
+      if (b == 0x02) {
+        // STX (start of transmission), reset buffer
+        str = text;
+        *str = 0;
+      } else {
+        if (b == 0x0D) {
+          // CR, end of message
+          b = 0; // insert 0 instead of <CR>
+        }
+        *str++ = b;
       }
-      *str++ = b;
     }
-    fusorSetFloatVariableFromString("pin", &text[3]); // skipping first 3
+    fusorSetFloatVariableFromString("pin", &text[2]); // skipping "M:"
   }
 
   // read PNJ - both halves. Read both lines a few times so the ADC can stabilize.

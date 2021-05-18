@@ -55,9 +55,9 @@ stat variacOutput;
 stat nstOutput;
 stat cwOutput;
 
-#define variacAdcPin 0
-#define nstAdcPin 1
-#define cwAdcPin 2
+#define variacAdcPin 4
+#define nstAdcPin 5
+#define cwAdcPin 6
 
 long nextDisplayUpdate;
 
