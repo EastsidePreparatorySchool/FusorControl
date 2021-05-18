@@ -44,7 +44,7 @@ var vizChannels = {
     'VARIAC.dial_volts': {name: 'Variac dial (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'kV', min: 0, max: 15, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW abs volt', unit: 'kV', min: 0, max: 50, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW abs voltage', unit: 'kV', min: 0, max: 50, factor: -1, type: "continuous", datatype: "numeric"},
     //'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', shortname: 'CW current', unit: 'adc', min: 0, max: 50, type: "continuous", datatype: "numeric"},
     'SENSORARRAY.pnj': {name: 'PNJ (%)', shortname: 'PN-J %', unit: '%', min: 0, max: 1, type: "continuous", datatype: "numeric"},
     'SENSORARRAY.pin': {name: 'PIN (uSv/h)', shortname: 'PIN', unit: 'mSv/h', min: 0, max: 100, type: "continuous", datatype: "numeric"},
