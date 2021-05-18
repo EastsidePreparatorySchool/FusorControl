@@ -29,7 +29,7 @@ void setup(){
   fusorSetFloatVariable("gc1",0.0);
   fusorSetFloatVariable("gc2",0.0);
 
-  Serial1.begin(19200); // PIN gamma sensor (8N1 ?)
+  Serial1.begin(9600); // PIN gamma sensor (8N1 ?)
   Serial3.begin(9600);  // Dr. Whitmer's Geiger counter (8N1)
 
   pinMode(2, INPUT);
@@ -78,12 +78,13 @@ void updateAll() {
       } else {
         if (b == 0x0D) {
           // CR, end of message
-          b = 0; // insert 0 instead of <CR>
+          *str = 0; // insert 0 instead of <CR>
+          fusorSetFloatVariableFromString("pin", &text[2]); // skipping "M:"
+        } else {
+          *str++ = b;
         }
-        *str++ = b;
       }
     }
-    fusorSetFloatVariableFromString("pin", &text[2]); // skipping "M:"
   }
 
   // read PNJ - both halves. Read both lines a few times so the ADC can stabilize.

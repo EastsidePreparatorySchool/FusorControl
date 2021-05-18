@@ -45,8 +45,8 @@ var vizChannels = {
     'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'kV', min: 0, max: 15, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW abs voltage', unit: 'kV', min: 0, max: 50, factor: -1, type: "continuous", datatype: "numeric"},
     //'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', shortname: 'CW current', unit: 'adc', min: 0, max: 50, type: "continuous", datatype: "numeric"},
-    'SENSORARRAY.pnj': {name: 'PNJ (%)', shortname: 'PN-J %', unit: '%', min: 0, max: 1, type: "continuous", datatype: "numeric"},
-    'SENSORARRAY.pin': {name: 'Gamma Sensor (uSv/h)', shortname: 'GDK101', unit: 'uSv/h', min: 0, max: 100, type: "continuous", datatype: "numeric"},
+    'SENSORARRAY.pnj': {name: 'Gamma PNJ (%)', shortname: 'PN-J %', unit: '%', min: 0, max: 1, type: "continuous", datatype: "numeric"},
+    'SENSORARRAY.pin': {name: 'Gamma PIN (uSv/h)', shortname: 'GDK101', unit: 'uSv/h', min: 0, max: 100, type: "continuous", datatype: "numeric"},
     'SENSORARRAY.gc1': {name: 'GC1 (Whitmer, inside) (cps)', shortname: 'GC1 (W)', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
     'SENSORARRAY.gc2': {name: 'GC2 (inside) (cps)', shortname: 'GC2 inside', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
     'SENSORARRAY.gc3': {name: 'GC2 (outside) (cps)', shortname: 'GC3 outside', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
@@ -199,10 +199,10 @@ function createText() {
         if (vizChannels[channel].shortname !== '') {
             // make a device map to keep track of device time
             var deviceName = channel.substring(0, channel.indexOf('.'));
-            devices[deviceName] = {time: -1};
+            devices[deviceName] = {time: -1, timeS:-1};
             var name = vizChannels[channel].shortname;
             name = name + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".substring(0, (14 - name.length) * 6);
-            textDisplay += name + ":&nbsp;<span id='" + channel + "'>n/c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp"
+            textDisplay += name + ":&nbsp;<span id='" + channel + "' style='color:gray;font-weight:normal;'>n/c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp"
                     + (vizChannels[channel].unit.length > 0 ? (vizChannels[channel].min + "&nbsp;-&nbsp;" + vizChannels[channel].max + "&nbsp;"
                             + vizChannels[channel].unit) : "")
                     + "<br>"; // + "&nbsp;(<span id='" + channel + ".time'>n/c</span>)<br>";
@@ -234,7 +234,7 @@ function updateText(channel, value, type, varTime, varTimeS, deviceTime, deviceT
         tc.type = type;
         tc.device.time = deviceTime;
         tc.device.timeS = deviceTimeS;
-        tc.updated = varTime !== tc.last;
+        tc.updated = (varTime !== tc.last) && varTime !== -1;
     }
 }
 
@@ -433,7 +433,7 @@ function updateViz(dataArray, textOnly) {
                 // we will call the rounded output "secs"
                 var secs = Math.round(varTimeS * 10) / 10000;
 
-                // also, convert and record the device timestamp so we can keep track of it and idenitfy stale devices
+                // also, convert and record the device timestamp so we can keep track of it and identify stale devices
                 var deviceTimeS = deviceTime + serverTime - startTime;
                 deviceTimeS = Math.max(deviceTimeS, 0);
                 var deviceSecs = Math.round(deviceTime * 10) / 10000;
