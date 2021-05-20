@@ -64,7 +64,7 @@ long nextDisplayUpdate;
 float DividerOffset(float r1, float r2, float rS, float rL, float v1);
 float DividerMultiplier(float r1, float r2, float rS, float rL);
 
-float variacOffset = 0.540; // DividerOffset(270.0, 33.0, 8.2e3, 3.3e6, 5.0); // Was 0.543.
+float variacOffset = 0.530; // DividerOffset(270.0, 33.0, 8.2e3, 3.3e6, 5.0); // Was 0.543.
 float variacMultiplier = DividerMultiplier(270.0, 33.0, 8.2e3, 3.3e6);
 float nstOffset = 0.542; // DividerOffset(270.0, 33.0, 8.2e3, 200e6, 5.0); // Was 0.545 but measured 0.542.
 float nstMultiplier = DividerMultiplier(270.0, 33.0, 8.2e3, 200e6) / 1000.0; // Make it KV.
@@ -72,6 +72,8 @@ float cwOffset = 1.017; // DividerOffset(330.0, 82.0, 10e3, 400e6, 5.0); // Was 
 float cwMultiplier = DividerMultiplier(330.0, 82.0, 10e3, 400e6) / 1000.0; // Make it KV.
 const float adcToVolts = 1.067 / 1023; // This device is not 1.1v. Depends on a particular diode.
 
+const int captureCycles = 30;
+const long captureTimeUs = (long)(1.0 / 60.0 * captureCycles * 1000000.0);
 
 void setup(){
   fusorInit("HV-LOWSIDE"); //Fusor device name, variables, num variables
@@ -91,33 +93,59 @@ void setup(){
 
 void loop() {
   fusorLoop();
-  updateAll();
-  
-  delay(5);
+  long endTime = micros()+captureTimeUs;
+  do {
+    updateAll();
+  } while (micros() < endTime);
+  UpdateDisplay();
 }
 
 void updateAll() {
   // Read the variac voltage
   // The variac divider uses 8.2k and 3.3m resistors. Scale by: (3.3m + 8.2k)/(8.2k)(1.1 / 1023) = 0.43381
   //  float variacReading = analogRead(variacAdcPin) * 0.43381;
-  float variacReading = (analogRead(variacAdcPin)*adcToVolts - variacOffset) * variacMultiplier;
+  float variacReading;
+  //variacReading = (analogReadConstantTime(variacAdcPin)*adcToVolts - variacOffset) * variacMultiplier;
+  variacReading = readConstantTime(variacAdcPin, variacOffset, variacMultiplier);
   variacOutput.accumulate(variacReading);  
 
   // Read the NST voltage
   // The NST divider uses 8.2k and 200m resistors. Scale by: (200m + 8.2k)/(8.2k)(1.1 / 1023) = 26.227
-  //  float nstReading = analogRead(nstAdcPin) * 0.026227; // Make it KV
-  float nstReading = (analogRead(nstAdcPin)*adcToVolts - nstOffset) * nstMultiplier; // In KV.
+  //  float nstReading = analogReadConstantTime(nstAdcPin) * 0.026227; // Make it KV
+  //float nstReading = (analogReadConstantTime(nstAdcPin)*adcToVolts - nstOffset) * nstMultiplier; // In KV.
+  float nstReading = readConstantTime(nstAdcPin, nstOffset, nstMultiplier); // In KV.
   nstOutput.accumulate(nstReading);
 
   // Read the CW voltage
-  float cwReading = (analogRead(cwAdcPin)*adcToVolts - cwOffset) * cwMultiplier; // In KV.
+  //float cwReading = (analogReadConstantTime(cwAdcPin)*adcToVolts - cwOffset) * cwMultiplier; // In KV.
+  float cwReading = readConstantTime(cwAdcPin, cwOffset, cwMultiplier); // In KV.
   cwOutput.accumulate(cwReading);
+}
 
-  if (millis() > nextDisplayUpdate)
-  {
-    nextDisplayUpdate += 500;
-    UpdateDisplay(); // Also clears counters
-  }
+float readConstantTime(int pin, float offset, float multiplier) {
+  const long interval = 515; // 515 us, works out to about 100 samples for 10 60 hz cycles (empirically)
+  const long readTime = 100;  // 100 us = enough time for one more read
+  int result;
+
+  // from here
+  long endTime = micros()+ interval;
+
+  // switch multiplexer to this pin
+  // and throw this one away
+  analogRead(pin);
+
+  // read until time is almost up
+  do {
+    result = analogRead(pin);
+  } while (micros() < endTime - readTime);
+
+  // calculations may take varying time, too
+  float fResult = (result*adcToVolts - offset) * multiplier;
+  
+  // wait until full interval is up
+  while (micros() < endTime);
+
+  return fResult;
 }
 
 void UpdateDisplay()
