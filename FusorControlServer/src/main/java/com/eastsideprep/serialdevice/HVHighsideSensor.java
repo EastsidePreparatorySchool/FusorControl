@@ -9,9 +9,9 @@ package com.eastsideprep.serialdevice;
  *
  * @author gmein
  */
-public class HVHighsideSensor extends SerialDevice {
+public class HVHighsideSensor extends Arduino {
 
-    HVHighsideSensor(SerialDevice sd) {
+    HVHighsideSensor(Arduino sd) {
         super(sd);
     }
 

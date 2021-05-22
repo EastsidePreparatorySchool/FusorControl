@@ -1,8 +1,8 @@
 package com.eastsideprep.serialdevice;
 
-public class TMPControlDevice extends SerialDevice {
+public class TMPControlDevice extends Arduino {
 
-    public TMPControlDevice(SerialDevice sd) {
+    public TMPControlDevice(Arduino sd) {
         super(sd);
         this.setStatus("{\"device\":\"TMP\"}");
     }

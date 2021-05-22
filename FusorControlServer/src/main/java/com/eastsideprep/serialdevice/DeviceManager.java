@@ -21,9 +21,9 @@ public class DeviceManager {
     //
     // the static part of this class acts as the manager for serial devices
     //
-    private static DeviceManager instance;
+    static DeviceManager instance;
 
-    private SerialDeviceMap arduinoMap = new SerialDeviceMap();
+    private SerialDeviceMap deviceMap = new SerialDeviceMap();
     private Thread queryThread;
     // keep track of partial messages
     private HashMap<SerialPort, String> bufferState = new HashMap<>();
@@ -50,6 +50,16 @@ public class DeviceManager {
     };
 
     private void processSerialData(SerialPortEvent e) {
+        SerialPort port = e.getSerialPort();
+        SerialDevice sd = this.deviceMap.get(port);
+        if (sd != null) {
+            sd.processSerialData(e);
+        } else {
+            processSerialDataArduino(e);
+        }
+    }
+
+    void processSerialDataArduino(SerialPortEvent e) {
         SerialPort port = e.getSerialPort();
 
         byte[] data = e.getReceivedData();
@@ -107,7 +117,7 @@ public class DeviceManager {
             //System.out.println("  Received identification message: " + response + " from port: " + port.getSystemPortName());
             identify(response.substring(SerialDevice.FUSOR_IDENTIFY.length() + 1), port);
         } else if (response.startsWith(SerialDevice.FUSOR_STATUS + ":")) {
-            SerialDevice sd = this.arduinoMap.get(port);
+            SerialDevice sd = this.deviceMap.get(port);
             if (sd != null) {
                 String status = response.substring(SerialDevice.FUSOR_STATUS.length() + 1);
                 recordStatusForDevice(sd, time, status);
@@ -116,7 +126,7 @@ public class DeviceManager {
 //                sd.setStatus(status);
             }
         } else {
-            SerialDevice sd = this.arduinoMap.get(port);
+            SerialDevice sd = this.deviceMap.get(port);
             if (sd != null) {
                 if (FusorControlServer.config.superVerbose) {
                     System.out.println("Received cmd confirmation from device: " + sd.name + ": " + response);
@@ -195,10 +205,10 @@ public class DeviceManager {
         Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 2);
         try {
             while (!Thread.interrupted()) {
-                int prevDevices = this.arduinoMap.validDeviceCount();
+                int prevDevices = this.deviceMap.validDeviceCount();
                 queryIdentifyAll(semaphore);
                 Thread.sleep(2000);
-                if (WebServer.dl != null && prevDevices != this.arduinoMap.validDeviceCount()){
+                if (WebServer.dl != null && prevDevices != this.deviceMap.validDeviceCount()) {
                     this.autoStatusOn();
                 }
             }
@@ -231,7 +241,7 @@ public class DeviceManager {
         // paired lists: knownMacs, ports to ignore. Ugly, but I am too lazy to make another class for this
         byte[][] knownMacs = {
             {84, -31, -83, 59, -109, -98}, // GM laptop main MAC
-            {-16, -34, -15, -3, 124, 35},  // fusor2
+            {-16, -34, -15, -3, 124, 35}, // fusor2
         };
         String[] ignorePorts = {
             "Intel(R) Active Management Technology - SOL (COM4)", // Intel management port on GM's laptop
@@ -253,7 +263,7 @@ public class DeviceManager {
         List<SerialPort> portList = new ArrayList<>(Arrays.asList(ports));
         Collections.sort(portList, (a, b) -> (getPortNumber(a) - getPortNumber(b)));
 
-        arduinoMap.prunePortList(portList);
+        deviceMap.prunePortList(portList);
 
         // filter the list of all ports down to only COM devices,
         // and only ones that are not registered etc. 
@@ -265,7 +275,8 @@ public class DeviceManager {
         // make sure we understand if a port has disappeared from the list
         //
         // remove all the ports that are already registered
-        portList.removeIf(p -> arduinoMap.containsPort(p));
+        portList.removeIf(p -> deviceMap.containsPort(p));
+
         //
         // filter out bluetooth pairs
         //
@@ -324,15 +335,15 @@ public class DeviceManager {
                             portList.remove(p);
                             pB.closePort();
                             portList.remove(pB);
-                            arduinoMap.put(new NullSerialDevice(p, "<bt n/c>"));
-                            arduinoMap.put(new NullSerialDevice(pB, "<bt n/c>"));
+                            deviceMap.put(new NullSerialDevice(p, "<bt n/c>"));
+                            deviceMap.put(new NullSerialDevice(pB, "<bt n/c>"));
                             i--;
                         } else {
                             // remove the one that doesn't work
                             System.out.println("  - removing bt input port " + wrongOne[0].getSystemPortName());
                             wrongOne[0].closePort();
                             portList.remove(wrongOne[0]);
-                            arduinoMap.put(new NullSerialDevice(wrongOne[0], "<bt input>"));
+                            deviceMap.put(new NullSerialDevice(wrongOne[0], "<bt input>"));
                         }
                     }
                 }
@@ -354,6 +365,20 @@ public class DeviceManager {
         Thread[] threads = new Thread[portList.size()];
         int i = 0;
         for (SerialPort port : portList) {
+            //
+            // Special treatment for the Domino NEUTRON SENSOR USB device
+            //
+
+            String domino = "Communication Device Class ASF example"; // name of pseudo-port for it
+            if (port.getDescriptivePortName().equals(domino)){
+                port.setComPortParameters(115200, 8, 1, SerialPort.NO_PARITY);
+                Domino d = new Domino(port, "NEUTRONS");
+                register(d);
+                continue;
+            }
+
+            // now back to regular ports   
+                
             System.out.println("opening port: " + port.getSystemPortName());
             port.setComPortParameters(115200, 8, 1, SerialPort.NO_PARITY);
             threads[i] = new Thread(() -> {
@@ -380,7 +405,7 @@ public class DeviceManager {
         //
         // identify
         //
-        portList.removeIf((p) -> arduinoMap.containsPort(p));
+        portList.removeIf((p) -> deviceMap.containsPort(p));
         if (!portList.isEmpty()) {
             System.out.println("=================== querying ports that have not reported yet...");
 
@@ -398,7 +423,7 @@ public class DeviceManager {
         //
         // second round for those who did not answer
         //
-        portList.removeIf((p) -> arduinoMap.containsPort(p));
+        portList.removeIf((p) -> deviceMap.containsPort(p));
         if (!portList.isEmpty()) {
             System.out.println("=================== second round of querying new ports...");
             for (SerialPort port : portList) {
@@ -415,15 +440,15 @@ public class DeviceManager {
 
         System.out.println("=================== closing unrecognized ports");
         for (SerialPort port : portList) {
-            if (!arduinoMap.containsPort(port)) {
+            if (!deviceMap.containsPort(port)) {
                 System.out.println("closing port " + port.getSystemPortName());
                 port.closePort();
 
                 // add NullSerialDevice to system, to prevent further querying
-                arduinoMap.put(new NullSerialDevice(port, "<unknown>"));
+                deviceMap.put(new NullSerialDevice(port, "<unknown>"));
             }
         }
-        System.out.println("=================== done collecting new ports, total devices now registered: " + this.arduinoMap.validDeviceCount());
+        System.out.println("=================== done collecting new ports, total devices now registered: " + this.deviceMap.validDeviceCount());
 
         // signal main thread to go ahead
         synchronized (semaphore) {
@@ -436,7 +461,7 @@ public class DeviceManager {
             // find a unique name 
             String name = sd.name;
             int count = 2;
-            while (arduinoMap.get(name) != null) {
+            while (deviceMap.get(name) != null) {
                 name = sd.name + count;
                 count++;
             }
@@ -444,7 +469,7 @@ public class DeviceManager {
         }
 
         // register in the map
-        arduinoMap.put(sd);
+        deviceMap.put(sd);
 
         // if this is core, update the CoreDevices
         if (cd != null && CoreDevices.isCoreDevice(sd.name)) {
@@ -454,7 +479,7 @@ public class DeviceManager {
     }
 
     public void unregister(SerialDevice sd) {
-        arduinoMap.remove(sd);
+        deviceMap.remove(sd);
     }
 
     static void writeToPort(SerialPort port, String arg) throws IOException {
@@ -470,10 +495,10 @@ public class DeviceManager {
     private static void identify(String name, SerialPort port) {
         synchronized (DeviceManager.class) {
             DeviceManager dm = DeviceManager.instance;
-            if (!dm.arduinoMap.containsPort(port)) {
-                SerialDevice sd = new SerialDevice(port, name);
+            if (!dm.deviceMap.containsPort(port)) {
+                Arduino a = new Arduino(port, name);
 
-                sd = specificDevice(sd);
+                SerialDevice sd = specificDevice(a);
                 dm.register(sd);
 
                 System.out.println("  -- new Arduino connected: " + sd.name + " (" + sd.originalName + ", function: " + sd.function + "), on: " + port.getSystemPortName());
@@ -483,63 +508,65 @@ public class DeviceManager {
     }
 
     public SerialDevice get(String name) {
-        return arduinoMap.get(name);
+        return deviceMap.get(name);
     }
 
     public ArrayList<SerialDevice> getAllDevices() {
-        return arduinoMap.getAllDevices();
+        return deviceMap.getAllDevices();
     }
 
     public String getAllDeviceNames() {
-        ArrayList<SerialDevice> list = arduinoMap.getAllDevices();
+        ArrayList<SerialDevice> list = deviceMap.getAllDevices();
         list.removeIf(sd -> !sd.isValid());
         return list.toString();
     }
 
     public ArrayList<String> getDeviceNames() {
-        return arduinoMap.getNames();
+        return deviceMap.getNames();
     }
 
     public static SerialDevice specificDevice(SerialDevice sd) {
-        switch (sd.name) {
-            //
-            // core: web server will not start without these
-            //
-            case "VARIAC":
-                sd = new VariacControlDevice(sd);
-                sd.function = "Variac control";
-                break;
-            case "TMP":
-                sd = new TMPControlDevice(sd);
-                sd.function = "TMP control";
-                break;
-            case "GAS":
-                sd = new GasControlDevice(sd);
-                sd.function = "Gas control";
-                break;
+        if (sd instanceof Arduino) {
+            Arduino a = (Arduino) sd;
+            switch (sd.name) {
+                //
+                // core: web server will not start without these
+                //
+                case "VARIAC":
+                    sd = new VariacControlDevice(a);
+                    sd.function = "Variac control";
+                    break;
+                case "TMP":
+                    sd = new TMPControlDevice(a);
+                    sd.function = "TMP control";
+                    break;
+                case "GAS":
+                    sd = new GasControlDevice(a);
+                    sd.function = "Gas control";
+                    break;
 
-             case "HV-RELAY":
-                sd = new HvRelayControlDevice(sd);
-                sd.function = "HV relay control";
-                break;
+                case "HV-RELAY":
+                    sd = new HvRelayControlDevice(a);
+                    sd.function = "HV relay control";
+                    break;
 
-            //
-            // non-core: web server may start without them
-            //
-            case "HVHIGHSIDE":
-                sd = new HVHighsideSensor(sd);
-                sd.function = "BT HV highside current sensor";
-                break;
+                //
+                // non-core: web server may start without them
+                //
+                case "HVHIGHSIDE":
+                    sd = new HVHighsideSensor(a);
+                    sd.function = "BT HV highside current sensor";
+                    break;
 
-            default:
-                break;
+                default:
+                    break;
+            }
         }
-
         return sd;
     }
 
     public void getAllStatus() {
-        ArrayList<SerialDevice> devices = arduinoMap.getAllDevices();
+        ArrayList<SerialDevice> devices = deviceMap.getAllDevices();
         for (SerialDevice sd : devices) {
             //System.out.println("Sending GETALL to "+name);
             sd.getAll();
@@ -547,14 +574,14 @@ public class DeviceManager {
     }
 
     public void autoStatusOn() {
-        ArrayList<SerialDevice> devices = arduinoMap.getAllDevices();
+        ArrayList<SerialDevice> devices = deviceMap.getAllDevices();
         for (SerialDevice sd : devices) {
             sd.autoStatusOn();
         }
     }
 
     public void autoStatusOff() {
-        ArrayList<SerialDevice> devices = arduinoMap.getAllDevices();
+        ArrayList<SerialDevice> devices = deviceMap.getAllDevices();
         for (SerialDevice sd : devices) {
             sd.autoStatusOff();
         }

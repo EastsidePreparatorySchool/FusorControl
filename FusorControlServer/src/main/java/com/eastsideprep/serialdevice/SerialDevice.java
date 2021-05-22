@@ -5,12 +5,12 @@ import com.fazecast.jSerialComm.*;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class SerialDevice {
+public abstract class SerialDevice {
 
     public String name;
     public String originalName;
     public String function;
-    private OutputStream os;
+     OutputStream os;
     SerialPort port;
     private String lastStatus;
     private String currentStatus;
@@ -26,6 +26,8 @@ public class SerialDevice {
     public final static String FUSOR_IDENTIFY = "IDENTIFY";
     public final static String FUSOR_STATUS = "STATUS";
     public final static String FUSOR_STATUS_AUTO = "STATUS:AUTO";
+    
+    abstract void processSerialData(SerialPortEvent e);
 
     public static String makeCommand(String s) {
         return FUSOR_COMMAND_PREFIX + s + FUSOR_POSTFIX;
@@ -159,6 +161,7 @@ public class SerialDevice {
     public void autoStatusOn() {
         try {
             command("AUTOSTATUSON");
+            this.autoStatus = true;
         } catch (Throwable t) {
             System.out.println("Exception in Autostatus on: " + t);
         }

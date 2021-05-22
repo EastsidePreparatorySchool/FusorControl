@@ -72,7 +72,7 @@ float cwOffset = 1.017; // DividerOffset(330.0, 82.0, 10e3, 400e6, 5.0); // Was 
 float cwMultiplier = DividerMultiplier(330.0, 82.0, 10e3, 400e6) / 1000.0; // Make it KV.
 const float adcToVolts = 1.067 / 1023; // This device is not 1.1v. Depends on a particular diode.
 
-const int captureCycles = 30;
+const int captureCycles = 6;
 const long captureTimeUs = (long)(1.0 / 60.0 * captureCycles * 1000000.0);
 
 void setup(){

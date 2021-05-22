@@ -1,8 +1,8 @@
 package com.eastsideprep.serialdevice;
 
-public class VariacControlDevice extends SerialDevice {
+public class VariacControlDevice extends Arduino {
     
-    VariacControlDevice(SerialDevice sd) {
+    VariacControlDevice(Arduino sd) {
         super(sd);
         this.setStatus("{\"device\":\"VARIAC\"}");
     }

@@ -1,8 +1,8 @@
 package com.eastsideprep.serialdevice;
 
-public class GasControlDevice extends SerialDevice {
+public class GasControlDevice extends Arduino {
 
-    GasControlDevice(SerialDevice sd) {
+    GasControlDevice(Arduino sd) {
         super(sd);
         this.setStatus("{\"device\":\"GAS\"}");// todo: why is this here?
     }

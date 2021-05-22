@@ -1,8 +1,8 @@
 package com.eastsideprep.serialdevice;
 
-public class HvRelayControlDevice extends SerialDevice {
+public class HvRelayControlDevice extends Arduino {
     
-    HvRelayControlDevice(SerialDevice sd) {
+    HvRelayControlDevice(Arduino sd) {
         super(sd);
         this.setStatus("{\"device\":\"HV-RELAY\"}");
     }
