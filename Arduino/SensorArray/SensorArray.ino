@@ -89,16 +89,12 @@ void updateAll() {
 
   // read PNJ - both halves. Read both lines a few times so the ADC can stabilize.
   
-  int a0, a1;
+  int a0;
   for (int i = 0; i < 10; i++) 
   {
     a0 = analogRead(0);
   }
-  for (int i = 0; i < 10; i++) 
-  {
-    a1 = analogRead(1);
-  }
-  fusorSetFloatVariable("pnj", (a0+a1)/2048.0);
+  fusorSetFloatVariable("pnj", a0/1023.0);
 
   // get the edge-detected Geiger counts
   long now;
