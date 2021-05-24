@@ -1,4 +1,4 @@
-    /*
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -157,16 +157,20 @@ public class AdminContext extends ObserverContext {
     String tmpLowRoute() {
         logAdminCommand("TMP low");
         if (cd.tmp.setLow()) {
+            System.out.println("low speed success");
             return "set TMP to low speed";
         }
+        System.out.println("low speed failed");
         throw halt(500, "TMP control failed");
     }
 
     String tmpHighRoute() {
         logAdminCommand("TMP high");
         if (cd.tmp.setHigh()) {
+            System.out.println("high speed success");
             return "set TMP to high speed";
         }
+        System.out.println("high speed failed");
         throw halt(500, "TMP control failed");
     }
 
@@ -217,6 +221,7 @@ public class AdminContext extends ObserverContext {
     }
 
     void logAdminCommand(String command) {
+        System.out.println("Admin cmd: " + command);
         long millis = System.currentTimeMillis();
         dm.recordStatus("Command", millis, DataLogger.makeAdminCommandText(this.name, this.ip, command, millis));
     }
