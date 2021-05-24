@@ -68,12 +68,12 @@ void updateAll() {
     }
     int reading = (current * 256) + last;
 
-    // keep track ot decaying avg to detect bs
+    // keep track of decaying avg to detect bs
     decayingAvgCps *= 1-newFraction;
     decayingAvgCps += newFraction*reading;
-    if (reading < decayingAvgCps*10) {
+    if (reading < (decayingAvgCps+1)*10) {
       // not bullshit
-      // bullshit happens
+      // bullshit happens when a byte gets swallowed
       fusorSetIntVariable("gc1", reading);
     }
   }
@@ -136,16 +136,18 @@ void updateAll() {
 
 void ISR2() 
 {
-  if (micros() > timeLastPulseGc2+1000){
+  long now = micros();
+  if (now > timeLastPulseGc2+2000){
     d2++;
-    timeLastPulseGc2 = micros();
+    timeLastPulseGc2 = now;
   }
 }
 
 void ISR3()
 {
-  if (micros() > timeLastPulseGc3+1000){
+  long now = micros();
+  if (now > timeLastPulseGc3+2000){
     d3++;
-    timeLastPulseGc3 = micros();
+    timeLastPulseGc3 = now;
   }
 }

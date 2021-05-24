@@ -13,12 +13,9 @@
 #define TMP_AMPS  A0 // pin for pump amps 0-10V = 0 - 2.5A
 #define TMP_FREQ  A1 // pin for pump freq 0-10V = 0 - 1250Hz
 
-bool stat = false;
-
 void setup() {
   fusorInit("TMP");
   fusorAddVariable("tmp", FUSOR_VARTYPE_BOOL);
-  fusorAddVariable("tmp_stat", FUSOR_VARTYPE_BOOL);
   fusorAddVariable("lowspeed", FUSOR_VARTYPE_BOOL);
   fusorAddVariable("error", FUSOR_VARTYPE_BOOL);
   fusorAddVariable("reset", FUSOR_VARTYPE_BOOL);
@@ -27,7 +24,6 @@ void setup() {
   fusorAddVariable("pump_freq", FUSOR_VARTYPE_FLOAT);
 
   fusorSetBoolVariable("tmp", false);  
-  fusorSetBoolVariable("tmp_stat", false);  
   fusorSetBoolVariable("error", false);  
   fusorSetBoolVariable("reset", false);  
   fusorSetBoolVariable("lowspeed", false);
@@ -81,8 +77,7 @@ void updateAll() {
       tmpOff();
     }
   }
-  //fusorSetBoolVariable("tmp_stat", stat);  
-
+ 
 
   //fusorSendResponse("done processing tmp sets ...");
 
@@ -111,7 +106,6 @@ void tmpOn() {
   digitalWrite(TMP_ON, HIGH);
   //delay(100);
   FUSOR_LED_OFF();
-  stat = true;
 }
 
 void tmpOff() {
@@ -119,7 +113,6 @@ void tmpOff() {
   digitalWrite(TMP_ON, LOW);
   //delay(100);
   FUSOR_LED_OFF();
-  stat = false;
 }
 
 void tmpLow() {

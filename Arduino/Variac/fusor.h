@@ -322,6 +322,9 @@ void fusorForceUpdate()
 
 void _fusorCmdGetAll(bool forceUpdate)
 {
+  if (!forceUpdate && _fusorLastStatus >= millis-_fusorUpdateInterval) {
+    return;
+  }
   int skip = 0;
   int count = 0;
   fusorStartResponse("STATUS:{");
