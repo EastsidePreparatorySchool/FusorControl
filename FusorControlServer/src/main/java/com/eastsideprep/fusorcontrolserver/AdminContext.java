@@ -167,10 +167,10 @@ public class AdminContext extends ObserverContext {
     String tmpHighRoute() {
         logAdminCommand("TMP high");
         if (cd.tmp.setHigh()) {
-            System.out.println("low speed success");
+            System.out.println("high speed success");
             return "set TMP to high speed";
         }
-        System.out.println("low speed failed");
+        System.out.println("high speed failed");
         throw halt(500, "TMP control failed");
     }
 

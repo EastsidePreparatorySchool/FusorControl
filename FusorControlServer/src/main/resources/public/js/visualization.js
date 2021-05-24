@@ -32,27 +32,27 @@ var vizChannels = {
     'TMP.tmp': {name: 'TMP status', shortname: 'TMP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
     'TMP.error': {name: 'TMP error', shortname: 'TMP error', unit: '', min: 0, max: 2, type: "discrete", datatype: "error"},
     'TMP.lowspeed': {name: 'TMP lowspeed', shortname: 'TMP lowspeed', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
-    'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
-    'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
-    'PIRANI.p2': {name: 'Piezo relative pressure', shortname: 'P piezo rel', unit: 'Torr', factor: 1, min: -770, max: 0, type: "continuous", datatype: "numeric"},
-    'PIRANI.p3': {name: 'Pirani pressure (coarse)', shortname: 'P abs coarse', unit: 'mTorr', factor: 1000, min: 0, max: 1000, type: "continuous", datatype: "numeric"},
-    'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: 'P abs fine', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric"},
+    'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric", graph: "yes"},
+    'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric", graph: "yes"},
+    'PIRANI.p2': {name: 'Piezo relative pressure', shortname: 'P piezo rel', unit: 'Torr', factor: 1, min: -770, max: 0, type: "continuous", datatype: "numeric", graph: "yes"},
+    'PIRANI.p3': {name: 'Pirani pressure (coarse)', shortname: 'P abs coarse', unit: 'mTorr', factor: 1000, min: 0, max: 1000, type: "continuous", datatype: "numeric", graph: "yes"},
+    'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: 'P abs fine', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric", graph: "yes"},
     'GAS.sol_in': {name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
-    'GAS.nv_in': {name: 'Needle valve percent', shortname: 'NV %', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric"},
+    'GAS.nv_in': {name: 'Needle valve percent', shortname: 'NV %', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric", graph: "yes"},
     'HV-RELAY.in': {name: 'Variac relay', shortname: 'VAR relay', unit: '', min: 0, max: 1.8, type: "discrete", datatype: "boolean"},
-    'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'VARIAC.dial_volts': {name: 'Variac dial (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
+    'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric", graph: "yes"},
+    'VARIAC.dial_volts': {name: 'Variac dial (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric", graph: "yes"},
     //'HV-LOWSIDE.n': {name: 'Variac samples', shortname: 'VAR samples', unit: '', min: 0, max: 1000, type: "discrete", datatype: "numeric"},
-    'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'kV', min: 0, max: 8, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW abs voltage', unit: 'kV', min: 0, max: 50, factor: -1, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric", graph: "yes"},
+    'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'kV', min: 0, max: 8, type: "continuous", datatype: "numeric", graph: "yes"},
+    'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW abs voltage', unit: 'kV', min: 0, max: 50, factor: -1, type: "continuous", datatype: "numeric", graph: "yes"},
     //'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', shortname: 'CW current', unit: 'adc', min: 0, max: 50, type: "continuous", datatype: "numeric"},
-    'SENSORARRAY.pnj': {name: 'Gamma PNJ (%)', shortname: 'PN-J %', unit: '%', min: 0, max: 100, type: "continuous", datatype: "numeric"},
-    'SENSORARRAY.pin': {name: 'Gamma PIN (uSv/h)', shortname: 'GDK101', unit: 'uSv/h', min: 0, max: 100, type: "continuous", datatype: "numeric"},
-    'SENSORARRAY.gc1': {name: 'GC1 (Whitmer, inside) (cps)', shortname: 'GC1 (W)', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
-    'SENSORARRAY.gc2': {name: 'GC2 (inside) (cps)', shortname: 'GC2 inside', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
-    'SENSORARRAY.gc3': {name: 'GC2 (outside) (cps)', shortname: 'GC3 outside', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
-    'Heartbeat.beat': {name: 'Heartbeat', shortname: 'HEARTBEAT', unit: '', min: 0, max: 50, type: "momentary", datatype: "numeric"},
+    'SENSORARRAY.pnj': {name: 'Gamma PNJ (%)', shortname: 'PN-J %', unit: '%', min: 0, max: 100, type: "continuous", datatype: "numeric", graph: "yes"},
+    'SENSORARRAY.pin': {name: 'Gamma PIN (uSv/h)', shortname: 'GDK101', unit: 'uSv/h', min: 0, max: 100, type: "continuous", datatype: "numeric", graph: "yes"},
+    'SENSORARRAY.gc1': {name: 'GC1 (Whitmer, inside) (cps)', shortname: 'GC1 (W)', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric", graph: "yes"},
+    'SENSORARRAY.gc2': {name: 'GC2 (inside) (cps)', shortname: 'GC2 inside', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric", graph: "yes"},
+    'SENSORARRAY.gc3': {name: 'GC2 (outside) (cps)', shortname: 'GC3 outside', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric", graph: "yes"},
+    'Heartbeat.beat': {name: 'Heartbeat', shortname: 'HEARTBEAT', unit: '', min: 0, max: 50, type: "momentary", datatype: "numeric", graph: "yes"},
     //'Heartbeat.logsize': {name: 'Log size (kEntries)', shortname: 'LOGSIZE', unit: 'kEntries', min: 0, max: 10000, type: "discrete", datatype: "numeric"},
     'Comment.text': {name: 'Comment', shortname: '', min: 0, max: 30, type: "momentary", datatype: "text"},
     'Login.text': {name: 'Login', shortname: '', min: 0, max: 40, type: "momentary", datatype: "text"},
@@ -140,15 +140,17 @@ function createVizCanvasJS() {
 
     };
     for (var channel in vizChannels) {
-        var dataSeries = {
-            type: "line",
-            name: vizChannels[channel].name,
-            showInLegend: true,
-            dataPoints: [],
-            markerType: "none"
-        };
-        vizData.push(dataSeries);
-        vizChannels[channel].dataSeries = dataSeries;
+        if (vizChannels[channel]['graph'] !== undefined) {
+            var dataSeries = {
+                type: "line",
+                name: vizChannels[channel].name,
+                showInLegend: true,
+                dataPoints: [],
+                markerType: "none"
+            };
+            vizData.push(dataSeries);
+            vizChannels[channel].dataSeries = dataSeries;
+        }
     }
 
     chart = new CanvasJS.Chart("chartContainer", options);
@@ -202,7 +204,7 @@ function createText() {
         if (vizChannels[channel].shortname !== '') {
             // make a device map to keep track of device time
             var deviceName = channel.substring(0, channel.indexOf('.'));
-            devices[deviceName] = {time: -1, timeS:-1};
+            devices[deviceName] = {time: -1, timeS: -1};
             var name = vizChannels[channel].shortname;
             name = name + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".substring(0, (14 - name.length) * 6);
             textDisplay += name + ":&nbsp;<span id='" + channel + "' style='color:gray;font-weight:normal;'>n/c&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp"
@@ -282,7 +284,7 @@ function renderText(update, now) {
             valspan.style.color = "gold";
             valspan.style.fontWeight = "normal";
         } else {
-                console.log("WTF "+channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
+            console.log("WTF " + channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
         }
         tc.last = tc.current;
         tc.lastS = tc.currentS;
@@ -342,6 +344,9 @@ function renderButtons() {
 function resetViz() {
     for (var channel in vizChannels) {
         var vc = vizChannels[channel];
+        if (vc.dataSeries === undefined) {
+            continue;
+        }
         if (usingChartJS) {
             vc.dataSeries.data = [];
         } else {
@@ -448,12 +453,12 @@ function updateViz(dataArray, textOnly) {
                 maxTime = Math.max(maxTime, secs);
 
                 //console.log("x: "+varTime+" y: "+percent)
-                if (!textOnly) {
+                if (!textOnly && dataSeries !== undefined) {
                     addDataPoint(dataSeries, vc.type, secs, percent, value, vc.unit, serverTime, vc.name);
                 }
                 updateText(devicename + "." + variable, value, vc.datatype,
-                    varTime/1000, varTimeS/1000,
-                    deviceTime/1000, deviceTimeS/1000);
+                        varTime / 1000, varTimeS / 1000,
+                        deviceTime / 1000, deviceTimeS / 1000);
             } catch (error) {
                 console.log(error);
             }
