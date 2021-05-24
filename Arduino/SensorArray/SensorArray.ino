@@ -14,6 +14,8 @@
 
 volatile int d2 = 0; // d2 is inside enclosure
 volatile int d3 = 0; // d3 is outside enclosure
+static long timeLastPulseGc2 = 0;
+static long timeLastPulseGc3 = 0;
 
 void setup(){
   // must do this in init, the rest is optional
@@ -53,6 +55,8 @@ void loop() {
 void updateAll() {
   static char text[12];
   static char *str = text;
+  static float decayingAvgCps = 0;
+  const float newFraction = 0.1;
  
   // read the latest message from the serial GC if there is one
   // format: low byte, high byte
@@ -62,7 +66,16 @@ void updateAll() {
       last = current;
       current = Serial3.read();
     }
-    fusorSetIntVariable("gc1", (current * 256) + last);
+    int reading = (current * 256) + last;
+
+    // keep track ot decaying avg to detect bs
+    decayingAvgCps *= 1-newFraction;
+    decayingAvgCps += newFraction*reading;
+    if (reading < decayingAvgCps*10) {
+      // not bullshit
+      // bullshit happens
+      fusorSetIntVariable("gc1", reading);
+    }
   }
 
   // read the latest message from the PIN diode sensor if there is one
@@ -87,16 +100,19 @@ void updateAll() {
     }
   }
 
-  // read PNJ - both halves. Read both lines a few times so the ADC can stabilize.
+  // read PNJ - Read a few times so the ADC can stabilize.
   
   int a0;
   for (int i = 0; i < 10; i++) 
   {
     a0 = analogRead(0);
   }
-  fusorSetFloatVariable("pnj", a0/1023.0);
+  fusorSetFloatVariable("pnj", a0*100/1023.0);
 
+
+  //
   // get the edge-detected Geiger counts
+  //
   long now;
   static long lastSec = 0; 
   int d2now, d3now;
@@ -113,17 +129,23 @@ void updateAll() {
     d3 = 0;
     interrupts();
     
-    fusorSetFloatVariable("gc2", d2now/2.0); // 2 edges per click (really, 2 pulses!)
-    fusorSetFloatVariable("gc3", d3now/2.0); // same here
+    fusorSetFloatVariable("gc2", d2now); // 2 edges per click (really, 2 pulses!)
+    fusorSetFloatVariable("gc3", d3now); // same here
   }
 }
 
 void ISR2() 
 {
-  d2++;
+  if (micros() > timeLastPulseGc2+1000){
+    d2++;
+    timeLastPulseGc2 = micros();
+  }
 }
 
 void ISR3()
 {
-  d3++;
+  if (micros() > timeLastPulseGc3+1000){
+    d3++;
+    timeLastPulseGc3 = micros();
+  }
 }
