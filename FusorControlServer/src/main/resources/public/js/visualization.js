@@ -13,6 +13,7 @@ var currentViewMax = -1;    // keep track
 var viewWidth = 60;         // how much data to show in window
 var viewIncrement = 1;      // how often to slide window
 var viewLead = viewIncrement / 5;
+var maxTime = 0;
 
 //
 // this is the most important data structure here
@@ -284,7 +285,8 @@ function renderText(update, now) {
             valspan.style.color = "gold";
             valspan.style.fontWeight = "normal";
         } else {
-            console.log("WTF " + channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
+            var test = 1;
+            //console.log("WTF " + channel + " D: " + tc.device.time + ", L: " + tc.last + ", V: " + tc.current);
         }
         tc.last = tc.current;
         tc.lastS = tc.currentS;
