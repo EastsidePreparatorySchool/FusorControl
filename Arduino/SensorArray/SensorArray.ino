@@ -71,7 +71,7 @@ void updateAll() {
     // keep track of decaying avg to detect bs
     decayingAvgCps *= 1-newFraction;
     decayingAvgCps += newFraction*reading;
-    if (reading < (decayingAvgCps+1)*10) {
+    if (reading < (decayingAvgCps+1)*100) {
       // not bullshit
       // bullshit happens when a byte gets swallowed
       fusorSetIntVariable("gc1", reading);

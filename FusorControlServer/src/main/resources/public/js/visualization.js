@@ -427,9 +427,9 @@ function updateViz(dataArray, textOnly) {
                 }
 
                 // get the three relevant timestamps, and do the math
-                var serverTime = Number(data["servertime"]);
-                var deviceTime = Number(devicedata["devicetime"]);
-                var varTime = Number(devicedata[variable]["vartime"]);
+                var serverTime = Number(data["servertime"]); // time when msg was received by server
+                var deviceTime = Number(devicedata["devicetime"]); // device time when it was sent
+                var varTime = Number(devicedata[variable]["vartime"]); // device time when variable was last updated
                 if (startTime === undefined) {
                     startTime = serverTime;
                     logStart = serverTime;
