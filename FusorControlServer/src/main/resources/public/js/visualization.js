@@ -31,6 +31,7 @@ var vizChannels = {
     'RP.rp_in': {name: 'RP status', shortname: 'RP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
     'TMP.tmp': {name: 'TMP status', shortname: 'TMP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
     'TMP.error': {name: 'TMP error', shortname: 'TMP error', unit: '', min: 0, max: 2, type: "discrete", datatype: "error"},
+    'TMP.lowspeed': {name: 'TMP lowspeed', shortname: 'TMP lowspeed', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric"},
     'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric"},
     'PIRANI.p2': {name: 'Piezo relative pressure', shortname: 'P piezo rel', unit: 'Torr', factor: 1, min: -770, max: 0, type: "continuous", datatype: "numeric"},
@@ -41,12 +42,12 @@ var vizChannels = {
     'HV-RELAY.in': {name: 'Variac relay', shortname: 'VAR relay', unit: '', min: 0, max: 1.8, type: "discrete", datatype: "boolean"},
     'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
     'VARIAC.dial_volts': {name: 'Variac dial (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.n': {name: 'Variac samples', shortname: 'VAR samples', unit: '', min: 0, max: 1000, type: "discrete", datatype: "numeric"},
+    //'HV-LOWSIDE.n': {name: 'Variac samples', shortname: 'VAR samples', unit: '', min: 0, max: 1000, type: "discrete", datatype: "numeric"},
     'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric"},
-    'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'kV', min: 0, max: 15, type: "continuous", datatype: "numeric"},
+    'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'kV', min: 0, max: 8, type: "continuous", datatype: "numeric"},
     'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW abs voltage', unit: 'kV', min: 0, max: 50, factor: -1, type: "continuous", datatype: "numeric"},
     //'HV-HIGHSIDE.hs_current_adc': {name: 'CW current (adc)', shortname: 'CW current', unit: 'adc', min: 0, max: 50, type: "continuous", datatype: "numeric"},
-    'SENSORARRAY.pnj': {name: 'Gamma PNJ (%)', shortname: 'PN-J %', unit: '%', min: 0, max: 1, type: "continuous", datatype: "numeric"},
+    'SENSORARRAY.pnj': {name: 'Gamma PNJ (%)', shortname: 'PN-J %', unit: '%', min: 0, max: 100, type: "continuous", datatype: "numeric"},
     'SENSORARRAY.pin': {name: 'Gamma PIN (uSv/h)', shortname: 'GDK101', unit: 'uSv/h', min: 0, max: 100, type: "continuous", datatype: "numeric"},
     'SENSORARRAY.gc1': {name: 'GC1 (Whitmer, inside) (cps)', shortname: 'GC1 (W)', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
     'SENSORARRAY.gc2': {name: 'GC2 (inside) (cps)', shortname: 'GC2 inside', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric"},
@@ -91,7 +92,8 @@ function createVizCanvasJS() {
             includeZero: true,
             suffix: " %",
             lineThickness: 1,
-            maximum: 100
+            maximum: 100,
+            minimum: 0
         },
         axisX: {
             title: "time",
