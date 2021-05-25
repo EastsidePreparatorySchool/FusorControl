@@ -551,10 +551,8 @@ function addDataPoint(dataSeries, type, secs, percent, value, unit, time, device
     }
     // in live view, constrain ourselves to xxx data points per series
     if (liveServer) {
-        if (data.length > 2000) {
-            while (data.length > 1000) {
-                data.shift();
-            }
+        while (dataPoints.length > 2000) {
+            dataPoints.shift();
         }
     }
 }
