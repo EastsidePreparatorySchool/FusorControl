@@ -9,8 +9,8 @@
 
 
 
-#define MINVOLTS 0
-#define MAXVOLTS 120
+#define MINVOLTS 0.0
+#define MAXVOLTS 120.0
 #define MINSTEPS 0
 #define MAXSTEPS 486
 
@@ -18,35 +18,35 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 Adafruit_StepperMotor *myMotor;
 
 
-int currentVolts = 0;
+float currentVolts = 0.0;
 
 void setup() {
   fusorInit("VARIAC", 1000);
-  fusorAddVariable("input_volts", FUSOR_VARTYPE_INT);
-  fusorAddVariable("dial_volts", FUSOR_VARTYPE_INT);
+  fusorAddVariable("input_volts", FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("dial_volts", FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("stop", FUSOR_VARTYPE_INT);
 
-  // stepper control for varaic
+  // stepper control for variac
   AFMS.begin(); 
   myMotor = AFMS.getStepper(200, 1);  // 200 steps per rotation, port 1
   myMotor->setSpeed(60);              // 60 rpm = 1 rps 
   
   currentVolts = 0;
-  fusorSetIntVariable("dial_volts", 0);
+  fusorSetFloatVariable("dial_volts", 0.0);
 
   FUSOR_LED_ON();
   fusorDelay(300);
   FUSOR_LED_OFF();
 }
 
-int voltToSteps(int volts) {
+int voltToSteps(float volts) {
   return map(volts, MINVOLTS, MAXVOLTS, MINSTEPS, MAXSTEPS);
 }
-int stepsToVolts(int steps) {
+float stepsToVolts(int steps) {
   return map(steps, MINSTEPS, MAXSTEPS, MINVOLTS, MAXVOLTS);
 }
 
-void setVoltage(int volts) {
+void setVoltage(float volts) {
   int diff, steps, sign;
 
   if (volts > MAXVOLTS || volts < 0) return;
@@ -60,8 +60,8 @@ void setVoltage(int volts) {
 
     // update our variables
     if ((i+1)%100 == 0) {
-      fusorSetIntVariable("dial_volts", currentVolts + sign*stepsToVolts(i));
-      fusorSetIntVariable("input_volts", volts);
+      fusorSetFloatVariable("dial_volts", currentVolts + sign*stepsToVolts(i));
+      //fusorSetFloatVariable("input_volts", volts);
       fusorDelayMicroseconds(5);
     }
   }
@@ -70,7 +70,7 @@ void setVoltage(int volts) {
   FUSOR_LED_OFF();
 
   currentVolts = volts;
-  fusorSetIntVariable("dial_volts", currentVolts);
+  fusorSetFloatVariable("dial_volts", currentVolts);
 }
 
 
@@ -107,10 +107,10 @@ void loop() {
 }
 
 void updateAll() {
-  int volts;
+  float volts;
 
 
-  // stop (used to be fast, but now isn't
+  // stop (used to be fast, but now isn't)
   if (fusorVariableUpdated("stop")) {
     int value = fusorGetIntVariable("stop");
     if (value == 0) {
@@ -123,12 +123,13 @@ void updateAll() {
   // if "input_volts" was updated, set variac to that voltage
   if (fusorVariableUpdated("input_volts")) 
   {
-    volts = fusorGetIntVariable("input_volts");
+    volts = fusorGetFloatVariable("input_volts");
     if (volts == -1) 
     {
       calibrate();
       volts = 0;
-    } else {
+    } else 
+    {
       setVoltage(volts);
       if (volts == 0) 
       {

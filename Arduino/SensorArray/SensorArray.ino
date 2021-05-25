@@ -62,19 +62,15 @@ void updateAll() {
   // format: low byte, high byte
   int current, last;
   if (Serial3.available()) {
+    int bytes = Serial3.available();
+    // drain the whole queue
     while(Serial3.available()) {
       last = current;
       current = Serial3.read();
     }
-    int reading = (current * 256) + last;
-
-    // keep track of decaying avg to detect bs
-    decayingAvgCps *= 1-newFraction;
-    decayingAvgCps += newFraction*reading;
-    if (reading < (decayingAvgCps+1)*100) {
-      // not bullshit
-      // bullshit happens when a byte gets swallowed
-      fusorSetIntVariable("gc1", reading);
+    // but only report if we read 2 bytes exactly
+    if (bytes == 2) {
+      fusorSetIntVariable("gc1", (current * 256) + last);
     }
   }
 
