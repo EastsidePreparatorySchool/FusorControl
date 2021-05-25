@@ -656,7 +656,7 @@ function createVizChartJS() {
                 zoom: {
                     pan: {
                         enabled: true,
-                        mode: 'x',
+                        mode: 'x'
                     },
 
                     // Container for zoom options

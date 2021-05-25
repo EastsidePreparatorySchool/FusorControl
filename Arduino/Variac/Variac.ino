@@ -2,6 +2,7 @@
 // Fusor project code for control Arduino
 // "VARIAC2"
 // Adafruit Feather ESP32 with Motor/Stepper Wing
+// Board support https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_dev_index.json
 //
 
 #include "fusor.h"
