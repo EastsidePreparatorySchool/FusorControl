@@ -60,17 +60,17 @@ void updateAll() {
  
   // read the latest message from the serial GC if there is one
   // format: low byte, high byte
-  int current, last;
+  int current, before;
   if (Serial3.available()) {
     int bytes = Serial3.available();
     // drain the whole queue
     while(Serial3.available()) {
-      last = current;
+      before = current;
       current = Serial3.read();
     }
     // but only report if we read 2 bytes exactly
     if (bytes == 2) {
-      fusorSetIntVariable("gc1", (current * 256) + last);
+      fusorSetIntVariable("gc1", (current * 256) + before);
     }
   }
 
@@ -110,14 +110,14 @@ void updateAll() {
   // get the edge-detected Geiger counts
   //
   long now;
-  static long lastSec = 0; 
+  static long last = 0; 
   int d2now, d3now;
   float interval;
   
-  now = millis()/1000;
-  if (now > lastSec)  // update only once per second
+  now = millis();
+  if (now > last+1000)  // update only once per second
   {
-    lastSec = now;
+    last = now;
     noInterrupts();
     d2now = d2;
     d3now = d3;
@@ -125,15 +125,15 @@ void updateAll() {
     d3 = 0;
     interrupts();
     
-    fusorSetFloatVariable("gc2", d2now); // 2 edges per click (really, 2 pulses!)
-    fusorSetFloatVariable("gc3", d3now); // same here
+    fusorSetFloatVariable("gc2", d2now); 
+    fusorSetFloatVariable("gc3", d3now); 
   }
 }
 
 void ISR2() 
 {
   long now = micros();
-  if (now > timeLastPulseGc2+2000){
+  if (now > timeLastPulseGc2+4000){
     d2++;
     timeLastPulseGc2 = now;
   }
@@ -142,7 +142,7 @@ void ISR2()
 void ISR3()
 {
   long now = micros();
-  if (now > timeLastPulseGc3+2000){
+  if (now > timeLastPulseGc3+4000){
     d3++;
     timeLastPulseGc3 = now;
   }

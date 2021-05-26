@@ -322,7 +322,7 @@ void fusorForceUpdate()
 
 void _fusorCmdGetAll(bool forceUpdate)
 {
-  if (!forceUpdate && _fusorLastStatus >= millis-_fusorUpdateInterval) {
+  if (!forceUpdate && _fusorLastStatus >= millis()-_fusorUpdateInterval) {
     return;
   }
   int skip = 0;

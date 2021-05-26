@@ -91,7 +91,7 @@ void updateAll() {
   }
 
   // if "lowspeed" was updated, read it, switch the pump to high speed / low speed accordingly
-  if (fusorVariableUpdated("speed")) {
+  if (fusorVariableUpdated("lowspeed")) {
     if (fusorGetBoolVariable("lowspeed")) {
       tmpLow();
     } else {
