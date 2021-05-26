@@ -13,7 +13,7 @@
 #define MINVOLTS 0.0
 #define MAXVOLTS 120.0
 #define MINSTEPS 0
-#define MAXSTEPS 486
+#define MAXSTEPS 480
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 Adafruit_StepperMotor *myMotor;
@@ -116,7 +116,7 @@ void updateAll() {
     int value = fusorGetIntVariable("stop");
     if (value == 0) {
       zeroVoltage();
-      fusorSetIntVariable("input_volts", 0);
+      fusorSetFloatVariable("input_volts", 0.0);
     }
     fusorForceUpdate();
   }
@@ -138,7 +138,4 @@ void updateAll() {
       }
     }
   }
-
-  //fusorSetIntVariable("input_volts", volts);
-  //fusorSetIntVariable("dial_volts", currentVolts);
 }
