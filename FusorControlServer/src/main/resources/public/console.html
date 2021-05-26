@@ -36,7 +36,7 @@
                     <br>
 
                     Variac Target Voltage:<br>
-                    <input disabled style="width:48%;" id="variacValue" min="0" max="140" step="5" value="0" type="number" onchange="variac(this.value)">
+                    <input disabled style="width:48%;" id="variacValue" min="0" max="140" step="1" value="0" type="number" onchange="variac(this.value)">
                     <button disabled id="variacButton" style="width:48%;" class="btn btn-primary btn-large" onclick="variac(document.getElementById('variacValue').value)" >Set</button>
                     <br>
                     <button disabled style="width:48%;" id="variacStop" class="btn btn-primary btn-large" onclick="variac_stop(-1)">Stop</button>

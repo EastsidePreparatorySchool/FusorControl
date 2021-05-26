@@ -7,7 +7,7 @@ public class VariacControlDevice extends Arduino {
         this.setStatus("{\"device\":\"VARIAC\"}");
     }
     
-    public boolean setVoltage(int v, CoreDevices cd) {
+    public boolean setVoltage(float v, CoreDevices cd) {
         if (v == 0 || v == -1) {
             cd.hvrelay.off();
         } else {

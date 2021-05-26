@@ -119,7 +119,7 @@ public class AdminContext extends ObserverContext {
     }
 
     String variacRoute(spark.Request req) {
-        int variacValue = Integer.parseInt(req.queryParams("value"));
+        float variacValue = Float.parseFloat(req.queryParams("value"));
         logAdminCommand("variac:set:" + variacValue);
         System.out.println("Received Variac Set " + variacValue);
         if (cd.variac.setVoltage(variacValue, cd)) {
