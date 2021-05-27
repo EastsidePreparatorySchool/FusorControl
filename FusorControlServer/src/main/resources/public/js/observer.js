@@ -204,7 +204,7 @@ function displayLiveData() {
 
 
 function enableCameras() {
-    request({url: "/numcameras", method: "GET"})
+    request({url: "http://fusor3/numcameras", method: "GET"})
             .then(data => {
                 // yes: make the display visible and set the url
                 var numCameras = Number(data);       // got number from server
@@ -212,7 +212,8 @@ function enableCameras() {
                 for (var i = 1; i <= numCameras; i++) {
                     var cam = document.getElementById("cam" + i);
                     cam.style.display = "inline";
-                    cam.src = window.location.origin + ":45" + (i + 66) + "/mjpg";
+                    //cam.src = window.location.origin + ":45" + (i + 66) + "/mjpg";
+                    cam.src = "http://fusor3:45" + (i + 66) + "/mjpg";
                 }
             })
             .catch(error => {
