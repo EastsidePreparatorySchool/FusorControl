@@ -169,6 +169,11 @@ public class DataLogger {
         dm.recordStatus("Heartbeat", time, makeHeartbeatDeviceText(secs % 10 == 0 ? 10 : 1, time));
     }
 
+    public static void recordSDAdvisory(String text) {
+        long time =  System.currentTimeMillis();
+        WebServer.dm.recordStatus("Comment", time, "DeviceManager: "+text);
+    }
+
     void loggerThreadLoop() {
         WebLogObserver obs = WebServer.log.addObserver("<logger thread>");
         int secs = 0;

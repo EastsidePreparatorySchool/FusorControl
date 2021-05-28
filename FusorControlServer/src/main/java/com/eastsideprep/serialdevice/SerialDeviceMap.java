@@ -1,5 +1,6 @@
 package com.eastsideprep.serialdevice;
 
+import com.eastsideprep.fusorcontrolserver.DataLogger;
 import com.fazecast.jSerialComm.SerialPort;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,16 +61,27 @@ public class SerialDeviceMap {
     public void prunePortList(List<SerialPort> list) {
         HashSet<String> set = new HashSet<>(list.stream().map((sp) -> sp.getSystemPortName()).collect(Collectors.toList()));
         ArrayList<SerialDevice> removals = new ArrayList<>();
+        Set<String> ports;
         synchronized (this) {
-            Set<String> ports = this.portMap.keySet();
+            ports = this.portMap.keySet();
         }
-        for (String port : this.portMap.keySet()) {
+        for (String port : ports) {
             SerialDevice sd = portMap.get(port);
             if (sd.isValid() || sd.name.equals("<unknown>")) {
                 //System.out.println("Examining SD:" + sd.name + "(supposedly " + port + ")");
                 if (!set.contains(port)) {
-                    System.out.println("not present, removing: " + port + " ("+sd.name+")");
+                    System.out.println("not present, removing: " + port + " (" + sd.name + ")");
+                    DataLogger.recordSDAdvisory("Port not present, removing: " + port + " (" + sd.name + ")");
                     removals.add(sd);
+                } else {
+                    // is valid serial device. Arduino?
+                    if (sd instanceof Arduino) {
+                        if (!sd.command("IDENTIFY")) {
+                            System.out.println("not present, removing: " + port + " (" + sd.name + ")");
+                            DataLogger.recordSDAdvisory("Not responding, removing: " + port + " (" + sd.name + ")");
+                            removals.add(sd);
+                        }
+                    }
                 }
             }
         }
@@ -88,6 +100,11 @@ public class SerialDeviceMap {
                 portMap.remove("<fake port:" + sd.name + ">");
             }
             nameMap.remove(sd.name);
+            try {
+                sd.port.closePort();
+            } catch (Exception e) {
+                System.out.println("Exception trying to close port for sd "+sd.name+", port "+sd.port.getSystemPortName());
+            }
         }
     }
 
