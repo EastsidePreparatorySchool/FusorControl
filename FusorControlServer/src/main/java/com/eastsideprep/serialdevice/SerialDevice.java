@@ -1,5 +1,6 @@
 package com.eastsideprep.serialdevice;
 
+import com.eastsideprep.fusorcontrolserver.DataLogger;
 import com.eastsideprep.fusorcontrolserver.FusorControlServer;
 import com.fazecast.jSerialComm.*;
 import java.io.IOException;
@@ -104,11 +105,13 @@ public abstract class SerialDevice {
         for (int i = 0; i < 5; i++) {
             try {
                 if (!write(cmd)) {
+                    System.out.println("SD Command failure: "+this.name+": "+cmd);
+                    DataLogger.recordSDAdvisory("SD Command failure: "+this.name+": "+cmd);
                     return false;
                 }
                 waitForConfirmation(FusorControlServer.config.cmdTimeOut);
             } catch (Exception e) {
-                System.out.println("exc " + e);
+                System.out.println("SD command: exception: " + e);
                 return false;
             }
 

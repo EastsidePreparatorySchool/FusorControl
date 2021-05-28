@@ -1,5 +1,6 @@
 package com.eastsideprep.serialdevice;
 
+import com.eastsideprep.fusorcontrolserver.DataLogger;
 import com.eastsideprep.fusorcontrolserver.FusorControlServer;
 import com.eastsideprep.fusorcontrolserver.WebServer;
 import com.eastsideprep.fusorweblog.FusorWebLogEntry;
@@ -207,7 +208,7 @@ public class DeviceManager {
             while (!Thread.interrupted()) {
                 int prevDevices = this.deviceMap.validDeviceCount();
                 queryIdentifyAll(semaphore);
-                Thread.sleep(2000);
+                Thread.sleep(1000);
                 if (WebServer.dl != null && prevDevices != this.deviceMap.validDeviceCount()) {
                     this.autoStatusOn();
                 }
@@ -370,7 +371,7 @@ public class DeviceManager {
             //
 
             String domino = "Communication Device Class ASF example"; // name of pseudo-port for it
-            if (port.getDescriptivePortName().equals(domino)){
+            if (port.getDescriptivePortName().equals(domino)) {
                 port.setComPortParameters(115200, 8, 1, SerialPort.NO_PARITY);
                 Domino d = new Domino(port, "NEUTRONS");
                 register(d);
@@ -378,7 +379,6 @@ public class DeviceManager {
             }
 
             // now back to regular ports   
-                
             System.out.println("opening port: " + port.getSystemPortName());
             port.setComPortParameters(115200, 8, 1, SerialPort.NO_PARITY);
             threads[i] = new Thread(() -> {
@@ -501,6 +501,7 @@ public class DeviceManager {
                 SerialDevice sd = specificDevice(a);
                 dm.register(sd);
 
+                DataLogger.recordSDAdvisory("Adding: " + port + " (" + sd.name + ")");
                 System.out.println("  -- new Arduino connected: " + sd.name + " (" + sd.originalName + ", function: " + sd.function + "), on: " + port.getSystemPortName());
             }
         }
