@@ -104,6 +104,7 @@ public abstract class SerialDevice {
         for (int i = 0; i < 5; i++) {
             try {
                 if (!write(cmd)) {
+                    System.out.println("SD Command failure: "+this.name+": "+cmd);
                     return false;
                 }
                 waitForConfirmation(FusorControlServer.config.cmdTimeOut);
