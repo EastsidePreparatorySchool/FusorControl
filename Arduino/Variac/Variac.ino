@@ -1,6 +1,6 @@
 //
 // Fusor project code for control Arduino
-// "VARIAC2"
+// "VARIAC"
 // Adafruit Feather ESP32 with Motor/Stepper Wing
 // Board support https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_dev_index.json
 //
@@ -11,9 +11,9 @@
 
 
 #define MINVOLTS 0.0
-#define MAXVOLTS 120.0
+#define MAXVOLTS 140.0
 #define MINSTEPS 0
-#define MAXSTEPS 480
+#define MAXSTEPS 560
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 Adafruit_StepperMotor *myMotor;

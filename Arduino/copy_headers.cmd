@@ -5,6 +5,8 @@ copy fusor.h hv-relay
 copy fusor.h hv-highside
 copy fusor.h hv-lowside
 copy fusor.h sensorarray
+copy fusor.h pn-junction
+
 
 copy fusor.h tmp
 copy fusor.h gas

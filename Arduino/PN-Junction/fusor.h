@@ -195,7 +195,7 @@ void fusorClearCommandQueue()
 char *_fusorGetCommand(char *sCommand)
 {
   char *sEnd;
-  
+
   // start from beginning if indicated
   if (sCommand == NULL)
   {
@@ -220,8 +220,8 @@ char *_fusorGetCommand(char *sCommand)
       *sEnd = 0;
       return sCommand;
     }
-  } 
-  else 
+  }
+  else
   {
     // no valid CMD found. check for ends, so we can compact and get rid of garbage
     sEnd = strstr(fusorCmdBuffer, _fusorEnd);
@@ -315,13 +315,16 @@ void _fusorCmdExecute(char *sCmd, char *sVar, char *sVal)
   sCmd[0] = 0;
 }
 
-void fusorForceUpdate() 
+void fusorForceUpdate()
 {
-  _fusorCmdGetAll(true);  
+  _fusorCmdGetAll(true);
 }
 
 void _fusorCmdGetAll(bool forceUpdate)
 {
+  if (!forceUpdate && _fusorLastStatus >= millis() - _fusorUpdateInterval) {
+    return;
+  }
   int skip = 0;
   int count = 0;
   fusorStartResponse("STATUS:{");
@@ -329,7 +332,7 @@ void _fusorCmdGetAll(bool forceUpdate)
   for (int i = 0; i < fusorNumVars; i++)
   {
     FusorVariable *pfv = &fusorVariables[i];
-    if (pfv->timestamp <= _fusorLastStatus && !forceUpdate){
+    if (pfv->timestamp <= _fusorLastStatus && !forceUpdate) {
       continue;
     }
     count++;
@@ -354,7 +357,7 @@ void _fusorCmdGetAll(bool forceUpdate)
         if (pfv->value[0] == 0) {
           strcpy(pfv->value, "0.0");
         }
-        fusorAddResponse(pfv->value); 
+        fusorAddResponse(pfv->value);
         break;
       case FUSOR_VARTYPE_BOOL:
         fusorAddResponse((char *)(pfv->boolValue ? "true" : "false"));
@@ -598,6 +601,14 @@ void fusorSetBoolVariable(const char *var, bool val)
   pfv->timestamp = millis();
 }
 
+#if defined(ARDUINO_SAMD_ZERO)
+char *dtostrf(double val, int width, unsigned int prec, char *sout)
+{
+  strcpy(sout, "0.0");
+  return sout;
+}
+#endif
+
 void fusorSetFloatVariable(const char *var, float val)
 {
   FusorVariable *pfv;
@@ -610,9 +621,9 @@ void fusorSetFloatVariable(const char *var, float val)
   skip = 0;
   while (_buffer[skip] == ' ')
   {
-      skip++;
+    skip++;
   }
-  strncpy(pfv->value, _buffer+skip, FUSOR_VAR_LENGTH - 1);
+  strncpy(pfv->value, _buffer + skip, FUSOR_VAR_LENGTH - 1);
   pfv->value[FUSOR_VAR_LENGTH - 1] = 0;
 
   //pfv->updated = true;
