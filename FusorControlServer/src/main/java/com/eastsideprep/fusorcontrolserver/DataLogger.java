@@ -11,7 +11,8 @@ import org.json.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -44,9 +45,7 @@ public class DataLogger {
             makeLogPath();
 
             // create time info for logfile and cam files
-            Date date = new Date();
-            Instant instant1 = date.toInstant();
-            String ts = instant1.toString();
+            String ts = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).toString();
             String fileName = makeFileName(ts);
 
             // create logfile
