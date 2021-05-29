@@ -57,7 +57,9 @@ public class DataLogger {
                 writer = null;
             }
             this.cs = cs;
-            cs.startRecording(fileName + "_cam_", this.baseTime);
+            if (!FusorControlServer.config.noCameras) {
+                cs.startRecording(fileName + "_cam_", this.baseTime);
+            }
 
             // and go
             loggerThread = new Thread(() -> loggerThreadLoop());

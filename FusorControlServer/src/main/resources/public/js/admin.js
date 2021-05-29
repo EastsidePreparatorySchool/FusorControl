@@ -88,7 +88,7 @@ function startLog() {
 //stop logging
 function stopLog() {
     console.log("stoplog");
-    stopStatus();
+    //stopStatus();
     selectButton("stopLog", "startLog");
     request({url: "/protected/admin/stoplog", method: "GET"})
             .then(data => {

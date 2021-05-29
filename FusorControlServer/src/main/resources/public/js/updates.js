@@ -55,6 +55,7 @@ function getStatus() {
                             //stopStatus();
                             selectButton("stopLog", "startLog");
                         }
+                        print(".")
                         setTimeout(getStatus, updateInterval);
                         //waitForSite();
                     }

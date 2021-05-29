@@ -5,7 +5,7 @@
 
 #include "fusor.h"
 
-const int newPercent = 10;
+const int newPercent = 1;
 
 void setup(){
   fusorInit("PN-JUNCTION");
@@ -21,14 +21,15 @@ void loop() {
   fusorLoop();
   
   updateAll();
-  fusorDelay(50);
+  delay(5);
 }
 
-void updateAll() {
-  static float avgSignal = 0;
+static float avgSignal = 0;
 
+void updateAll() 
+{
   int newSignal = analogRead(A0);
   avgSignal = (avgSignal*(100-newPercent) + newSignal*newPercent)/100.0;
 
-  fusorSetIntVariable("total", (int)avgSignal);
+  fusorSetIntVariable("total", (int)newSignal);
 }

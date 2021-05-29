@@ -4,7 +4,7 @@
 
 
 function submitComment(event) {
-    var fd =  new FormData(event);
+    var fd = new FormData(event);
     fd.append("clientID", getClientID());
     request({url: "/protected/comment", method: "POST", body: fd})
             .then(data => {
@@ -18,11 +18,11 @@ function submitComment(event) {
 
 function displayComment(observer, time, text) {
     var chat = document.getElementById("chat");
-    chat.innerText += observer +
+    chat.innerHTML += "<span " + (observer === "DeviceManager" && !text.includes("Adding") ? "style='color:red'" : "") + ">"
+            + observer + "</span>"
             //+ "(" + ip + ")," 
-            " (" + Math.round((time - logStart) / 100) / 10 + "): " +
-            text;
-    chat.innerHTML += "<br>";
+            + " (" + Math.round((time - logStart) / 100) / 10 + "): "
+            + text + "<br>";
     chat.scrollTop = chat.scrollHeight;
 }
 

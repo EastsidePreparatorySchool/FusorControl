@@ -38,9 +38,9 @@ public class CamStreamer {
         int def = 0;
         this.dm = dm;
 
-        if (FusorControlServer.config.noCameras) {
-            return;
-        }
+//        if (FusorControlServer.config.noCameras) {
+//            return;
+//        }
 
         for (Webcam cam : camList) {
             if (cam == null) {

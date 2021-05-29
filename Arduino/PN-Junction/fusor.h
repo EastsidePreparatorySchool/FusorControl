@@ -39,7 +39,7 @@ static FusorVariable fusorVariables[FUSOR_MAX_VARIABLES];
 static bool _fusorAutoStatus = false;
 static long _fusorLastStatus = 0;
 static char _buffer[16];
-static int _fusorUpdateInterval = 100;
+static long _fusorUpdateInterval = 100;
 
 
 static const char *_fusorCmd = "CMD[";
@@ -322,17 +322,30 @@ void fusorForceUpdate()
 
 void _fusorCmdGetAll(bool forceUpdate)
 {
+  // don't update this more often than the selected interval, unless forced
   if (!forceUpdate && _fusorLastStatus >= millis() - _fusorUpdateInterval) {
     return;
   }
-  int skip = 0;
+
+  // if forced update, or when 10 regular updates have occurred, include all variables
+  static int updateCount = 0;
+  bool allVars = false;
+  if (forceUpdate || ++updateCount == 10)
+  {
+    allVars = true;
+    updateCount = 0;
+  }
+
+  // do the update
   int count = 0;
   fusorStartResponse("STATUS:{");
 
   for (int i = 0; i < fusorNumVars; i++)
   {
     FusorVariable *pfv = &fusorVariables[i];
-    if (pfv->timestamp <= _fusorLastStatus && !forceUpdate) {
+    
+    // if vars are stale, skip unless forced
+    if (pfv->timestamp <= _fusorLastStatus && !allVars) {
       continue;
     }
     count++;
@@ -378,23 +391,23 @@ void _fusorCmdGetAll(bool forceUpdate)
   fusorAddResponse(_buffer);
 
   fusorAddResponse("}");
+  
+  // was there indeed anything to send?
   if (count > 0) {
     fusorSendResponse(NULL);
   } else {
     fusorCancelResponse();
   }
+
+  // to keep track and respect the interval
   _fusorLastStatus = millis();
 }
 
 void _fusorDoAutoStatus()
 {
-  static int count = 0;
   if (_fusorAutoStatus)
   {
-    {
-      _fusorCmdGetAll(count % 10 == 0);
-      count++;
-    }
+    _fusorCmdGetAll(false);
   }
 }
 
