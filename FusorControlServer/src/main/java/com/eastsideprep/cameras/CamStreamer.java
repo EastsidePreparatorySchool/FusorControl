@@ -52,7 +52,7 @@ public class CamStreamer {
                 def = 1;
                 continue;
             }
-            if (cam.getName().startsWith("Integrated Camera 0")) { // built-in,  camera on x1-gmein laptop
+            if (cam.getName().startsWith("Integrated Camera")) { // built-in,  camera on x1-gmein laptop
                 def = 1;
                 continue;
             }
@@ -61,6 +61,9 @@ public class CamStreamer {
             this.cams.add(cam);
 
             Dimension size = WebcamResolution.QVGA.getSize();
+            if (cam.getName().startsWith("Logitech")) {
+                size = WebcamResolution.VGA.getSize();
+            }
             cam.setViewSize(size);
             cam.open();
             System.out.println("Webcam " + count + ", \"" + cam.getName() + "\" opened");
@@ -89,6 +92,10 @@ public class CamStreamer {
 
         // get the writer prepared
         Dimension size = WebcamResolution.QVGA.getSize();
+        if (webcam.getName().startsWith("Logitech")) {
+            size = WebcamResolution.VGA.getSize();
+        }
+        final Dimension fSize = size;
         final IMediaWriter writer;
         try {
             writer = ToolFactory.makeWriter(file.getAbsolutePath());
@@ -108,11 +115,11 @@ public class CamStreamer {
                         //get timestamp, get image into bufferImage
                         long millis = System.currentTimeMillis();
                         double secs = ((millis - baseTime) / 100) / 10.0;
-                        BufferedImage image = new BufferedImage(size.width, size.height, BufferedImage.TYPE_3BYTE_BGR);
+                        BufferedImage image = new BufferedImage(fSize.width, fSize.height, BufferedImage.TYPE_3BYTE_BGR);
                         Graphics gfx = image.getGraphics();
                         gfx.drawImage(webcam.getImage(), 0, 0, null);
                         image.getGraphics().drawString(Double.toString(secs), 10, 20);
-                        image.getGraphics().drawString(file.getName(), 10, size.height - 10);
+                        image.getGraphics().drawString(file.getName(), 10, fSize.height - 10);
                         writer.encodeVideo(0, image, System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
                     } catch (Throwable ex) {
                         System.out.println(ex);

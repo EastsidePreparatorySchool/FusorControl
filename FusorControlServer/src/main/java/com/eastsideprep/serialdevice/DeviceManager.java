@@ -116,7 +116,12 @@ public class DeviceManager {
         }
         if (response.startsWith(SerialDevice.FUSOR_IDENTIFY + ":")) {
             //System.out.println("  Received identification message: " + response + " from port: " + port.getSystemPortName());
-            identify(response.substring(SerialDevice.FUSOR_IDENTIFY.length() + 1), port);
+            SerialDevice sd = this.deviceMap.get(port);
+            if (sd == null) {
+                identify(response.substring(SerialDevice.FUSOR_IDENTIFY.length() + 1), port);
+            } else {
+                sd.setConfirmation(response);
+            }
         } else if (response.startsWith(SerialDevice.FUSOR_STATUS + ":")) {
             SerialDevice sd = this.deviceMap.get(port);
             if (sd != null) {
@@ -429,6 +434,8 @@ public class DeviceManager {
             for (SerialPort port : portList) {
                 try {
                     System.out.println("sending second identify command to port " + port.getSystemPortName());
+                    port.setRTS();
+                    port.clearRTS();
                     writeToPort(port, SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));
                 } catch (Exception ex) {
                     //System.out.println("Exception cause: "+ex.getCause());

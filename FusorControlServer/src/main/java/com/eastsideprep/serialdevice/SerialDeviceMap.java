@@ -77,7 +77,7 @@ public class SerialDeviceMap {
                     // is valid serial device. Arduino?
                     if (sd instanceof Arduino) {
                         if (!sd.command("IDENTIFY")) {
-                            System.out.println("not present, removing: " + port + " (" + sd.name + ")");
+                            System.out.println("not responding, removing: " + port + " (" + sd.name + ")");
                             DataLogger.recordSDAdvisory("Not responding, removing: " + port + " (" + sd.name + ")");
                             removals.add(sd);
                         }

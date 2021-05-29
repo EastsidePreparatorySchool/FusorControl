@@ -57,31 +57,21 @@ public class WebServer {
 
         // housekeeping routes and filters
         port(80);
-        
-        options("/*",
-        (request, response) -> {
 
-            String accessControlRequestHeaders = request
-                    .headers("Access-Control-Request-Headers");
-            if (accessControlRequestHeaders != null) {
-                response.header("Access-Control-Allow-Headers",
-                        accessControlRequestHeaders);
-            }
-
-            String accessControlRequestMethod = request
-                    .headers("Access-Control-Request-Method");
-            if (accessControlRequestMethod != null) {
-                response.header("Access-Control-Allow-Methods",
-                        accessControlRequestMethod);
-            }
-
+        options("/*", (request, response) -> {
+            response.header("Access-Control-Allow-Headers", "*");
+            response.header("Access-Control-Allow-Methods", "*");
+            response.header("Access-Control-Allow-Origin", "*");
             return "OK";
         });
 
         post("/login", (req, res) -> login(req, res));
         get("/autologin", (req, res) -> autoLogin(req, res));
         post("/logout", (req, res) -> logout(req, res));
-        get("/numcameras", (req, res) -> Integer.toString(cs.numCameras));
+        get("/numcameras", (req, res) -> {
+            res.header("Access-Control-Allow-Origin", "*");
+            return Integer.toString(cs.numCameras);
+        });
         get("/client", (req, res) -> getClient(req, res));
         get("/resetobserver", (req, res) -> resetObserver(req, res));
 

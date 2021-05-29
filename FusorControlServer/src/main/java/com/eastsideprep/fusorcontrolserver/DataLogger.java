@@ -171,7 +171,7 @@ public class DataLogger {
 
     public static void recordSDAdvisory(String text) {
         long time =  System.currentTimeMillis();
-        WebServer.dm.recordStatus("Comment", time, "DeviceManager: "+text);
+        WebServer.dm.recordStatus("Comment", time, makeCommentDeviceText("DeviceManager", "127.0.0.0",  text, time));
     }
 
     void loggerThreadLoop() {
