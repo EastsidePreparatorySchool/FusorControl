@@ -115,6 +115,12 @@ public abstract class SerialDevice {
                 return false;
             }
 
+            // no need to check for conf text on liveness status
+            if (s.equals("IDENTIFY")) {
+                return true;
+            }
+            
+            // but otherwise, confirm
             if (retrieveConfirmation(s)) {
                 return true;
             }
