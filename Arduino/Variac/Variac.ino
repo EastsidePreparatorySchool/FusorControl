@@ -11,9 +11,9 @@
 
 
 #define MINVOLTS 0.0
-#define MAXVOLTS 140.0
+#define MAXVOLTS 130.0
 #define MINSTEPS 0
-#define MAXSTEPS 560
+#define MAXSTEPS 520
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 Adafruit_StepperMotor *myMotor;
