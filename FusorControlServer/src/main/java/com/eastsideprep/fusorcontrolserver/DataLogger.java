@@ -57,7 +57,7 @@ public class DataLogger {
                 writer = null;
             }
             this.cs = cs;
-            if (!FusorControlServer.config.noCameras) {
+            if (FusorControlServer.config.saveProcessedVideo) {
                 cs.startRecording(fileName + "_cam_", this.baseTime);
             }
 
