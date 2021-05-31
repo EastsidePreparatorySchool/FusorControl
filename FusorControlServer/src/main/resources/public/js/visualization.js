@@ -37,7 +37,7 @@ var vizChannels = {
     'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric", graph: "yes"},
     'PIRANI.p2': {name: 'Piezo relative pressure', shortname: 'P piezo rel', unit: 'Torr', factor: 1, min: -770, max: 0, type: "continuous", datatype: "numeric", graph: "yes"},
     'PIRANI.p3': {name: 'Pirani pressure (coarse)', shortname: 'P abs coarse', unit: 'mTorr', factor: 1000, min: 0, max: 1000, type: "continuous", datatype: "numeric", graph: "yes"},
-    'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: 'P abs fine', unit: 'mTorr', factor: 1000, min: 0, max: 50, type: "continuous", datatype: "numeric", graph: "yes"},
+    'PIRANI.p4': {name: 'Pirani pressure (fine)', shortname: 'P abs fine', unit: 'mTorr', factor: 1000, min: 0, max: 100, type: "continuous", datatype: "numeric", graph: "yes"},
     'GAS.sol_in': {name: 'Solenoid status', shortname: 'SOL status', unit: '', min: 0, max: 3, type: "discrete", datatype: "boolean"},
     'GAS.nv_in': {name: 'Needle valve percent', shortname: 'NV %', unit: '%', min: 0, max: 100, type: "discrete", datatype: "numeric", graph: "yes"},
     'HV-RELAY.in': {name: 'Variac relay', shortname: 'VAR relay', unit: '', min: 0, max: 1.8, type: "discrete", datatype: "boolean"},
