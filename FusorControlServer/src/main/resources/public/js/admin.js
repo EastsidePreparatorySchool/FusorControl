@@ -24,7 +24,7 @@ function enableAdminControls(enable) {
     // references global var "isAdmin"
 
     var adminControls = [
-        "startLog", "stopLog", "getStatus", "kill",
+        "startLog", "saveLog", "getStatus", "kill",
         "rpon", "rpoff", "tmpon", "tmpoff", "variacValue", "variacButton",
         "solon", "soloff", "needleValue", "needleButton",
         "variacStop", "variacZero", "tmplow", "tmphigh"
@@ -65,20 +65,59 @@ function getOneStatus() {
             });
 }
 
+function newLogName(name) {
+    let n = 1;
+    if (name.endsWith(")")) {
+        n = name.substring(name.lastIndexOf("(") + 1);
+        n = n.substring(0, n.length - 1);
+        n = Number(n) + 1;
+        name = name.substring(0, name.lastIndexOf(" ("));
+    }
+
+    name += " (" + n + ")";
+    
+  
+
+    return name;
+}
+
+
 
 //start a new log
 function startLog() {
-    var filename = prompt("Custom name for log file:", "");
+    var filename = prompt("Name for new log file:", "");
     if (filename === null) {
-        filename = "";
+        return;
     }
     console.log("startlog");
     document.getElementById("chat").innerText = "";
-    request({url: "/protected/admin/startlog?filename="+filename, method: "GET"})
+    request({url: "/protected/admin/startlog?filename=" + filename, method: "GET"})
+            .then(data => {
+                console.log(data);
+                logFileName = filename;
+                initStatus();
+                //selectButton("startLog", "stopLog");
+            })
+            .catch(error => {
+                console.log("error: " + error);
+            });
+}
+
+//start a new log
+function saveLog() {
+
+    console.log("savelog");
+    document.getElementById("chat").innerText = "";
+    logFileName = newLogName(logFileName);
+    let name = logFileName;
+    if (name.startsWith("Unnamed ")) {
+        name = name.substring(8);
+    }
+    request({url: "/protected/admin/startlog?filename=" + name, method: "GET"})
             .then(data => {
                 console.log(data);
                 initStatus();
-                selectButton("startLog", "stopLog");
+                //selectButton("startLog", "stopLog");
             })
             .catch(error => {
                 console.log("error: " + error);
@@ -89,7 +128,7 @@ function startLog() {
 function stopLog() {
     console.log("stoplog");
     //stopStatus();
-    selectButton("stopLog", "startLog");
+    //selectButton("stopLog", "startLog");
     request({url: "/protected/admin/stoplog", method: "GET"})
             .then(data => {
                 console.log(data);

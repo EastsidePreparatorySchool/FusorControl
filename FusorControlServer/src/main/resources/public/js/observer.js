@@ -66,12 +66,21 @@ function getLogs() {
                             document.getElementById("filesdiv").style.display = "none";
                         }
                     };
-                    listDiv.onclick = function(e) {
+                    listDiv.onclick = function (e) {
                         e.stopPropagation();
                     };
                     window.onclick = function (e) {
                         document.getElementById("filesdiv").style.display = "none";
                     };
+
+                    // sort with newest first
+                    files.sort((a, b) => {
+                        if (a > b)
+                            return -1;
+                        if (b > a)
+                            return 1;
+                        return 0;
+                    });
 
                     var filesText = ""; // <a class='hover' onclick='loadServerLog(this)'>[sample log]</a><br>";
 
@@ -131,7 +140,11 @@ function loadLog(fileName, addPrefix) {
                     raw += "{}]}";
                 }
                 var data = JSON.parse(raw);
+
+                document.getElementById("logInfo").innerText = fileName;
+
                 displayLog(data["log"], data["base-timestamp"]);
+
             })
             .catch(error => {
                 console.log("getlogfile error: " + error);

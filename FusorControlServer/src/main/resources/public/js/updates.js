@@ -7,7 +7,7 @@ var logStart = undefined;
 var startTime = undefined;
 var maxTime = 0;
 var updateInterval = 100;
-
+var logFileName = "Unnamed";
 var liveServer = true;
 
 
@@ -23,6 +23,7 @@ function updateStatus(data, raw, startTime) {
 
 
 var globalData;
+var dotCount = 0;
 function getStatus() {
     if (!offline) {
         // for the real thing: web request to server
@@ -33,10 +34,10 @@ function getStatus() {
                         if (raw !== "not logging") {
                             var data = JSON.parse(raw);
                             updateStatus(data, raw, logStart);
-                            selectButton("startLog", "stopLog");
+                            //selectButton("startLog", "stopLog");
                         } else {
                             renderText(false, 0);
-                            selectButton("stopLog", "startLog");
+                            //selectButton("stopLog", "startLog");
                         }
                         setTimeout(getStatus, updateInterval);
                     }
@@ -53,9 +54,12 @@ function getStatus() {
                         //console.log("stopping status requests to server");
                         if (isAdmin) {
                             //stopStatus();
-                            selectButton("stopLog", "startLog");
+                            //selectButton("stopLog", "startLog");
                         }
-                        print(".")
+                        print(".");
+                        if (++dotCount % 50 === 0) {
+                            printHTML("<br>");
+                        }
                         setTimeout(getStatus, updateInterval);
                         //waitForSite();
                     }
@@ -76,6 +80,8 @@ function initStatus() {
     liveServer = true;
     getStatus();
     console.log("now receiving status");
+    console.log("logFileName "+logFileName);
+    document.getElementById("logInfo").innerText = logFileName;
 }
 
 function stopStatus() {

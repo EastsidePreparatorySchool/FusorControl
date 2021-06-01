@@ -31,4 +31,8 @@ function print(msg) {
     chat.innerText += msg;
 }
 
+function printHTML(msg) {
+    var chat = document.getElementById("chat");
+    chat.innerHTML += msg;
+}
 
