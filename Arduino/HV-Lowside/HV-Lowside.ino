@@ -54,10 +54,12 @@ class stat
 stat variacOutput;
 stat nstOutput;
 stat cwOutput;
+stat cwCurrent;
 
 #define variacAdcPin 4
 #define nstAdcPin 5
 #define cwAdcPin 6
+#define cwCurrentAdcPin 1
 
 long nextDisplayUpdate;
 
@@ -70,6 +72,7 @@ float nstOffset = 0.542; // DividerOffset(270.0, 33.0, 8.2e3, 200e6, 5.0); // Wa
 float nstMultiplier = DividerMultiplier(270.0, 33.0, 8.2e3, 200e6) / 1000.0; // Make it KV.
 float cwOffset = 1.017; // DividerOffset(330.0, 82.0, 10e3, 400e6, 5.0); // Was 0.995, but measured 1.017
 float cwMultiplier = DividerMultiplier(330.0, 82.0, 10e3, 400e6) / 1000.0; // Make it KV.
+const float currentResistor = 100; // 100 Ohm
 const float adcToVolts = 1.067 / 1023; // This device is not 1.1v. Depends on a particular diode.
 
 const int captureCycles = 6;
@@ -80,6 +83,7 @@ void setup(){
   fusorAddVariable("variac_rms", FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("nst_rms", FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("cw_avg", FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("cwc_avg", FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("n", FUSOR_VARTYPE_INT);
 
   analogReference(INTERNAL1V1); // ADCs compare to 1.1v
@@ -103,28 +107,28 @@ void loop() {
 void updateAll() {
   // Read the variac voltage
   // The variac divider uses 8.2k and 3.3m resistors. Scale by: (3.3m + 8.2k)/(8.2k)(1.1 / 1023) = 0.43381
-  //  float variacReading = analogRead(variacAdcPin) * 0.43381;
   float variacReading;
-  //variacReading = (analogReadConstantTime(variacAdcPin)*adcToVolts - variacOffset) * variacMultiplier;
   variacReading = readConstantTime(variacAdcPin, variacOffset, variacMultiplier);
   variacOutput.accumulate(variacReading);  
 
   // Read the NST voltage
   // The NST divider uses 8.2k and 200m resistors. Scale by: (200m + 8.2k)/(8.2k)(1.1 / 1023) = 26.227
-  //  float nstReading = analogReadConstantTime(nstAdcPin) * 0.026227; // Make it KV
-  //float nstReading = (analogReadConstantTime(nstAdcPin)*adcToVolts - nstOffset) * nstMultiplier; // In KV.
   float nstReading = readConstantTime(nstAdcPin, nstOffset, nstMultiplier); // In KV.
   nstOutput.accumulate(nstReading);
 
   // Read the CW voltage
-  //float cwReading = (analogReadConstantTime(cwAdcPin)*adcToVolts - cwOffset) * cwMultiplier; // In KV.
   float cwReading = readConstantTime(cwAdcPin, cwOffset, cwMultiplier); // In KV.
   cwOutput.accumulate(cwReading);
+
+  // Read the CW current
+  // Measured as voltage over 100 Ohm resistor
+  float cwCurrentReading = readConstantTime(cwCurrentAdcPin, 0, 1000.0/currentResistor); // in mA
+  cwCurrent.accumulate(cwCurrentReading);
 }
 
 float readConstantTime(int pin, float offset, float multiplier) {
-  const long interval = 515; // 515 us, works out to about 100 samples for 10 60 hz cycles (empirically)
-  const long readTime = 100;  // 100 us = enough time for one more read
+  const long interval = 375;  // us, works out to about 100 samples for 10 60 hz cycles (empirically)
+  const long readTime = 100;  // 100 us = enough time for one more read?
   int result;
 
   // from here
@@ -161,12 +165,13 @@ void UpdateDisplay()
   nstOutput.Reset();
 
   float cwAverage = cwOutput.average();
-  float cwRMS = cwOutput.standardDeviation();
+  float cwcAverage = cwCurrent.average();
   cwOutput.Reset();
 
   fusorSetFloatVariable("variac_rms", variacRMS);
   fusorSetFloatVariable("nst_rms", nstRMS);
   fusorSetFloatVariable("cw_avg", cwAverage);
+  fusorSetFloatVariable("cwc_avg", cwcAverage);
   fusorSetIntVariable("n", variacN);
 }
 
