@@ -70,15 +70,15 @@ public class SerialDeviceMap {
             if (sd.isValid() || sd.name.equals("<unknown>")) {
                 //System.out.println("Examining SD:" + sd.name + "(supposedly " + port + ")");
                 if (!set.contains(port)) {
-                    System.out.println("not present, removing: " + port + " (" + sd.name + ")");
-                    DataLogger.recordSDAdvisory("Port not present, removing: " + port + " (" + sd.name + ")");
+                    System.out.println("not present, removing: " + sd.name + " (" + port + ")");
+                    DataLogger.recordSDAdvisory("Port for device not present, removing: " + sd.name + " (" + port + ")");
                     removals.add(sd);
                 } else {
                     // is valid serial device. Arduino?
                     if (sd instanceof Arduino) {
                         if (!sd.command("IDENTIFY")) {
-                            System.out.println("not responding, removing: " + port + " (" + sd.name + ")");
-                            DataLogger.recordSDAdvisory("Not responding, removing: " + port + " (" + sd.name + ")");
+                            System.out.println("device not responding, removing: " + sd.name + " (" + port + ")");
+                            DataLogger.recordSDAdvisory("Device not responding, removing: " + sd.name + " (" + port + ")");
                             removals.add(sd);
                         }
                     }
@@ -103,7 +103,7 @@ public class SerialDeviceMap {
             try {
                 sd.port.closePort();
             } catch (Exception e) {
-                System.out.println("Exception trying to close port for sd "+sd.name+", port "+sd.port.getSystemPortName());
+                System.out.println("Exception trying to close port for sd " + sd.name + ", port " + sd.port.getSystemPortName());
             }
         }
     }

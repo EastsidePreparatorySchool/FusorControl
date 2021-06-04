@@ -37,8 +37,8 @@ void setup(){
   pinMode(2, INPUT);
   pinMode(3, INPUT);
 
-  attachInterrupt(digitalPinToInterrupt(2), ISR2, RISING);
-  attachInterrupt(digitalPinToInterrupt(3), ISR3, RISING);
+  //attachInterrupt(digitalPinToInterrupt(2), ISR2, RISING);
+  //attachInterrupt(digitalPinToInterrupt(3), ISR3, RISING);
   
   FUSOR_LED_ON();
   delay(200);

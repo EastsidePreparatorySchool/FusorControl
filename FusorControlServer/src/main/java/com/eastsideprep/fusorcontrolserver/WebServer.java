@@ -99,12 +99,12 @@ public class WebServer {
         before("/protected/*", (req, res) -> {
             Context ctx = getCtx(req);
             if (ctx == null || !(ctx instanceof ObserverContext)) {
-                System.out.println("filter: /protected/*");
-                System.out.println("unauthorized " + req.uri());
-                System.out.println("Ctx: " + ctx);
-                if (ctx != null) {
-                    System.out.println("ClientID: " + ctx.clientID);
-                }
+//                System.out.println("filter: /protected/*");
+//                System.out.println("unauthorized " + req.uri());
+//                System.out.println("Ctx: " + ctx);
+//                if (ctx != null) {
+//                    System.out.println("ClientID: " + ctx.clientID);
+//                }
                 throw halt(401, "unauthorized");
             }
             // make sure everyone here has a log observer
@@ -113,7 +113,7 @@ public class WebServer {
                     ctx.obs = log.addObserver(ctx.name);
                 }
             } catch (Exception e) {
-                System.out.println("exception in /protected filter while adding context");
+                System.out.println("exception in /protected filter while adding observer");
             }
 
         });
@@ -121,12 +121,12 @@ public class WebServer {
             try {
                 Context ctx = getCtx(req);
                 if (ctx == null || !(ctx instanceof AdminContext)) {
-                    System.out.println("filter: /protected/admin/*");
-                    System.out.println("unauthorized " + req.uri());
-                    System.out.println("Ctx: " + ctx);
-                    if (ctx != null) {
-                        System.out.println("ClientID: " + ctx.clientID);
-                    }
+//                    System.out.println("filter: /protected/admin/*");
+//                    System.out.println("unauthorized " + req.uri());
+//                    System.out.println("Ctx: " + ctx);
+//                    if (ctx != null) {
+//                        System.out.println("ClientID: " + ctx.clientID);
+//                    }
                     throw halt(401, "unauthorized");
                 }
                 // make sure everyone here has a log observer
@@ -135,7 +135,7 @@ public class WebServer {
                         ctx.obs = log.addObserver(ctx.name);
                     }
                 } catch (Exception e) {
-                    System.out.println("exception in /protected filter while adding context");
+                    System.out.println("exception in /protected filter while adding admin observer");
                 }
             } catch (Throwable t) {
                 System.out.println("exception in /protected/admin filter");
@@ -202,10 +202,13 @@ public class WebServer {
         String login = req.queryParams("login");
         Context ctx;
 
+        if (req.ip().equals("0:0:0:0:0:0:0:1")) {
+            login = "SYSTEM";
+        }
+
         //System.out.println("\"" + login + "\"");
         if ((req.ip().equals("10.20.82.127") /* GMEIN's LAPTOP */
-                || req.ip().equals("0:0:0:0:0:0:0:1") /* LOCALHOST */)
-                && login.equalsIgnoreCase("gmein")) {
+                || req.ip().equals("0:0:0:0:0:0:0:1") /* LOCALHOST */)) {
             System.out.println("login: Admin: " + login);
             ctx = new AdminContext(login, instance);
             ctx.isAdmin = true;
@@ -233,12 +236,16 @@ public class WebServer {
         if (login.contains("@")) {
             login = login.substring(0, login.indexOf('@'));
         }
+
+        if (req.ip().equals("0:0:0:0:0:0:0:1")) {
+            login = "SYSTEM";
+        }
+
         Context ctx;
 
         //System.out.println("\"" + login + "\"");
         if ((req.ip().equals("10.20.82.127") /* GMEIN's LAPTOP */
-                || req.ip().equals("0:0:0:0:0:0:0:1") /* LOCALHOST */)
-                && login.equalsIgnoreCase("gmein")) {
+                || req.ip().equals("0:0:0:0:0:0:0:1") /* LOCALHOST */)) {
             System.out.println("login: Admin: " + login);
             ctx = new AdminContext(login, instance);
             ctx.isAdmin = true;

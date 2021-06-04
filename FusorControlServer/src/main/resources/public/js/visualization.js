@@ -47,7 +47,7 @@ var vizChannels = {
     'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric", graph: "yes"},
     'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'kV', min: 0, max: 8, type: "continuous", datatype: "numeric", graph: "yes"},
     'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW abs voltage', unit: 'kV', min: 0, max: 50, factor: -1, type: "continuous", datatype: "numeric", graph: "yes"},
-    'HV-LOWSIDE.cwc_avg': {name: 'CW current (mA)', shortname: 'CW current', unit: 'mA', min: 0, max: 12, type: "continuous", datatype: "numeric", graph: "yes"},
+    'HV-LOWSIDE.cwc_avg': {name: 'CW current (mA)', shortname: 'CW current', unit: 'mA', min: 0, max: 10, type: "continuous", datatype: "numeric", graph: "yes"},
     'PN-JUNCTION.total': {name: 'Photons PNJ (ADC)', shortname: 'PN-J', unit: 'ADC raw', min: 0, max: 1023, type: "continuous", datatype: "numeric", graph: "yes"},
     'SENSORARRAY.pin': {name: 'Photons PIN (uSv/h)', shortname: 'PIN', unit: 'uSv/h', min: 0, max: 100, type: "continuous", datatype: "numeric", graph: "yes"},
     'SENSORARRAY.gc1': {name: 'GC1 (Whitmer, inside) (cps)', shortname: 'GC1 (W) inside', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric", graph: "yes"},
@@ -55,7 +55,7 @@ var vizChannels = {
     'SENSORARRAY.gc3': {name: 'GC2 (outside) (cps)', shortname: 'GC3 outside', unit: 'cps', min: 0, max: 250, type: "discrete trailing", datatype: "numeric", graph: "yes"},
     'Heartbeat.beat': {name: 'Heartbeat', shortname: '', unit: '', min: 0, max: 50, type: "momentary", datatype: "numeric", graph: "yes"},
     //'Heartbeat.logsize': {name: 'Log size (kEntries)', shortname: 'LOGSIZE', unit: 'kEntries', min: 0, max: 10000, type: "discrete", datatype: "numeric"},
-    'Comment.text': {name: 'Comment', shortname: '', min: 0, max: 30, type: "momentary", datatype: "text"},
+    'Comment.text': {name: 'Comment', shortname: '', min: 0, max: 5, type: "momentary", datatype: "text", graph:"yes"},
     'Login.text': {name: 'Login', shortname: '', min: 0, max: 40, type: "momentary", datatype: "text"},
     'Command.text': {name: 'Command', shortname: '', min: 0, max: 20, type: "momentary", datatype: "text"}
 

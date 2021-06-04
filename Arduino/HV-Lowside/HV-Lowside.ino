@@ -167,6 +167,7 @@ void UpdateDisplay()
   float cwAverage = cwOutput.average();
   float cwcAverage = cwCurrent.average();
   cwOutput.Reset();
+  cwCurrent.Reset();
 
   fusorSetFloatVariable("variac_rms", variacRMS);
   fusorSetFloatVariable("nst_rms", nstRMS);

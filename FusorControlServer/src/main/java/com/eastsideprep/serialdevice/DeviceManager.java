@@ -508,7 +508,7 @@ public class DeviceManager {
                 SerialDevice sd = specificDevice(a);
                 dm.register(sd);
 
-                DataLogger.recordSDAdvisory("Adding: " + port + " (" + sd.name + ")");
+                DataLogger.recordSDAdvisory("Adding: " + sd.name + " (" + port + ")");
                 System.out.println("  -- new Arduino connected: " + sd.name + " (" + sd.originalName + ", function: " + sd.function + "), on: " + port.getSystemPortName());
             }
         }
@@ -561,11 +561,7 @@ public class DeviceManager {
                 //
                 // non-core: web server may start without them
                 //
-                case "HVHIGHSIDE":
-                    sd = new HVHighsideSensor(a);
-                    sd.function = "BT HV highside current sensor";
-                    break;
-
+                
                 default:
                     break;
             }
