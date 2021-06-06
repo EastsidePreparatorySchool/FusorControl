@@ -63,7 +63,7 @@ void setVoltage(float volts) {
     if ((i+1)%100 == 0) {
       fusorSetFloatVariable("dial_volts", currentVolts + sign*stepsToVolts(i));
       //fusorSetFloatVariable("input_volts", volts);
-      fusorDelayMicroseconds(5);
+      fusorDelayMicroseconds(25);
     }
   }
   // we don't need to hold this by force, turn it off

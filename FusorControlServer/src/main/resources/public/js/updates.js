@@ -81,7 +81,7 @@ function initStatus() {
     getStatus();
     console.log("now receiving status");
     console.log("logFileName "+logFileName);
-    document.getElementById("logInfo").innerText = logFileName;
+    document.getElementById("logInfo").innerText = logFileName.substr(logFileName.lastIndexOf("/")+1);
 }
 
 function stopStatus() {
