@@ -27,7 +27,7 @@ function enableAdminControls(enable) {
         "startLog", "saveLog", "getStatus", "kill",
         "rpon", "rpoff", "tmpon", "tmpoff", "variacValue", "variacButton",
         "solon", "soloff", "needleValue", "needleButton",
-        "variacStop", "variacZero", "tmplow", "tmphigh"
+        "variacStop", "variacZero", "tmplow", "tmphigh", "needleZero"
     ];
 
     for (var i = 0; i < adminControls.length; i++) {

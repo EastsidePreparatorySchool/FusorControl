@@ -15,6 +15,8 @@
 #define MINSTEPS 0
 #define MAXSTEPS 520
 
+#define STEP_DELAY_MS 500
+
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 Adafruit_StepperMotor *myMotor;
 
@@ -43,8 +45,12 @@ void setup() {
 int voltToSteps(float volts) {
   return map(volts, MINVOLTS, MAXVOLTS, MINSTEPS, MAXSTEPS);
 }
+
+float fmap(float x, float in_min, float in_max, float out_min, float out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
 float stepsToVolts(int steps) {
-  return map(steps, MINSTEPS, MAXSTEPS, MINVOLTS, MAXVOLTS);
+  return fmap(steps, MINSTEPS, MAXSTEPS, MINVOLTS, MAXVOLTS);
 }
 
 void setVoltage(float volts) {
@@ -60,11 +66,10 @@ void setVoltage(float volts) {
     myMotor->onestep(sign>0?FORWARD:BACKWARD, INTERLEAVE); 
 
     // update our variables
-    if ((i+1)%100 == 0) {
-      fusorSetFloatVariable("dial_volts", currentVolts + sign*stepsToVolts(i));
-      //fusorSetFloatVariable("input_volts", volts);
-      fusorDelayMicroseconds(25);
-    }
+    fusorSetFloatVariable("dial_volts", currentVolts + sign*stepsToVolts(i));
+
+    // don't want to do this too fast
+    fusorDelay(STEP_DELAY_MS);
   }
   // we don't need to hold this by force, turn it off
   myMotor->release();
