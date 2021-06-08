@@ -226,8 +226,8 @@ function enableCameras() {
                     for (var i = 1; i <= numCameras; i++) {
                         var cam = document.getElementById("cam" + i);
                         cam.style.display = "inline";
-                        //cam.src = window.location.origin + ":45" + (i + 66) + "/mjpg";
-                        cam.src = "http://fusor3:45" + (i + 66) + "/mjpg";
+                        cam.src = window.location.origin + ":45" + (i + 66) + "/mjpg";
+                        //cam.src = "http://fusor3:45" + (i + 66) + "/mjpg";
                     }
                 })
                 .catch(error => {

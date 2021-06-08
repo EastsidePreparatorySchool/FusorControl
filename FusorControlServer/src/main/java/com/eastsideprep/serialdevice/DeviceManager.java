@@ -209,23 +209,26 @@ public class DeviceManager {
         // thread priority below web server and also below logger thread
         // discovering new devices is not that important, after all
         Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 2);
-        try {
-            while (!Thread.interrupted()) {
-                int prevDevices = this.deviceMap.validDeviceCount();
+        while (!Thread.interrupted()) {
+            try {
                 queryIdentifyAll(semaphore);
                 Thread.sleep(1000);
-                if (WebServer.dl != null && prevDevices != this.deviceMap.validDeviceCount()) {
+                if (WebServer.dl != null) {
                     this.autoStatusOn();
                 }
+            } catch (InterruptedException e) {
+                return;
+            } catch (Exception e) {
+                System.out.println("DeviceManager loop exception: "+e);
+                e.printStackTrace();
             }
-        } catch (InterruptedException e) {
         }
 
     }
 
     private void queryIdentifyAll(Object semaphore) throws InterruptedException {
         //
-        // gather hardwre MAC addresses to figure out which computer this is
+        // gather hardware MAC addresses to figure out which computer this is
         //
 
         ArrayList<byte[]> macs = new ArrayList<>();
@@ -561,7 +564,6 @@ public class DeviceManager {
                 //
                 // non-core: web server may start without them
                 //
-                
                 default:
                     break;
             }

@@ -71,7 +71,7 @@ public class CamStreamer {
             System.out.println("Webcam " + count + ", \"" + cam.getName() + "\" opened");
 
             if (!FusorControlServer.config.noCameraStreaming) {
-                ws = new WebcamStreamer(4567 + count, cam, 10, true);
+                ws = new WebcamStreamer(4567 + count, cam, 5, true);
                 if (ws == null) {
                     System.out.println("webstreamer error");
                     return;
@@ -87,18 +87,15 @@ public class CamStreamer {
         discovery.stop();
     }
 
-    void record(Webcam webcam, String fileName, long baseTime) {
+    void record(Webcam webcam, String fileName, long baseTime, String customName) {
         File file = new File(fileName + ".mp4");
         System.out.println("Recording cam " + webcam.getName() + " in file " + file.getAbsolutePath());
 
         // this is xuggler's weird way of specifying frames per sec
-        IRational FRAME_RATE = IRational.make(20, 1);
+        IRational FRAME_RATE = IRational.make(5, 1);
 
         // get the writer prepared
         Dimension size = WebcamResolution.QVGA.getSize();
-        if (webcam.getName().startsWith("Logitech")) {
-            size = WebcamResolution.VGA.getSize();
-        }
         final Dimension fSize = size;
         final IMediaWriter writer;
         try {
@@ -106,7 +103,7 @@ public class CamStreamer {
             writer.addVideoStream(0, 0, FRAME_RATE, size.width, size.height);
         } catch (Throwable e) {
             System.out.println(e);
-            System.out.println(e.getStackTrace());
+            e.printStackTrace();
             return;
         }
 
@@ -122,8 +119,11 @@ public class CamStreamer {
                         BufferedImage image = new BufferedImage(fSize.width, fSize.height, BufferedImage.TYPE_3BYTE_BGR);
                         Graphics gfx = image.getGraphics();
                         gfx.drawImage(webcam.getImage(), 0, 0, null);
+                        String name = customName == null?"":customName;
+                        if (name.length() > 0) {
+                            image.getGraphics().drawString(name, 10, fSize.height - 10);
+                        }
                         image.getGraphics().drawString(Double.toString(secs), 10, 20);
-                        image.getGraphics().drawString(file.getName(), 10, fSize.height - 10);
                         writer.encodeVideo(0, image, System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
                     } catch (Throwable ex) {
                         System.out.println(ex);
@@ -146,11 +146,11 @@ public class CamStreamer {
         this.camThreads.add(t);
     }
 
-    public void startRecording(String filePrefix, long baseTime) {
+    public void startRecording(String filePrefix, long baseTime, String customName) {
         int i = 0;
         stopRecording = false;
         for (Webcam cam : this.cams) {
-            record(cam, filePrefix + i, baseTime);
+            record(cam, filePrefix + i, baseTime, customName);
             i++;
         }
     }

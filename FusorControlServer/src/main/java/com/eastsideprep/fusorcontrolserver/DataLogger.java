@@ -58,7 +58,7 @@ public class DataLogger {
             }
             this.cs = cs;
             if (FusorControlServer.config.saveProcessedVideo) {
-                cs.startRecording(fileName + "_cam_", this.baseTime);
+                cs.startRecording(fileName + "_cam_", this.baseTime, customName);
             }
 
             // and go

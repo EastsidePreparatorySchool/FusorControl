@@ -70,7 +70,11 @@ public class WebServer {
         post("/logout", (req, res) -> logout(req, res));
         get("/numcameras", (req, res) -> {
             res.header("Access-Control-Allow-Origin", "*");
-            return Integer.toString(cs.numCameras);
+            Context ctx = getCtx(req);
+            if (ctx instanceof AdminContext) {
+                return Integer.toString(cs.numCameras);
+            }
+            return 0;
         });
         get("/client", (req, res) -> getClient(req, res));
         get("/resetobserver", (req, res) -> resetObserver(req, res));

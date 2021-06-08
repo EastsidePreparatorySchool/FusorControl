@@ -87,6 +87,9 @@
                                 var cam = document.getElementById("cam" + i);
                                 cam.style.display = "inline";
                                 cam.src = window.location.origin + ":45" + (i + 66) + "/mjpg";
+                                if (numCameras === 1) {
+                                    cam.style.width = "100%";
+                                }
                             }
                         })
                         .catch(error => {

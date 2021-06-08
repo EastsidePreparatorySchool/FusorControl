@@ -43,7 +43,7 @@ var vizChannels = {
     'HV-RELAY.in': {name: 'Variac relay', shortname: 'VAR relay', unit: '', min: 0, max: 1.8, type: "discrete", datatype: "boolean"},
     'VARIAC.input_volts': {name: 'Variac target (V)', shortname: 'VAR target', unit: 'V', min: 0, max: 140, type: "discrete", datatype: "numeric", graph: "yes"},
     'VARIAC.dial_volts': {name: 'Variac dial (V)', shortname: 'VAR dial', unit: 'V', min: 0, max: 140, type: "discrete", datatype: "numeric", graph: "yes"},
-    'HV-LOWSIDE.n': {name: 'Variac samples', shortname: 'VAR samples', unit: '', min: 0, max: 1000, type: "discrete", datatype: "numeric"},
+    //'HV-LOWSIDE.n': {name: 'Variac samples', shortname: 'VAR samples', unit: '', min: 0, max: 1000, type: "discrete", datatype: "numeric"},
     'HV-LOWSIDE.variac_rms': {name: 'Variac RMS (V)', shortname: 'VAR rms', unit: 'V', min: 0, max: 130, type: "continuous", datatype: "numeric", graph: "yes"},
     'HV-LOWSIDE.nst_rms': {name: 'NST RMS (kV)', shortname: 'NST rms', unit: 'kV', min: 0, max: 8, type: "continuous", datatype: "numeric", graph: "yes"},
     'HV-LOWSIDE.cw_avg': {name: 'CW ABS AVG (kV)', shortname: 'CW abs voltage', unit: 'kV', min: 0, max: 50, factor: -1, type: "continuous", datatype: "numeric", graph: "yes"},

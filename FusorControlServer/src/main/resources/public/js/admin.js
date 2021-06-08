@@ -33,6 +33,22 @@ function enableAdminControls(enable) {
     for (var i = 0; i < adminControls.length; i++) {
         document.getElementById(adminControls[i]).disabled = (!isAdmin) || (!enable);
     }
+
+    request({url: "/numcameras", method: "GET"})
+            .then(data => {
+                // yes: make the display visible and set the url
+                var numCameras = Number(data);       // got number from server
+                numCameras = Math.min(numCameras, 4); // 4 cameras max
+                for (var i = 1; i <= numCameras; i++) {
+                    var cam = document.getElementById("cam" + i);
+                    cam.style.display = "inline";
+                    cam.src = window.location.origin + ":45" + (i + 66) + "/mjpg";
+                    //cam.src = "http://fusor3:45" + (i + 66) + "/mjpg";
+                }
+            })
+            .catch(error => {
+                console.log("camera error: " + error);
+            });
 }
 
 
@@ -75,8 +91,8 @@ function newLogName(name) {
     }
 
     name += " (" + n + ")";
-    
-  
+
+
 
     return name;
 }
