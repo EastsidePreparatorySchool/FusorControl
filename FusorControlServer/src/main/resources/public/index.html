@@ -15,13 +15,14 @@
             }
 
             makeClientID();
+            
             //location.assign("http://epsauth.azurewebsites.net/login?url="+location.href+"login.html&loginparam=login");
             if (location.host === "localhost") {
-                location.assign(location.href + "autologin?login=SYSTEM");
+                location.assign(location.href + "autologin?login=SYSTEM&clientID=" + getClientID());
+            } else {
+                location.assign("http://epsauth.azurewebsites.net/login?passthroughparam=clientID&passthrough=" + getClientID() +
+                        "&url=" + location.href + "autologin&loginparam=login");
             }
-            
-            location.assign("http://epsauth.azurewebsites.net/login?passthroughparam=clientID&passthrough=" + getClientID() +
-                    "&url=" + location.href + "autologin&loginparam=login");
         </script>
         <script type="text/javascript">
 

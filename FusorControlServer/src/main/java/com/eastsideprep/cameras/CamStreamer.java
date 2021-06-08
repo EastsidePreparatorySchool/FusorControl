@@ -112,27 +112,24 @@ public class CamStreamer {
             long start = System.currentTimeMillis();
             while (!stopRecording) {
                 try {
-                    try {
-                        //get timestamp, get image into bufferImage
-                        long millis = System.currentTimeMillis();
-                        double secs = ((millis - baseTime) / 100) / 10.0;
-                        BufferedImage image = new BufferedImage(fSize.width, fSize.height, BufferedImage.TYPE_3BYTE_BGR);
-                        Graphics gfx = image.getGraphics();
-                        gfx.drawImage(webcam.getImage(), 0, 0, null);
-                        String name = customName == null?"":customName;
-                        if (name.length() > 0) {
-                            image.getGraphics().drawString(name, 10, fSize.height - 10);
-                        }
-                        image.getGraphics().drawString(Double.toString(secs), 10, 20);
-                        writer.encodeVideo(0, image, System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
-                    } catch (Throwable ex) {
-                        System.out.println(ex);
-                        System.out.println(Arrays.toString(ex.getStackTrace()));
-                        Thread.currentThread().interrupt();
+                    //get timestamp, get image into bufferImage
+                    long millis = System.currentTimeMillis();
+                    double secs = ((millis - baseTime) / 100) / 10.0;
+                    BufferedImage image = new BufferedImage(fSize.width, fSize.height, BufferedImage.TYPE_3BYTE_BGR);
+                    Graphics gfx = image.getGraphics();
+                    gfx.drawImage(webcam.getImage(), 0, 0, null);
+                    String name = customName == null ? "" : customName;
+                    if (name.length() > 0) {
+                        image.getGraphics().drawString(name, 10, fSize.height - 10);
                     }
-                    Thread.sleep((long) (1000 / FRAME_RATE.getDouble()));
-                } catch (InterruptedException ex) {
+                    image.getGraphics().drawString(Double.toString(secs), 10, 20);
+                    writer.encodeVideo(0, image, System.currentTimeMillis() - start, TimeUnit.MILLISECONDS);
+                } catch (Throwable ex) {
+                    System.out.println(ex);
+                    System.out.println(Arrays.toString(ex.getStackTrace()));
+                    Thread.currentThread().interrupt();
                 }
+                Thread.yield();
             }
             // spend a final half-second giving the encoder time to catch up ...
             try {

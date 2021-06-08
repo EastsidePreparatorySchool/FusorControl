@@ -91,6 +91,9 @@ public class WebServer {
         });
 
         before((req, res) -> {
+            if (req.ip().equals("0:0:0:0:0:0:0:1")  || req.ip().equals("127.0.0.1")) {
+                return;
+            }
             // System.out.println("filter: timer alive?" + req.url());
             Context ctx = getCtx(req);
             // liveness check - this actually governs expiration
@@ -148,6 +151,9 @@ public class WebServer {
 
         // liveness timer - this keeps the context alive for valid pages and requests
         before((req, res) -> {
+            if (req.ip().equals("0:0:0:0:0:0:0:1")  || req.ip().equals("127.0.0.1")) {
+                return;
+            }
             Context ctx = getCtx(req);
             if (ctx != null) {
                 if (!req.url().endsWith("/protected/checktimeout")) {
@@ -206,13 +212,13 @@ public class WebServer {
         String login = req.queryParams("login");
         Context ctx;
 
-        if (req.ip().equals("0:0:0:0:0:0:0:1")) {
+        if (req.ip().equals("0:0:0:0:0:0:0:1") || req.ip().equals("127.0.0.1")) {
             login = "SYSTEM";
         }
 
         //System.out.println("\"" + login + "\"");
         if ((req.ip().equals("10.20.82.127") /* GMEIN's LAPTOP */
-                || req.ip().equals("0:0:0:0:0:0:0:1") /* LOCALHOST */)) {
+                || req.ip().equals("0:0:0:0:0:0:0:1")  || req.ip().equals("127.0.0.1") /* LOCALHOST */)) {
             System.out.println("login: Admin: " + login);
             ctx = new AdminContext(login, instance);
             ctx.isAdmin = true;
@@ -236,20 +242,21 @@ public class WebServer {
     }
 
     private static String autoLogin(spark.Request req, spark.Response res) {
+        System.out.println("AutoLogin");
         String login = req.queryParams("login");
         if (login.contains("@")) {
             login = login.substring(0, login.indexOf('@'));
-        }
-
-        if (req.ip().equals("0:0:0:0:0:0:0:1")) {
+        } else if (req.ip().equals("0:0:0:0:0:0:0:1") || req.ip().equals("127.0.0.1")) {
             login = "SYSTEM";
+        } else {
+            login = "not recognized";
         }
 
         Context ctx;
 
         //System.out.println("\"" + login + "\"");
         if ((req.ip().equals("10.20.82.127") /* GMEIN's LAPTOP */
-                || req.ip().equals("0:0:0:0:0:0:0:1") /* LOCALHOST */)) {
+                || req.ip().equals("0:0:0:0:0:0:0:1")  || req.ip().equals("127.0.0.1")/* LOCALHOST */)) {
             System.out.println("login: Admin: " + login);
             ctx = new AdminContext(login, instance);
             ctx.isAdmin = true;
@@ -259,6 +266,7 @@ public class WebServer {
         }
 
         ctx.name = login;
+        ctx.login = login;
         registerCtx(req, ctx);
 
         long millis = System.currentTimeMillis();

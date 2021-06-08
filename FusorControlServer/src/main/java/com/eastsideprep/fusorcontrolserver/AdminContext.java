@@ -39,7 +39,11 @@ public class AdminContext extends ObserverContext {
         String upgradeCommand = "#promote";
         String devicesCommand = "#devices";
 
-        if (text.startsWith(upgradeCommand) && (this.login.equals("gmein") || this.login.equals("klewellen") || this.login.equals("chuck"))) {
+        if (text.startsWith(upgradeCommand) 
+                && (this.login.equals("gmein") 
+                || this.login.equals("klewellen") 
+                || this.login.equals("SYSTEM") 
+                || this.login.equals("chuck"))) {
             String obs = text.substring(upgradeCommand.length()).trim();
             upgradeObserver(obs);
             logAdminCommand("#promote: " + obs);
