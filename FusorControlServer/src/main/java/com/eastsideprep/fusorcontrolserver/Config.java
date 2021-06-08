@@ -20,6 +20,7 @@ public class Config {
     public long cmdTimeOut = 300;
     public boolean saveProcessedVideo = false;
     public boolean noCameras = false;
+    public boolean noCameraStreaming = false;
 
     private static Gson gson = new Gson();
 

@@ -38,9 +38,11 @@ public class CamStreamer {
         int def = 0;
         this.dm = dm;
 
-//        if (FusorControlServer.config.noCameras) {
-//            return;
-//        }
+        numCameras = 0;
+
+        if (FusorControlServer.config.noCameras) {
+            return;
+        }
 
         for (Webcam cam : camList) {
             if (cam == null) {
@@ -68,12 +70,14 @@ public class CamStreamer {
             cam.open();
             System.out.println("Webcam " + count + ", \"" + cam.getName() + "\" opened");
 
-            ws = new WebcamStreamer(4567 + count, cam, 10, true);
-            if (ws == null) {
-                System.out.println("webstreamer error");
-                return;
+            if (!FusorControlServer.config.noCameraStreaming) {
+                ws = new WebcamStreamer(4567 + count, cam, 10, true);
+                if (ws == null) {
+                    System.out.println("webstreamer error");
+                    return;
+                }
+                System.out.println("  WebStreamer started on port " + (4567 + count));
             }
-            System.out.println("  WebStreamer started on port " + (4567 + count));
             count++;
         }
 
