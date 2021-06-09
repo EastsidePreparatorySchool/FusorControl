@@ -255,8 +255,12 @@ public class WebServer {
         Context ctx;
 
         //System.out.println("\"" + login + "\"");
-        if ((req.ip().equals("10.20.82.127") /* GMEIN's LAPTOP */
-                || req.ip().equals("0:0:0:0:0:0:0:1")  || req.ip().equals("127.0.0.1")/* LOCALHOST */)) {
+        if (req.ip().equals("0:0:0:0:0:0:0:1")  
+                || req.ip().equals("127.0.0.1")/* LOCALHOST */
+                || login.equals("chuck")
+                || login.equals("klewellen")
+                || login.equals("gmein")
+                ) {
             System.out.println("login: Admin: " + login);
             ctx = new AdminContext(login, instance);
             ctx.isAdmin = true;
