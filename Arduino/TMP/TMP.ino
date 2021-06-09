@@ -8,7 +8,8 @@
 
 #define TMP_ON    2  // pin for TMP on(high)/off(low)
 #define TMP_SPEED 3  // pin for TMP speed low/high
-#define TMP_ERROR 4  // pin will have "signal present" for errors
+//#define TMP_ERROR 4  // pin will have "signal present" for errors
+#define TMP_ERROR 2  // temporary: analog pin will have "signal present" for errors
 #define TMP_RESET 5  // ground this pin to reset error condition
 #define TMP_AMPS  A0 // pin for pump amps 0-10V = 0 - 2.5A
 #define TMP_FREQ  A1 // pin for pump freq 0-10V = 0 - 1250Hz
@@ -17,7 +18,7 @@ void setup() {
   fusorInit("TMP");
   fusorAddVariable("tmp", FUSOR_VARTYPE_BOOL);
   fusorAddVariable("lowspeed", FUSOR_VARTYPE_BOOL);
-  fusorAddVariable("error", FUSOR_VARTYPE_BOOL);
+  fusorAddVariable("error", FUSOR_VARTYPE_INT);
   fusorAddVariable("reset", FUSOR_VARTYPE_BOOL);
   
   fusorAddVariable("pump_curr_amps", FUSOR_VARTYPE_FLOAT);
@@ -33,7 +34,7 @@ void setup() {
   pinMode(TMP_ON, OUTPUT);
   pinMode(TMP_SPEED, OUTPUT);
   pinMode(TMP_RESET, OUTPUT);
-  pinMode(TMP_ERROR, INPUT);
+  //pinMode(TMP_ERROR, INPUT);
   
 
   tmpOff();
@@ -130,8 +131,10 @@ void tmpHigh() {
 }
 
 
-bool tmpError() {
-  return digitalRead(TMP_ERROR) == HIGH;
+//bool tmpError() {
+int tmpError() {
+  //return digitalRead(TMP_ERROR) == HIGH;
+  return analogRead(TMP_ERROR);
 }
 
 void tmpReset() {

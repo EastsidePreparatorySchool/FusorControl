@@ -8,11 +8,6 @@ public class VariacControlDevice extends Arduino {
     }
     
     public boolean setVoltage(float v, CoreDevices cd) {
-        if (v == 0 || v == -1) {
-            cd.hvrelay.off();
-        } else {
-            cd.hvrelay.on();
-        }
-        return this.set("input_volts", v);
+       return this.set("input_volts", v);
     }
 }

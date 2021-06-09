@@ -12,21 +12,15 @@
             <div class="fcontrol">
                 <button style="width:19.5%" disabled id="startLog" class="btn btn-primary btn-large" onclick="startLog()">Start New Log</button>
                 <button id="saveLog" disabled class="btn btn-primary btn-large" style="width:19.5%;border:2px solid black" onclick="saveLog()">Save Log</button>
-                <button id="getStatus" style="width:19.5%" disabled class="btn btn-primary btn-large" onclick="getOneStatus()">Get Status</button>
+<!--                <button id="getStatus" style="width:19.5%" disabled class="btn btn-primary btn-large" onclick="getOneStatus()">Get Status</button>
                 <button style="width:19.5%" id="loadLog" class="btn btn-primary btn-large" onclick="getLogs()">Load Log ...</button>
-                <button id="kill" disabled class="btn btn-primary btn-large" style="width:19.5%;background-color: #f64072;" onclick="kill()"><b>Stop Server</b></button>
+                <button id="kill" disabled class="btn btn-primary btn-large" style="width:19.5%;background-color: #f64072;" onclick="kill()"><b>Stop Server</b></button>-->
             </div>
             <div class="ftime" style="text-align:right">
                 Current Log Time:&nbsp;<span id="logtime">0:00</span>&nbsp;s
             </div>
             <div class="fdevices" style="text-align: left">
                 <div>
-                    RP:<br>
-                    <button disabled class="btn btn-primary btn-large" id="rpon" style="width: 48%; background-color: #39a82a;" onclick="rpOn()">On</button>
-                    <button disabled class="btn btn-primary btn-large" id="rpoff" 
-                            style="width: 48%; border:2px solid black; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif"
-                            onclick="rpOff()">Off</button>
-                    <br>
                     TMP:<br>
                     <button disabled class="btn btn-primary btn-large" id="tmpon" style="width: 48%; background-color: #39a82a;" onclick="tmpOn()">On</button>
                     <button disabled class="btn btn-primary btn-large" id="tmpoff" style="width: 48%; border:2px solid black; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif" onclick="tmpOff()">Off</button>
@@ -35,12 +29,19 @@
                     <br>
                     <br>
 
-                    Variac Target Voltage:<br>
+                    HV:<br>
+                    <button disabled class="btn btn-primary btn-large" id="hvon" style="width: 48%; background-color: #39a82a;" onclick="hvOn()">On</button>
+                    <button disabled class="btn btn-primary btn-large" id="hvoff" 
+                            style="width: 48%; border:2px solid black; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif"
+                            onclick="hvOff()">Off</button>
+                    <br>
+                    
                     <input disabled style="width:48%;" id="variacValue" min="0" max="140" step="1" value="0" type="number" onchange="variac(this.value)">
                     <button disabled id="variacButton" style="width:48%;" class="btn btn-primary btn-large" onclick="variac(document.getElementById('variacValue').value)" >Set</button>
                     <br>
-                    <button disabled style="width:48%;" id="variacStop" class="btn btn-primary btn-large" onclick="variac_stop(-1)">Stop</button>
+                    <button disabled style="width:48%;" id="variacStop" class="btn btn-primary btn-large" onclick="variac_stop()">Stop</button>
                     <button disabled style="width:48%;" id="variacZero" class="btn btn-primary btn-large" onclick="variac(0)">Zero</button>
+                    <br>
                     <br>
 
                     Solenoid Valve:<br>
@@ -49,12 +50,15 @@
                             style="border:2px solid black;width: 48%; background-color: #f64072;font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;"
                             onclick="SolenoidOff()">Closed</button>
                     <br>
+                    <br>
 
                     Needle Valve:<br>
                     <input disabled style="width:31%;" id="needleValue" min="0" max="100" step="0.1" value="0" type="number"  onchange="needleValve(this.value)" >
                     <button disabled style="width:31%;" id="needleButton" class="btn btn-primary btn-large" onclick="needleValve(document.getElementById('needleValue').value)" >Set</button>
                     <button disabled style="width:31%;" id="needleZero" class="btn btn-primary btn-large" onclick="needleValve('0')" >Zero</button>
 
+                    <br>
+                    <br>
                     <br>
                     <button style="width:98%;" id="emergencyStop" class="btn btn-primary btn-large" onclick="emergency_stop()">Emergency stop</button>
                     <br>

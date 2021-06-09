@@ -29,9 +29,10 @@ var maxTime = 0;
 // datatype: used for both line and text display
 //
 var vizChannels = {
-    'RP.rp_in': {name: 'RP status', shortname: 'RP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
+    //'RP.rp_in': {name: 'RP status', shortname: 'RP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
     'TMP.tmp': {name: 'TMP status', shortname: 'TMP status', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
-    'TMP.error': {name: 'TMP error', shortname: 'TMP error', unit: '', min: 0, max: 2, type: "discrete", datatype: "error"},
+    //'TMP.error': {name: 'TMP error', shortname: 'TMP error', unit: '', min: 0, max: 2, type: "discrete", datatype: "error"},
+    'TMP.error': {name: 'TMP error', shortname: 'TMP error', unit: '', min: 0, max: 1024, type: "continuous", datatype: "numeric"},
     'TMP.lowspeed': {name: 'TMP lowspeed', shortname: 'TMP lowspeed', unit: '', min: 0, max: 2, type: "discrete", datatype: "boolean"},
     'TMP.pump_freq': {name: 'TMP frequency (Hz)', shortname: 'TMP drv freq', unit: 'Hz', min: 0, max: 1250, type: "continuous", datatype: "numeric", graph: "yes"},
     'TMP.pump_curr_amps': {name: 'TMP current (A)', shortname: 'TMP amps', unit: 'A', min: 0, max: 2.5, type: "continuous", datatype: "numeric", graph: "yes"},
@@ -300,11 +301,11 @@ function renderText(update, now) {
 // incomplete/buggy
 //
 function renderButtons() {
-    var tc = textChannels["RP.rp_in"];
+    var tc = textChannels["HV-RELAY.in"];
     if (tc !== undefined && tc.value !== 0) {
-        selectButton("rpon", "rpoff");
+        selectButton("hvon", "hvoff");
     } else {
-        selectButton("rpoff", "rpon");
+        selectButton("hvoff", "hvon");
     }
 
     var tc = textChannels["TMP.tmp"];

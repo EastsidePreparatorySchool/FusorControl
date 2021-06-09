@@ -70,6 +70,11 @@ void setVoltage(float volts) {
 
     // don't want to do this too fast
     fusorDelay(STEP_DELAY_MS);
+
+    // check for abort
+    if (fusorVariableUpdated("stop")) {
+      break;
+    }
   }
   // we don't need to hold this by force, turn it off
   myMotor->release();
@@ -85,9 +90,9 @@ void zeroVoltage() {
   //set the variac as low as we can
   setVoltage(MINVOLTS);
 
-  //drive down 200 bonus steps, so we get to actual zero
+  //drive down 40 bonus steps, so we get to actual zero
   FUSOR_LED_ON();
-  for (int i=0; i<200; i++) {
+  for (int i=0; i<40; i++) {
     myMotor->onestep(BACKWARD, SINGLE); 
   }
   myMotor->release();
@@ -115,32 +120,13 @@ void loop() {
 void updateAll() {
   float volts;
 
-
-  // stop (used to be fast, but now isn't)
-  if (fusorVariableUpdated("stop")) {
-    int value = fusorGetIntVariable("stop");
-    if (value == 0) {
-      zeroVoltage();
-      fusorSetFloatVariable("input_volts", 0.0);
-    }
-    fusorForceUpdate();
-  }
-
   // if "input_volts" was updated, set variac to that voltage
   if (fusorVariableUpdated("input_volts")) 
   {
     volts = fusorGetFloatVariable("input_volts");
-    if (volts == -1) 
+    if (volts == 0) 
     {
-      calibrate();
-      volts = 0;
-    } else 
-    {
-      setVoltage(volts);
-      if (volts == 0) 
-      {
-        zeroVoltage();
-      }
+      zeroVoltage();
     }
   }
 }

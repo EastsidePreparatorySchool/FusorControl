@@ -24,8 +24,8 @@ function enableAdminControls(enable) {
     // references global var "isAdmin"
 
     var adminControls = [
-        "startLog", "saveLog", "getStatus", "kill",
-        "rpon", "rpoff", "tmpon", "tmpoff", "variacValue", "variacButton",
+        "startLog", "saveLog", //"getStatus", "kill",
+        "hvon", "hvoff", "tmpon", "tmpoff", "variacValue", "variacButton",
         "solon", "soloff", "needleValue", "needleButton",
         "variacStop", "variacZero", "tmplow", "tmphigh", "needleZero"
     ];
@@ -171,11 +171,10 @@ function variac(num) {
     }
 }
 
-function variac_stop(num) {
-    var variacValue = num;
-    console.log("variac stop:", num);
+function variac_stop() {
+    console.log("variac stop");
     try {
-        request({url: "/protected/admin/variac_stop?value=" + variacValue, method: "GET"})
+        request({url: "/protected/admin/variac_stop", method: "GET"})
                 .then(data => {
                     console.log(data);
                 })
@@ -263,13 +262,13 @@ function tmpHigh() {
 
 
 
-//control rp
-function rpOn() {
+//control hv
+function hvOn() {
     try {
-        request({url: "/protected/admin/rpOn", method: "GET"})
+        request({url: "/protected/admin/hvOn", method: "GET"})
                 .then(data => {
                     console.log(data);
-                    selectButton("rpon", "rpoff");
+                    selectButton("hvon", "hvoff");
                 })
                 .catch(error => {
                     console.log("error: " + error);
@@ -279,12 +278,12 @@ function rpOn() {
     }
 }
 
-function rpOff() {
+function hvOff() {
     try {
-        request({url: "/protected/admin/rpOff", method: "GET"})
+        request({url: "/protected/admin/hvOff", method: "GET"})
                 .then(data => {
                     console.log(data);
-                    selectButton("rpoff", "rpon");
+                    selectButton("hvoff", "hvon");
                 })
                 .catch(error => {
                     console.log("error: " + error);
