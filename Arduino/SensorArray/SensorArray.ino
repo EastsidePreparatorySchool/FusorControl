@@ -21,13 +21,12 @@ void setup(){
   // must do this in init, the rest is optional
   fusorInit("SENSORARRAY");
   fusorAddVariable("gc1",FUSOR_VARTYPE_INT);
+  fusorAddVariable("lastByte", FUSOR_VARTYPE_INT);
   fusorAddVariable("pin",FUSOR_VARTYPE_FLOAT);
-  fusorAddVariable("pnj",FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("gc2",FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("gc3",FUSOR_VARTYPE_FLOAT);
   fusorSetIntVariable("gc1",0);
   fusorSetFloatVariable("pin",0.0);
-  fusorSetFloatVariable("pnj",0.0);
   fusorSetFloatVariable("gc1",0.0);
   fusorSetFloatVariable("gc2",0.0);
 
@@ -67,6 +66,8 @@ void updateAll() {
     while(Serial3.available()) {
       before = current;
       current = Serial3.read();
+      fusorSetIntVariable("lastByte", current);
+      fusorForceUpdate();
     }
     // but only report if we read 2 bytes exactly
     if (bytes == 2) {
@@ -95,16 +96,6 @@ void updateAll() {
       }
     }
   }
-
-  // read PNJ - Read a few times so the ADC can stabilize.
-  
-  int a0;
-  for (int i = 0; i < 10; i++) 
-  {
-    a0 = analogRead(0);
-  }
-  fusorSetFloatVariable("pnj", a0*100/1023.0);
-
 
   //
   // get the edge-detected Geiger counts

@@ -53,7 +53,8 @@ public class WebServer {
             dm.shutdown();
             throw new IllegalArgumentException("missing core devices after dm.init()");
         }
-        cd.variac.setVoltage(-1, cd);
+        cd.hvrelay.off();
+        cd.variac.setVoltage(0, cd);
 
         // housekeeping routes and filters
         port(80);
@@ -188,8 +189,8 @@ public class WebServer {
         get("/protected/admin/stoplog", (req, res) -> getAdminCtx(req).stopLogRoute());
         get("/protected/admin/variac", (req, res) -> getAdminCtx(req).variacRoute(req));
         get("/protected/admin/variac_stop", (req, res) -> getAdminCtx(req).variacStop(req));
-        get("/protected/admin/rpOn", (req, res) -> getAdminCtx(req).rpOnRoute());
-        get("/protected/admin/rpOff", (req, res) -> getAdminCtx(req).rpOffRoute());
+        get("/protected/admin/hvOn", (req, res) -> getAdminCtx(req).hvOnRoute());
+        get("/protected/admin/hvOff", (req, res) -> getAdminCtx(req).hvOffRoute());
         get("/protected/admin/tmpOn", (req, res) -> getAdminCtx(req).tmpOnRoute());
         get("/protected/admin/tmpOff", (req, res) -> getAdminCtx(req).tmpOffRoute());
         get("/protected/admin/tmpLow", (req, res) -> getAdminCtx(req).tmpLowRoute());

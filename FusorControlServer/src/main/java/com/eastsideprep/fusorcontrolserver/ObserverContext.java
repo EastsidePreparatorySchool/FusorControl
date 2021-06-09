@@ -73,13 +73,17 @@ public class ObserverContext extends Context {
 
         cd.gas.setClosed();
         System.out.println("Closed solenoid");
+        
+        cd.gas.set("nv_in", 0);
+        System.out.println("Closed needle valve");
+        
+        cd.variac.set("input", 0);
+        System.out.println("variac 0");
 
-        if (cd.variac.set("stop", 0)) {
-            System.out.println("variac 0");
-            return "emergency stop complete";
-        } else {
-            throw halt("Variac stop failed");
-        }
+        cd.hvrelay.off();
+        System.out.println("hv relay off");
+
+        return "emergency stop attempt complete";
     }
 
     private static ArrayList<String> match(String text, String pattern) {

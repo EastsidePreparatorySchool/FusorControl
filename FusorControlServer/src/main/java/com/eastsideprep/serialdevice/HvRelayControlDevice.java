@@ -7,10 +7,10 @@ public class HvRelayControlDevice extends Arduino {
         this.setStatus("{\"device\":\"HV-RELAY\"}");
     }
     
-    public void on() {
-        this.set("in", true);
+    public boolean on() {
+        return this.set("in", true);
     }
-    public void off() {
-        this.set("in", false);
+    public boolean off() {
+        return this.set("in", false);
     }
 }

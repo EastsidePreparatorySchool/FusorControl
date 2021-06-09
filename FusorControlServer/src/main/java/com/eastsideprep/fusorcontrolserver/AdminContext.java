@@ -133,10 +133,9 @@ public class AdminContext extends ObserverContext {
     }
 
     String variacStop(spark.Request req) {
-        int value = Integer.parseInt(req.queryParams("value"));
-        System.out.println("Received Variac Stop " + value);
-        if (cd.variac.set("stop", value)) {
-            return "variac stop " + (value == 0 ? "(emergency)" : "(regular)");
+        System.out.println("Received Variac Stop ");
+        if (cd.variac.set("stop", 0)) {
+            return "variac stop ";
         } else {
             throw halt("Variac stop failed");
         }
@@ -178,20 +177,20 @@ public class AdminContext extends ObserverContext {
         throw halt(500, "TMP control failed");
     }
 
-    String rpOnRoute() {
-        logAdminCommand("RP on");
-        if (cd.rp.set("rp_in", true)) {
-            return "turned on RP";
+    String hvOnRoute() {
+        logAdminCommand("HV on");
+        if (cd.hvrelay.off()) {
+            return "turned on HV";
         }
-        throw halt(500, "RP control failed");
+        throw halt(500, "HV control failed");
     }
 
-    String rpOffRoute() {
-        logAdminCommand("RP off");
-        if (cd.rp.set("rp_in", false)) {
-            return "turned off RP";
+    String hvOffRoute() {
+        logAdminCommand("HV off");
+        if (cd.hvrelay.off()) {
+            return "turned off hv relay";
         }
-        throw halt(500, "RP control failed");
+        throw halt(500, "HV control failed");
     }
 
     String solenoidOnRoute() {
