@@ -24,10 +24,10 @@ Adafruit_StepperMotor *myMotor;
 float currentVolts = 0.0;
 
 void setup() {
-  fusorInit("VARIAC", 1000);
+  fusorInit("VARIAC", 100);
   fusorAddVariable("input_volts", FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("dial_volts", FUSOR_VARTYPE_FLOAT);
-  fusorAddVariable("stop", FUSOR_VARTYPE_INT);
+  fusorAddVariable("stop", FUSOR_VARTYPE_BOOL);
 
   // stepper control for variac
   AFMS.begin(); 
@@ -56,11 +56,17 @@ float stepsToVolts(int steps) {
 void setVoltage(float volts) {
   int diff, steps, sign;
 
+  // reset stop detection
+  fusorSetBoolVariable("stop", false);
+      
+
+  // convert volts to steps
   if (volts > MAXVOLTS || volts < 0) return;
 
   steps = voltToSteps(abs(volts - currentVolts));
   sign = ((volts - currentVolts) < 0) ? -1 : 1;
 
+  // do it
   FUSOR_LED_ON();
   for (int i = 0; i<steps; i++) {
     myMotor->onestep(sign>0?FORWARD:BACKWARD, INTERLEAVE); 
@@ -73,7 +79,10 @@ void setVoltage(float volts) {
 
     // check for abort
     if (fusorVariableUpdated("stop")) {
-      break;
+      if (fusorGetBoolVariable("stop")) {
+        fusorSetBoolVariable("stop", false);
+        break;
+      }
     }
   }
   // we don't need to hold this by force, turn it off
@@ -127,6 +136,8 @@ void updateAll() {
     if (volts == 0) 
     {
       zeroVoltage();
+    } else {
+      setVoltage(volts);
     }
   }
 }
