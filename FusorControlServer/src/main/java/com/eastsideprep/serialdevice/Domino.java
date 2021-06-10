@@ -52,7 +52,7 @@ public class Domino extends SerialDevice {
     @Override
     void processSerialData(SerialPortEvent e) {
         byte[] bytes = e.getReceivedData();
-        System.out.println("Domino: received " + bytes.length + " bytes");
+        //System.out.println("Domino: received " + bytes.length + " bytes");
         if (bytes.length != 4) {
             // check whether it fits
             if (bytes.length + count > 4) {
