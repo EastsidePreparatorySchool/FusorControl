@@ -7,7 +7,7 @@ public class VariacControlDevice extends Arduino {
         this.setStatus("{\"device\":\"VARIAC\"}");
     }
     
-    public boolean setVoltage(float v, CoreDevices cd) {
+    public boolean setVoltage(float v) {
        return this.set("input_volts", v);
     }
 }

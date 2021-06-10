@@ -126,7 +126,7 @@ public class AdminContext extends ObserverContext {
         float variacValue = Float.parseFloat(req.queryParams("value"));
         logAdminCommand("variac:set:" + variacValue);
         System.out.println("Received Variac Set " + variacValue);
-        if (cd.variac.setVoltage(variacValue, cd)) {
+        if (cd.variac.setVoltage(variacValue)) {
             return "set value as " + req.queryParams("value");
         }
         throw halt("Variac control failed");
@@ -134,7 +134,7 @@ public class AdminContext extends ObserverContext {
 
     String variacStop(spark.Request req) {
         System.out.println("Received Variac Stop ");
-        if (cd.variac.set("stop", 0)) {
+        if (cd.variac.set("stop", true)) {
             return "variac stop ";
         } else {
             throw halt("Variac stop failed");
@@ -179,8 +179,8 @@ public class AdminContext extends ObserverContext {
 
     String hvOnRoute() {
         logAdminCommand("HV on");
-        if (cd.hvrelay.off()) {
-            return "turned on HV";
+        if (cd.hvrelay.on()) {
+            return "turned on HV relay";
         }
         throw halt(500, "HV control failed");
     }
