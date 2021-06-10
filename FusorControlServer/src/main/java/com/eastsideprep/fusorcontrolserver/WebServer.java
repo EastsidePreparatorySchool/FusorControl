@@ -54,7 +54,7 @@ public class WebServer {
             throw new IllegalArgumentException("missing core devices after dm.init()");
         }
         cd.hvrelay.off();
-        cd.variac.setVoltage(0, cd);
+        cd.variac.setVoltage(0);
 
         // housekeeping routes and filters
         port(80);
