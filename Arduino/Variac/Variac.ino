@@ -68,7 +68,8 @@ void setVoltage(float volts) {
 
   // do it
   FUSOR_LED_ON();
-  for (int i = 0; i<steps; i++) {
+  int i;
+  for (i = 0; i<steps; i++) {
     myMotor->onestep(sign>0?FORWARD:BACKWARD, INTERLEAVE); 
 
     // update our variables
@@ -85,11 +86,13 @@ void setVoltage(float volts) {
       }
     }
   }
+
+  
   // we don't need to hold this by force, turn it off
   myMotor->release();
   FUSOR_LED_OFF();
 
-  currentVolts = volts;
+  currentVolts += sign*stepsToVolts(i);
   fusorSetFloatVariable("dial_volts", currentVolts);
 }
 

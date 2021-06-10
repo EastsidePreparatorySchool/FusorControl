@@ -6,7 +6,9 @@
 package com.eastsideprep.serialdevice;
 
 import com.eastsideprep.fusorcontrolserver.FusorControlServer;
+import static com.eastsideprep.serialdevice.DeviceManager.writeToPort;
 import com.fazecast.jSerialComm.SerialPort;
+import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -18,28 +20,64 @@ import java.nio.ByteBuffer;
 public class Domino extends SerialDevice {
 
     Thread autoStatusThread;
+    final private static String domino = "Domino 5.4 Driver Board"; // description of pseudo-port for it
+    byte[] buffer = new byte[4];
+    int count = 0;
 
-    Domino(SerialPort p, String name) {
+    Domino(SerialPort p, String name, SerialPortDataListener connectionListener) {
         super(p, name);
-        writeDomino(new byte[]{0x04, 0x02});
-        writeDomino(new byte[]{0x01, 0x51});
-        writeDomino(new byte[]{0x02, 0x01, 0x00, -0x01});
-        writeDomino(new byte[]{0x06});
+        port.setComPortParameters(115200, 8, 1, SerialPort.NO_PARITY);
+        try {
+            port.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
+            port.openPort();
+            port.addDataListener(connectionListener);
+            os = port.getOutputStream();
+            writeDomino(new byte[]{0x04, 0x02});
+            writeDomino(new byte[]{0x01, 0x51});
+            writeDomino(new byte[]{0x02, 0x01, 0x00, -0x01});
+            writeDomino(new byte[]{0x06});
+        } catch (Exception e) {
+            System.out.println("Domino: open exception: " + e);
+        }
+
+        autoStatusOn();
+        command("GETALL");
+
+    }
+
+    public static boolean isDominoPort(String name) {
+        return name.equals(domino);
     }
 
     @Override
     void processSerialData(SerialPortEvent e) {
         byte[] bytes = e.getReceivedData();
+        System.out.println("Domino: received " + bytes.length + " bytes");
         if (bytes.length != 4) {
-            System.out.println("Domino: Wrong message length");
-            return;
+            // check whether it fits
+            if (bytes.length + count > 4) {
+                System.out.println("Domino: Wrong message length");
+                count = 0;
+                return;
+            }
+            // append to buffer
+            for (int i = 0; i < bytes.length; i++, count++) {
+                buffer[count] = bytes[i];
+            }
+
+            // might nbot be complete
+            if (count < 4) {
+                return;
+            }
+            
+            // but maybe it is
+            bytes = buffer;
+            count = 0;
         }
 
         // make long from bytes
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-        buffer.put(bytes);
-        buffer.flip();
-        long count = buffer.getLong();
+        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        long count = Integer.toUnsignedLong(buffer.getInt());
 
         // make status string
         long time = System.currentTimeMillis();
@@ -112,24 +150,33 @@ public class Domino extends SerialDevice {
 
     @Override
     public void autoStatusOn() {
-        super.autoStatusOn();
-        this.autoStatusThread = new Thread(() -> {
-            try {
-                while (true) {
-                    command("GETALL");
-                    Thread.sleep(100);
-                    if (Thread.currentThread().isInterrupted()) {
-                        return;
+        if (this.autoStatusThread != null) {
+            return;
+        }
+        synchronized (this) {
+            super.autoStatusOn();
+            this.autoStatusThread = new Thread(() -> {
+                try {
+                    while (true) {
+                        command("GETALL");
+                        Thread.sleep(100);
+                        if (Thread.currentThread().isInterrupted()) {
+                            return;
+                        }
                     }
+                } catch (InterruptedException ex) {
                 }
-            } catch (InterruptedException ex) {
-            }
-        });
+            });
+            this.autoStatusThread.start();
+        }
     }
 
     @Override
     public void autoStatusOff() {
-        super.autoStatusOff();
-        this.autoStatusThread.interrupt();
+        synchronized (this) {
+            super.autoStatusOff();
+            this.autoStatusThread.interrupt();
+            this.autoStatusThread = null;
+        }
     }
 }

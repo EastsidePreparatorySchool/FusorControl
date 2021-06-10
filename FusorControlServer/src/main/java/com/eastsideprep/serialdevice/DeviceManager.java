@@ -219,7 +219,7 @@ public class DeviceManager {
             } catch (InterruptedException e) {
                 return;
             } catch (Exception e) {
-                System.out.println("DeviceManager loop exception: "+e);
+                System.out.println("DeviceManager loop exception: " + e);
                 e.printStackTrace();
             }
         }
@@ -371,17 +371,17 @@ public class DeviceManager {
         //
         // now open ports
         //
-        Thread[] threads = new Thread[portList.size()];
+        ArrayList<Thread> threads = new ArrayList<>();
         int i = 0;
         for (SerialPort port : portList) {
             //
             // Special treatment for the Domino NEUTRON SENSOR USB device
             //
 
-            String domino = "Communication Device Class ASF example"; // name of pseudo-port for it
-            if (port.getDescriptivePortName().equals(domino)) {
+            if (Domino.isDominoPort(port.getPortDescription())) {
                 port.setComPortParameters(115200, 8, 1, SerialPort.NO_PARITY);
-                Domino d = new Domino(port, "NEUTRONS");
+                Domino d = new Domino(port, "NEUTRONS", connectionListener);
+                System.out.println("  -- new Domino connected: " + d.name + " (" + d.originalName + ", function: " + d.function + "), on: " + port.getSystemPortName());
                 register(d);
                 continue;
             }
@@ -389,7 +389,7 @@ public class DeviceManager {
             // now back to regular ports   
             System.out.println("opening port: " + port.getSystemPortName());
             port.setComPortParameters(115200, 8, 1, SerialPort.NO_PARITY);
-            threads[i] = new Thread(() -> {
+            Thread t = new Thread(() -> {
                 try {
                     port.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
                     port.openPort();
@@ -403,8 +403,8 @@ public class DeviceManager {
                     System.out.println("open exception: " + e);
                 }
             });
-            threads[i].start();
-            i++;
+            threads.add(t);
+            t.start();
         }
         for (Thread t : threads) {
             t.join();
