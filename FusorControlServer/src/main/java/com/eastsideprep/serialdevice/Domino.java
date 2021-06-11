@@ -6,12 +6,12 @@
 package com.eastsideprep.serialdevice;
 
 import com.eastsideprep.fusorcontrolserver.FusorControlServer;
-import static com.eastsideprep.serialdevice.DeviceManager.writeToPort;
 import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import static java.nio.ByteOrder.LITTLE_ENDIAN;
 
 /**
  *
@@ -77,13 +77,14 @@ public class Domino extends SerialDevice {
 
         // make long from bytes
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
-        long count = Integer.toUnsignedLong(buffer.getInt());
+        buffer.order(LITTLE_ENDIAN);
+        long cps = Integer.toUnsignedLong(buffer.getInt());
 
         // make status string
         long time = System.currentTimeMillis();
         StringBuilder status = new StringBuilder(100);
         status.append("{\"cps\":{\"value\":");
-        status.append(count);
+        status.append(cps);
         status.append(",\"vartime\":");
         status.append(time);
         status.append("},\"devicetime\":");
