@@ -155,7 +155,7 @@ void UpdateDisplay()
   nstOutputFitter.SolveFit(nstA, nstB, nstC);
   
   float nstRMS = rms(variacA, variacB);
-  variacOutputFitter.Reset();
+  nstOutputFitter.Reset();
 
   float cwAverage = cwOutput.average();
   float cwcAverage = cwCurrent.average();
