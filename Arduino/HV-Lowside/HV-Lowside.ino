@@ -132,7 +132,7 @@ void updateAll() {
   variacOutputFitter.Accumulate(micros(), v(variacReading, VARIAC_R1, VARIAC_R2, VARIAC_R3));   
 
   float nstReading = analogRead(nstAdcPin);
-  nstOutputFitter.Accumulate(micros(), v(nstReading, NST_R1, NST_R2, NST_R3)); 
+  nstOutputFitter.Accumulate(micros(), v(nstReading, NST_R1, NST_R2, NST_R3)/1000); //in KV 
 
   float cwReading = analogRead(nstAdcPin);
   cwOutput.accumulate((cwReading*1.1 - cwOffset) * cwMultiplier); // In KV.
@@ -154,7 +154,7 @@ void UpdateDisplay()
   double nstA, nstB, nstC;
   nstOutputFitter.SolveFit(nstA, nstB, nstC);
   
-  float nstRMS = rms(variacA, variacB);
+  float nstRMS = rms(nstA, nstB);
   nstOutputFitter.Reset();
 
   float cwAverage = cwOutput.average();
