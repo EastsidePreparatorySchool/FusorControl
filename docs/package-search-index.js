@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"com.eastsideprep.cameras"},{"l":"com.eastsideprep.fusorcontrolserver"},{"l":"com.eastsideprep.fusorweblog"},{"l":"com.eastsideprep.serialdevice"},{"l":"com.eastsideprep.weblog"}]
