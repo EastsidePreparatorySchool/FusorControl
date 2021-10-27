@@ -14,10 +14,6 @@ import net.sourceforge.tess4j.ITessAPI.TessOcrEngineMode;
 import net.sourceforge.tess4j.TessAPI;
 import net.sourceforge.tess4j.util.ImageIOHelper;
 
-/**
- *
- * @author gmein
- */
 public class TessWrapper {
 
     public class Result {
