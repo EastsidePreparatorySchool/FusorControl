@@ -6,10 +6,6 @@ package com.eastsideprep.fusorweblog;
 
 import com.eastsideprep.weblog.WebLogEntry;
 
-/**
- *
- * @author gmein
- */
 public class FusorWebLogEntry extends WebLogEntry {
 
     public String device;

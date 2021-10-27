@@ -6,10 +6,6 @@ package com.eastsideprep.weblog;
 
 import java.util.ArrayList;
 
-/**
- *
- * @author gmein
- */
 public interface WebLogState {
 
     WebLogState copy();

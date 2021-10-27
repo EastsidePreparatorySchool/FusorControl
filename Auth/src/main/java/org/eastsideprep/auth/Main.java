@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.eastsideprep.auth;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,10 +8,6 @@ import spark.Response;
 import static spark.Spark.*;
 import spark.servlet.SparkApplication;
 
-/**
- *
- * @author gmein
- */
 public class Main implements SparkApplication {
 
 //    public static void main(String[] args) {
