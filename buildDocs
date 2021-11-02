@@ -17,12 +17,15 @@ gh_username='fusor-docs-machine-user'
 info='[\033[1;34mINFO\033[0m]'
 error='[\033[0;31mERROR\033[0m]'
 
+printError () { printf "${error} $1\n"; }
+printInfo  () { printf "${info} $1\n";  }
+
 # note the current directory of the script
 # this one-liner is from https://stackoverflow.com/a/246128/16886597
 script_dir="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # check is a few key things are installed
-echo -e "${info} Checking if Maven, JavaDoc, and Minify are installed"
+printInfo "Checking if Maven, JavaDoc, and Minify are installed"
 # check if Maven installed
 
 # get the version, but hide all output
@@ -30,10 +33,10 @@ mvn -version > /dev/null 2>&1
 
 # if it worked, the exit code will be zero
 if [ "$?" = "0" ]; then
-    echo -e "${info} Maven installed. All good"
+    printInfo "Maven installed. All good"
 else
     # but if the exit code is not zero, something went wrong
-    echo -e "${error} Maven not installed. Exiting."
+    printError "Maven not installed. Exiting."
     exit 1
 fi
 
@@ -44,10 +47,10 @@ javadoc --version > /dev/null 2>&1
 
 # if it worked, the exit code will be zero
 if [ "$?" = "0" ]; then
-    echo -e "${info} JavaDoc installed. All good"
+    printInfo "JavaDoc installed. All good"
 else
     # but if the exit code is not zero, something went wrong
-    echo -e "${error} JavaDoc not installed. Exiting."
+    printError "JavaDoc not installed. Exiting."
     exit 1
 fi
 
@@ -58,14 +61,14 @@ minify --version > /dev/null 2>&1
 
 # if it worked, the exit code will be zero
 if [ "$?" = "0" ]; then
-    echo -e "${info} Minify installed. All good"
+    printInfo "Minify installed. All good"
 else
     # but if the exit code is not zero, something went wrong
-    echo -e "${error} Minify not installed. Exiting."
+    printError "Minify not installed. Exiting."
     exit 1
 fi
 
-echo -e "${info} Pulling the latest changes from GitHub"
+printInfo "Pulling the latest changes from GitHub"
 
 old_hash="$(tar cf - --absolute-names -C ${script_dir} --mtime='1970-01-01' ${script_dir}/FusorControlServer | sha1sum)"
 
@@ -73,7 +76,7 @@ old_hash="$(tar cf - --absolute-names -C ${script_dir} --mtime='1970-01-01' ${sc
 # this allows us to run the script from outside of
 # where the script is
 git -C "${script_dir}/" pull > /dev/null || {
-    echo -e "${error} Pulling changes from Github failed. Exiting."
+    printError "Pulling changes from Github failed. Exiting."
     exit 1
 }
 
@@ -83,7 +86,7 @@ fi
 
 # exit if no changes have been made
 if [ "$old_hash" = "$(tar cf - --absolute-names -C ${script_dir} --mtime='1970-01-01' ${script_dir}/FusorControlServer | sha1sum)" ]; then
-    echo -e "${info} No new changes to Java source code. Exiting."
+    printInfo "No new changes to Java source code. Exiting."
     exit 0
 fi
 
@@ -94,26 +97,26 @@ fi
 cd "${script_dir}/FusorControlServer"
 
 # compile the source code
-echo -e "${info} Compiling the source code"
+printInfo "Compiling the source code"
 mvn --no-transfer-progress --quiet compile || {
-    echo -e "${error} Compiling source code failed. Exiting."
+    printError "Compiling source code failed. Exiting."
     exit 1
 }
 
 # render the JavaDoc
-echo 'Rendering the JavaDoc'
+printInfo 'Rendering the JavaDoc'
 mvn --no-transfer-progress --quiet javadoc:javadoc | grep --invert-match 'Generating'
 
 # See https://askubuntu.com/a/1370608/1438484 for what this does
 if [ "${PIPESTATUS[0]}" != "0" ]; then
-    echo -e "${info} Rendering the JavaDoc failed. Exiting."
+    printInfo "Rendering the JavaDoc failed. Exiting."
     exit 1
 fi
 
 
 cd "${script_dir}/"
 
-echo -e "${info} Copying documentation to proper output folder"
+printInfo "Copying documentation to proper output folder"
 rm -rf "${script_dir}/docs"
 mkdir "${script_dir}/docs"
 
@@ -126,7 +129,7 @@ cp -r "${script_dir}/FusorControlServer/target/site/apidocs/"* "${script_dir}/do
 # re-build, even if no changes have been made
 find "${script_dir}/docs" -type f -name "*.html" -exec minify --html-keep-conditional-comments --html-keep-default-attrvals --html-keep-document-tags --html-keep-end-tags {} -o {} \;
 
-echo -e "${info} Pushing changes to GitHub"
+printInfo "Pushing changes to GitHub"
 
 git add "${script_dir}/docs"
 git commit -m "[AUTOMATED] Update docs" -m "This commit + push was ran by an automated script. If you encounter issues, contact @CoconutMacaroon on GitHub. My Eastside Prep email is avedbrat@eastsideprep.org."
