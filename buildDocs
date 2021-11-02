@@ -70,7 +70,7 @@ fi
 
 printInfo "Pulling the latest changes from GitHub"
 
-old_hash="$(tar cf - --absolute-names -C ${script_dir} --mtime='1970-01-01' ${script_dir}/FusorControlServer | sha1sum)"
+old_hash="$(tar cf - --absolute-names -C "${script_dir}" --mtime='1970-01-01' "${script_dir}/FusorControlServer" | sha1sum)"
 
 # git -C sets the working directory for the git pull
 # this allows us to run the script from outside of
@@ -85,7 +85,7 @@ if [ "$force_build" = "yes" ]; then
 fi
 
 # exit if no changes have been made
-if [ "$old_hash" = "$(tar cf - --absolute-names -C ${script_dir} --mtime='1970-01-01' ${script_dir}/FusorControlServer | sha1sum)" ]; then
+if [ "$old_hash" = "$(tar cf - --absolute-names -C "${script_dir}" --mtime='1970-01-01' "${script_dir}/FusorControlServer" | sha1sum)" ]; then
     printInfo "No new changes to Java source code. Exiting."
     exit 0
 fi
