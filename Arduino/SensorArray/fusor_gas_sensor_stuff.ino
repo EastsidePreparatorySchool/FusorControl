@@ -49,7 +49,7 @@ void updateAll() {
   fusorSetIntVariable("a0", analogRead(AOUTpin));
  
   // process d registers
-  fusorSetIntVariable("d2", analogRead(8));
+  fusorSetBoolVariable("d2", analogRead(8));
 
   //
   // process d2 count and frequency
