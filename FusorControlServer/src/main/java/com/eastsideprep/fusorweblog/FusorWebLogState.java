@@ -11,10 +11,6 @@ import com.eastsideprep.weblog.WebLog;
 import com.eastsideprep.weblog.WebLogEntry;
 import com.eastsideprep.weblog.WebLogState;
 
-/**
- *
- * @author gmein
- */
 public class FusorWebLogState implements WebLogState {
 
     private WebLog log;
