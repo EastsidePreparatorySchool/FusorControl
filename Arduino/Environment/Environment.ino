@@ -46,7 +46,7 @@ void updateAll() {
   long now;
   
   // process a registers
-  fusorSetIntVariable("a0", analogRead(AOUTpin));
+  fusorSetIntVariable("a0", (analogRead(AOUTpin)*5)/1023));
  
   // process d registers
   fusorSetBoolVariable("d2", analogRead(8));
