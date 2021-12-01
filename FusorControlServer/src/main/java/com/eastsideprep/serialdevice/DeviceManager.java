@@ -306,7 +306,7 @@ public class DeviceManager {
                         SerialPort[] wrongOne = {null}; // this needs to be an array so I can change it from the lambdas. Annoying.
                         Thread threadA = new Thread(() -> {
                             try {
-                                p.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
+                                p.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
                                 p.openPort();
                                 writeToPort(p, "*");
                                 wrongOne[0] = pB;
@@ -320,10 +320,10 @@ public class DeviceManager {
                         threadA.start();
                         Thread threadB = new Thread(() -> {
                             try {
-                                pB.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
+                                pB.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
                                 pB.openPort();
                                 writeToPort(pB, "*");
-                                pB.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
+                                pB.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
                                 wrongOne[0] = p;
                             } catch (Exception ex) {
                                 if (FusorControlServer.config.superVerbose) {
@@ -391,7 +391,7 @@ public class DeviceManager {
             port.setComPortParameters(115200, 8, 1, SerialPort.NO_PARITY);
             Thread t = new Thread(() -> {
                 try {
-                    port.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
+                    port.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
                     port.openPort();
 //                    port.closePort();
 //                    port.openPort();
