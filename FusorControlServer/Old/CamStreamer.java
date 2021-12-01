@@ -1,3 +1,8 @@
+/**
+* @author Gunnar Mein
+* @date 2/27/2020
+* 
+*/
 package com.eastsideprep.cameras;
 
 import com.eastsideprep.fusorcontrolserver.FusorControlServer;
