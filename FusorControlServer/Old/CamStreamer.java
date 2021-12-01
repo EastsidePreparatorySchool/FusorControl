@@ -1,7 +1,8 @@
 /**
 * @author Gunnar Mein
 * @date 2/27/2020
-* 
+* The purpose of this file is to create a camera streamer 
+* with basic capabilities such as start/stop record, and 
 */
 package com.eastsideprep.cameras;
 
@@ -161,7 +162,7 @@ public class CamStreamer {
                 Thread.sleep(500);
             } catch (InterruptedException ex) {
             }
-            //writer.flush();
+            
             writer.close();
         });
         t.start();
@@ -169,7 +170,9 @@ public class CamStreamer {
     }
 
     void extractNumber(BufferedImage image, long millis, SerialDevice sd) {
-        if (true)return;
+        if (true){
+            return;
+        }
 
         TessWrapper.Result result = tw.extract(image);
         if (result.confidence < 80) {
