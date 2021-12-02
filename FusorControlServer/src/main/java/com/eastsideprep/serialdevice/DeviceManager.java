@@ -231,15 +231,18 @@ public class DeviceManager {
         // gather hardware MAC addresses to figure out which computer this is
         //
 
-        ArrayList<byte[]> macs = new ArrayList<>();
+        ArrayList<MACAddress> macs = new ArrayList<>();
         try {
             Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
             while (en.hasMoreElements()) {
-                NetworkInterface ni = en.nextElement();
-                byte[] addr = ni.getHardwareAddress();
-                if (addr != null && addr[5] != 0) {
-                    //System.out.println("MAC " + ni.getDisplayName() + ", " + Arrays.toString(ni.getHardwareAddress()));
-                    macs.add(addr);
+                NetworkInterface networkInterface = en.nextElement();
+                MACAddress address = new MACAddress(networkInterface.getHardwareAddress());
+                /*
+                 * TODO: What is [5]? Why 5? This should be either a method
+                 * that checks something, or it should be a constant value
+                 */
+                if (address.asByteArray() != null && address.asByteArray()[5] != 0) {
+                    macs.add(address);
                 }
             }
         } catch (Exception ex) {
@@ -247,10 +250,13 @@ public class DeviceManager {
         }
 
         // need to be adapted to machine this is running on
-        // paired lists: knownMacs, ports to ignore. Ugly, but I am too lazy to make another class for this
-        byte[][] knownMacs = {
-            {84, -31, -83, 59, -109, -98}, // GM laptop main MAC
-            {-16, -34, -15, -3, 124, 35}, // fusor2
+        final MACAddress
+            GunnarMienLaptop = new MACAddress(new byte[]{84, -31, -83, 59, -109, -98}),
+            fusor2Laptop     = new MACAddress(new byte[]{-16, -34, -15, -3, 124, 35});
+
+        MACAddress[] knownMACs = {
+            GunnarMienLaptop,
+            fusor2Laptop
         };
         String[] ignorePorts = {
             "Intel(R) Active Management Technology - SOL (COM4)", // Intel management port on GM's laptop
@@ -259,8 +265,8 @@ public class DeviceManager {
 
         // cull down the ignore list, leave only ports that are on this machine
         for (int i = 0; i < ignorePorts.length; i++) {
-            final byte[] addr = knownMacs[i];
-            if (!macs.stream().anyMatch((e) -> Arrays.equals(e, addr))) {
+            final MACAddress address = knownMACs[i];
+            if(macs.stream().noneMatch(e -> e.equals(address))) {
                 ignorePorts[i] = "";
             }
         }
