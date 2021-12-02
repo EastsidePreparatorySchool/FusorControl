@@ -378,7 +378,7 @@ public class DeviceManager {
         // now open ports
         //
         ArrayList<Thread> threads = new ArrayList<>();
-        int i = 0;
+
         for (SerialPort port : portList) {
             //
             // Special treatment for the Domino NEUTRON SENSOR USB device
@@ -399,8 +399,6 @@ public class DeviceManager {
                 try {
                     port.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
                     port.openPort();
-//                    port.closePort();
-//                    port.openPort();
                     port.addDataListener(connectionListener);
                     Thread.sleep(3000);
                     writeToPort(port, SerialDevice.makeCommand(SerialDevice.FUSOR_IDENTIFY));
