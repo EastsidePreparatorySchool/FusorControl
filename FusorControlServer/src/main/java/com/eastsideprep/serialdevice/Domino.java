@@ -19,7 +19,7 @@ public class Domino extends SerialDevice {
         super(p, name);
         port.setComPortParameters(115200, 8, 1, SerialPort.NO_PARITY);
         try {
-            port.setComPortTimeouts​(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
+            port.setComPortTimeouts(SerialPort.TIMEOUT_NONBLOCKING, 0, 100);
             port.openPort();
             port.addDataListener(connectionListener);
             os = port.getOutputStream();
