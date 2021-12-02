@@ -164,7 +164,7 @@ public class DeviceManager {
         System.out.println();
 
         //
-        // go trough ports, knock on the door
+        // go through ports, knock on the door
         //
         Object semaphore = new Object();
         queryThread = new Thread(() -> queryThreadLoop(semaphore));
