@@ -11,7 +11,7 @@ public abstract class SerialDevice {
     public String name;
     public String originalName;
     public String function;
-     OutputStream os;
+    OutputStream os;
     SerialPort port;
     private String lastStatus;
     private String currentStatus;
