@@ -615,7 +615,7 @@ public class DeviceManager {
 //        status = "[" + status + "{\"status\":\"complete: " + ((new Date()).toInstant().toString()) + "\"}]";
 //        return status;
 //    }
-    static private int getPortNumber(SerialPort p) {
+    private static int getPortNumber(SerialPort p) {
         int result;
         try {
             String name = p.getSystemPortName();
