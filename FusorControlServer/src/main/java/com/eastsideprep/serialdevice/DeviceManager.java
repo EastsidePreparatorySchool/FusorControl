@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -276,7 +275,7 @@ public class DeviceManager {
         //
         SerialPort[] ports = SerialPort.getCommPorts();
         List<SerialPort> portList = new ArrayList<>(Arrays.asList(ports));
-        Collections.sort(portList, (a, b) -> (getPortNumber(a) - getPortNumber(b)));
+        portList.sort((a, b) -> (getPortNumber(a) - getPortNumber(b)));
 
         deviceMap.prunePortList(portList);
 
