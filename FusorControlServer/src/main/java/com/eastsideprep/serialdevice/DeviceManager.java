@@ -161,7 +161,7 @@ public class DeviceManager {
         for (SerialPort port : ports) {
             System.out.println("  " + port.getDescriptivePortName());
         }
-        System.out.println("");
+        System.out.println();
 
         //
         // go trough ports, knock on the door
