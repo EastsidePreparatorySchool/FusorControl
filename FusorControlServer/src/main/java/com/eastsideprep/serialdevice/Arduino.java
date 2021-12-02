@@ -17,7 +17,4 @@ public class Arduino extends SerialDevice {
     void processSerialData(SerialPortEvent e) {
         DeviceManager.instance.processSerialDataArduino(e);
     }
-    
-    
-    
 }
