@@ -8,12 +8,12 @@ public class NullSerialDevice extends Arduino {
     
     public NullSerialDevice(String name) {
         super(null, name);
-        System.out.println("Creating null serial device "+name);
+        System.out.println("Creating null serial device " + name);
     }
 
     public NullSerialDevice(SerialPort p, String name) {
         super(p, name);
-        System.out.println("Creating null serial device "+name+" for port "+p.getSystemPortName());
+        System.out.println("Creating null serial device " + name + " for port " + p.getSystemPortName());
     }
 
     @Override
