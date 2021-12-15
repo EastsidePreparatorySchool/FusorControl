@@ -21,8 +21,9 @@ function displayComment(observer, time, text) {
     chat.innerHTML += "<span " + (observer === "DeviceManager" && !text.includes("Adding") ? "style='color:red'" : "") + ">"
             + observer + "</span>"
             //+ "(" + ip + ")," 
-            + " (" + Math.round((time - logStart) / 100) / 10 + "): "
-            + text + "<br>";
+            + " (" + Math.round((time - logStart) / 100) / 10 + "): ";
+    chat.appendChild(document.createTextNode(text));
+    chat.innerHTML += "<br>";
     chat.scrollTop = chat.scrollHeight;
 }
 
