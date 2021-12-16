@@ -11,6 +11,7 @@ import org.json.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -136,10 +137,15 @@ public class DataLogger {
         StringBuilder sb = DataLogger.startPseudoDeviceEntry(1000);
         DataLogger.addPseudoDeviceStringVariable(sb, "observer", observer, millis);
         DataLogger.addPseudoDeviceStringVariable(sb, "ip", ip, millis);
-        DataLogger.addPseudoDeviceStringVariable(sb, "text", text, millis);
+        DataLogger.addPseudoDeviceStringVariable(sb, "text", (
+                // encode user-submitted data as Base 64 so comments containing
+                // quotes won't cause issues in the JOSN file
+                java.util.Base64.getEncoder().encodeToString(
+                    text.getBytes(StandardCharsets.UTF_8)
+                )), millis);
         return DataLogger.closePseudoDeviceEntry(sb, millis);
     }
-
+    
     static String makeEmergencyStopDeviceText(String observer, String ip, long millis) {
         StringBuilder sb = DataLogger.startPseudoDeviceEntry(1000);
         DataLogger.addPseudoDeviceStringVariable(sb, "observer", observer, millis);
