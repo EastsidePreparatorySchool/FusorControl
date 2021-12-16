@@ -22,7 +22,10 @@ function displayComment(observer, time, text) {
             + observer + "</span>"
             //+ "(" + ip + ")," 
             + " (" + Math.round((time - logStart) / 100) / 10 + "): ";
-    chat.appendChild(document.createTextNode(text))
+
+    // first we Base 64 decode the comment - atop(...) does that
+    // then we use the Underscore.js library to escape any HTML to prevent XSS
+    chat.innerHTML += _.escape(atob(text));
     chat.innerHTML += "<br>";
     chat.scrollTop = chat.scrollHeight;
 }
