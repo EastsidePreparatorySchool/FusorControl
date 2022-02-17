@@ -60,7 +60,8 @@ var vizChannels = {
     'Heartbeat.logsize': {name: 'Log size (kEntries)', shortname: 'LOGSIZE', unit: 'kEntries', min: 0, max: 10000, type: "discrete", datatype: "numeric"},
     'Comment.text': {name: 'Comment', shortname: '', min: 0, max: 5, type: "momentary", datatype: "text", graph:"yes"},
     'Login.text': {name: 'Login', shortname: '', min: 0, max: 40, type: "momentary", datatype: "text"},
-    'Command.text': {name: 'Command', shortname: '', min: 0, max: 20, type: "momentary", datatype: "text"}
+    'Command.text': {name: 'Command', shortname: '', min: 0, max: 20, type: "momentary", datatype: "text"},
+    'GENERIC.a0': {name: 'MQ-8', shortname: 'MQ-8', unit: 'Volts', factor: 1, min: 0, max: 5, type: "continuous", datatype: "numeric", graph: "yes"}
 
 };
 //
