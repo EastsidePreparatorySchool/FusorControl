@@ -60,9 +60,9 @@ void updateAll()
 
     // read the latest message from the serial GC if there is one
     // format: low byte, high byte
-    bool haveByte1 = false;
-    int byte1, byte2;
-    long time1;
+    static bool haveByte1 = false;
+    static byte1, byte2;
+    static long time1;
     if (Serial3.available())
     {
         // if we don't have the first byte [of a pair]
