@@ -43,7 +43,7 @@ void setup(){
   delay(200);
   FUSOR_LED_OFF();
 }
-
+int info1, info2;
 void loop() {
   fusorLoop();
   
@@ -61,7 +61,7 @@ void updateAll()
     // read the latest message from the serial GC if there is one
     // format: low byte, high byte
     static bool haveByte1 = false;
-    static byte1, byte2;
+    static int byte1, byte2;
     static long time1;
     if (Serial3.available())
     {
