@@ -76,7 +76,7 @@ void updateAll()
 
             // if the time between the two bytes was less than 0.1 seconds
             // then we assume the two bytes belong together
-            if(time1 - time2 < 100000) {
+            if(time2 - time1 < 100000) {
                 haveByte1 = false;
                 info1 = byte1;
                 info2 = byte2;
@@ -94,7 +94,7 @@ void updateAll()
                    ----------------
                    1010101011100011
                  */
-                fusorSetIntVariable("gc1", (byte1 * 256) + byte2);
+                fusorSetIntVariable("gc1", (byte2 * 256) + byte1);
             } else {
                 /*
                  * if the two bytes were so far apart that we don't think they belong together
