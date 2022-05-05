@@ -25,10 +25,12 @@ void setup(){
   fusorAddVariable("pin",FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("gc2",FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("gc3",FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("hfm", FUSOR_VARTYPE_FLOAT);
   fusorSetIntVariable("gc1",0);
   fusorSetFloatVariable("pin",0.0);
   fusorSetFloatVariable("gc1",0.0);
   fusorSetFloatVariable("gc2",0.0);
+  fusorSetFloatVariable("hfm",0.0);
 
   Serial1.begin(9600); // PIN gamma sensor (8N1 ?)
   Serial3.begin(9600);  // Dr. Whitmer's Geiger counter (8N1)
@@ -163,6 +165,11 @@ void updateAll()
         fusorSetFloatVariable("gc2", d2now);
         fusorSetFloatVariable("gc3", d3now);
     }
+
+
+    float flowMeterReading = 4.98538 * (analogRead(5) / 1023.0);
+
+    fusorSetFloatVariable("hfm", flowMeterReading);
 }
 
 
