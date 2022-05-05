@@ -166,7 +166,13 @@ void updateAll()
         fusorSetFloatVariable("gc3", d3now);
     }
 
+    //
+    // Read the HFM gas flow board
+    //
 
+    // range of return values for analogRead is 0 to 1023, where 1023 is the max scale
+    // in this case, the max scale is 5 volts, so we multiply the reading by that
+    // we adjusted the 5.0 down to 4.98538 by calibrating with a known standard
     float flowMeterReading = 4.98538 * (analogRead(5) / 1023.0);
 
     fusorSetFloatVariable("hfm", flowMeterReading);
