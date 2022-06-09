@@ -21,13 +21,8 @@ function displayComment(observer, time, text) {
     chat.innerHTML += "<span " + (observer === "DeviceManager" && !text.includes("Adding") ? "style='color:red'" : "") + ">"
             + observer + "</span>"
             //+ "(" + ip + ")," 
-            + " (" + Math.round((time - logStart) / 100) / 10 + "): ";
-
-    // first we Base 64 decode the comment - atop(...) does that
-    // then we use the Underscore.js library to escape any HTML to prevent XSS
-    chat.innerHTML += _.escape(atob(text));
-
-    chat.innerHTML += "<br>";
+            + " (" + Math.round((time - logStart) / 100) / 10 + "): "
+            + text + "<br>";
     chat.scrollTop = chat.scrollHeight;
 }
 
@@ -40,3 +35,4 @@ function printHTML(msg) {
     var chat = document.getElementById("chat");
     chat.innerHTML += msg;
 }
+
