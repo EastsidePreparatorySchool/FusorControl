@@ -52,7 +52,7 @@ static const char *_fusorEnd = "]END";
 BluetoothSerial SerialBT;
 #define FSERIAL SerialBT
 #else
-#define FSERIAL Serial
+#define FSERIAL Serial1
 #endif
 
 void fusorStartResponse(const char *response);
@@ -695,7 +695,7 @@ void fusorInitWithBaudRate(const char *name, long baudRate, int updateInterval)
 #ifdef BLUETOOTH
   SerialBT.begin(name);
 #else
-  Serial.begin(baudRate);
+  Serial1.begin(baudRate);
 #endif
 
   // light for hope
