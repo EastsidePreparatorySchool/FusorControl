@@ -54,6 +54,7 @@ var vizChannels = {
     'SENSORARRAY.gc1': {name: 'GC1 (Whitmer, inside) (cps)', shortname: 'GC1 (W) inside', unit: 'cps', min: 0, max: 100, type: "discrete trailing", datatype: "numeric", graph: "yes"},
     'SENSORARRAY.gc2': {name: 'GC2 (inside) (cps)', shortname: 'GC2 inside', unit: 'cps', min: 0, max: 250, type: "discrete trailing", datatype: "numeric", graph: "yes"},
     'SENSORARRAY.gc3': {name: 'GC3 (outside) (cps)', shortname: 'GC3 outside', unit: 'cps', min: 0, max: 250, type: "discrete trailing", datatype: "numeric", graph: "yes"},
+    'SENSORARRAY.hfm': {name: 'HFM', shortname: 'hfm', unit: 'SCIM', factor: 1, min: 0, max: 1023, type: "continuous", datatype: "numeric", graph: "yes"},
     'NEUTRONS.cps': {name: 'Domino neutron sensor (cps)', shortname: 'Neutrons', unit: 'cps', min: 0, max: 250, type: "discrete trailing", datatype: "numeric", graph: "yes"},
     
     'Heartbeat.beat': {name: 'Heartbeat', shortname: '', unit: '', min: 0, max: 50, type: "momentary", datatype: "numeric", graph: "yes"},
