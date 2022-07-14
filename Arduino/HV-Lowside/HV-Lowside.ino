@@ -5,7 +5,14 @@
 //
 
 #include "fusor.h"
+#include "FastTrig.h"
+#include "LinearAlgebra.h"
+#include "SinFit60Hz.h"
 
+#define variacAdcPin 4
+#define nstAdcPin 5
+#define cwAdcPin 6
+#define cwCurrentAdcPin 1
 
 // TODO: Wow, a stats class. I should put that into fusor.h so that every Arduino can use it
 class stat
@@ -51,32 +58,49 @@ class stat
   }
 };
 
-stat variacOutput;
-stat nstOutput;
+SinFit60Hz variacOutputFitter = SinFit60Hz();
+SinFit60Hz nstOutputFitter = SinFit60Hz();
 stat cwOutput;
 stat cwCurrent;
 
-#define variacAdcPin 4
-#define nstAdcPin 5
-#define cwAdcPin 6
-#define cwCurrentAdcPin 1
-
 long nextDisplayUpdate;
 
-float DividerOffset(float r1, float r2, float rS, float rL, float v1);
-float DividerMultiplier(float r1, float r2, float rS, float rL);
+const int captureCycles = 6;
+const long captureTimeUs = (long)(1.0 / 60.0 * captureCycles * 1000000.0);
 
-float variacOffset = 0.530; // DividerOffset(270.0, 33.0, 8.2e3, 3.3e6, 5.0); // Was 0.543.
-float variacMultiplier = DividerMultiplier(270.0, 33.0, 8.2e3, 3.3e6);
-float nstOffset = 0.542; // DividerOffset(270.0, 33.0, 8.2e3, 200e6, 5.0); // Was 0.545 but measured 0.542.
-float nstMultiplier = DividerMultiplier(270.0, 33.0, 8.2e3, 200e6) / 1000.0; // Make it KV.
+const float VARIAC_R1 = 10.83 * 1000;
+const float VARIAC_R2 = 88.6 * 1000;
+const float VARIAC_R3 = 3.23 * 1000000;
+
+const float NST_R1 = 10.82 * 1000;
+const float NST_R2 = 89.3 * 1000;
+const float NST_R3 = 200 * 1000000;
+
+
+float DividerMultiplier(float r1, float r2, float rS, float rL)
+{
+  float r3 = rS + rL;
+  float rr123 = r1*r2 + r1*r3 + r2*r3;
+  float rr12s = r1*r2 + r1*rS + r2*rS;
+  return rr123 / rr12s;
+}
+
 float cwOffset = 1.017; // DividerOffset(330.0, 82.0, 10e3, 400e6, 5.0); // Was 0.995, but measured 1.017
 float cwMultiplier = DividerMultiplier(330.0, 82.0, 10e3, 400e6) / 1000.0; // Make it KV.
 const float currentResistor = 100; // 100 Ohm
 const float adcToVolts = 1.067 / 1023; // This device is not 1.1v. Depends on a particular diode.
 
-const int captureCycles = 6;
-const long captureTimeUs = (long)(1.0 / 60.0 * captureCycles * 1000000.0);
+float f(float r1, float r2, float r3){
+  return (r1*r2)/(r1*r3+r1*r2+r2*r3);
+}
+
+float v(float a, float r1, float r2, float r3){
+  return (((a*1.1)/1023) - 5*f(r1,r3,r2))/f(r1,r2,r3);
+}
+
+float rms(float a, float b){
+  return sqrt(a*a+b*b)*0.707107;
+}
 
 void setup(){
   fusorInit("HV-LOWSIDE"); //Fusor device name, variables, num variables
@@ -84,8 +108,7 @@ void setup(){
   fusorAddVariable("nst_rms", FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("cw_avg", FUSOR_VARTYPE_FLOAT);
   fusorAddVariable("cwc_avg", FUSOR_VARTYPE_FLOAT);
-  fusorAddVariable("n", FUSOR_VARTYPE_INT);
-
+  
   analogReference(INTERNAL1V1); // ADCs compare to 1.1v
   nextDisplayUpdate = millis() + 1000;
 
@@ -105,64 +128,34 @@ void loop() {
 }
 
 void updateAll() {
-  // Read the variac voltage
-  // The variac divider uses 8.2k and 3.3m resistors. Scale by: (3.3m + 8.2k)/(8.2k)(1.1 / 1023) = 0.43381
-  float variacReading;
-  variacReading = readConstantTime(variacAdcPin, variacOffset, variacMultiplier);
-  variacOutput.accumulate(variacReading);  
+  float variacReading = analogRead(variacAdcPin);
+  variacOutputFitter.Accumulate(micros(), v(variacReading, VARIAC_R1, VARIAC_R2, VARIAC_R3));   
 
-  // Read the NST voltage
-  // The NST divider uses 8.2k and 200m resistors. Scale by: (200m + 8.2k)/(8.2k)(1.1 / 1023) = 26.227
-  float nstReading = readConstantTime(nstAdcPin, nstOffset, nstMultiplier); // In KV.
-  nstOutput.accumulate(nstReading);
+  float nstReading = analogRead(nstAdcPin);
+  nstOutputFitter.Accumulate(micros(), v(nstReading, NST_R1, NST_R2, NST_R3)/1000); //in KV 
 
-  // Read the CW voltage
-  float cwReading = readConstantTime(cwAdcPin, cwOffset, cwMultiplier); // In KV.
-  cwOutput.accumulate(cwReading);
+  float cwReading = analogRead(nstAdcPin);
+  cwOutput.accumulate((cwReading*1.1 - cwOffset) * cwMultiplier); // In KV.
 
   // Read the CW current
   // Measured as voltage over 100 Ohm resistor
-  float cwCurrentReading = readConstantTime(cwCurrentAdcPin, 0, 1000.0/currentResistor); // in mA
-  cwCurrent.accumulate(cwCurrentReading);
-}
-
-float readConstantTime(int pin, float offset, float multiplier) {
-  const long interval = 375;  // us, works out to about 100 samples for 10 60 hz cycles (empirically)
-  const long readTime = 100;  // 100 us = enough time for one more read?
-  int result;
-
-  // from here
-  long endTime = micros()+ interval;
-
-  // switch multiplexer to this pin
-  // and throw this one away
-  analogRead(pin);
-
-  // read until time is almost up
-  do {
-    result = analogRead(pin);
-  } while (micros() < endTime - readTime);
-
-  // calculations may take varying time, too
-  float fResult = (result*adcToVolts - offset) * multiplier;
-  
-  // wait until full interval is up
-  while (micros() < endTime);
-
-  return fResult;
+  float cwCurrentReading = analogRead(cwCurrentAdcPin); // readConstantTime(cwCurrentAdcPin, 0, 1000.0/currentResistor); // in mA
+  cwCurrent.accumulate((cwCurrentReading*1.1) * (1000.0/currentResistor));
 }
 
 void UpdateDisplay()
 {
-  float variacAverage = variacOutput.average();
-  float variacRMS = variacOutput.standardDeviation();
-  int variacN = variacOutput.n;
-  variacOutput.Reset();
+  double variacA, variacB, variacC;
+  variacOutputFitter.SolveFit(variacA, variacB, variacC);
   
-  float nstAverage = nstOutput.average();
-  float nstRMS = nstOutput.standardDeviation();
-  int nstN = nstOutput.n;
-  nstOutput.Reset();
+  float variacRMS = rms(variacA, variacB);
+  variacOutputFitter.Reset();
+  
+  double nstA, nstB, nstC;
+  nstOutputFitter.SolveFit(nstA, nstB, nstC);
+  
+  float nstRMS = rms(nstA, nstB);
+  nstOutputFitter.Reset();
 
   float cwAverage = cwOutput.average();
   float cwcAverage = cwCurrent.average();
@@ -173,31 +166,4 @@ void UpdateDisplay()
   fusorSetFloatVariable("nst_rms", nstRMS);
   fusorSetFloatVariable("cw_avg", cwAverage);
   fusorSetFloatVariable("cwc_avg", cwcAverage);
-  fusorSetIntVariable("n", variacN);
-}
-
-/*
-We measure high voltages with the assistance of a divider circuit.
-There is a central node where three resistors connect.
-R1 connects the node with a supply voltage, typically +5V.
-R2 connects the node to ground.
-R3 is the sum of a small resistor RS and a larger resistor RL, and it connects
-the node to the high voltage we wish to measure.
-The smaller voltage measured by the ADC is over R2+RS.
- */
-
-
-float DividerOffset(float r1, float r2, float rS, float rL, float v1)
-{
-  float r3 = rS + rL;
-  float rr123 = r1*r2 + r1*r3 + r2*r3;
-  return v1*r2*rL/rr123;
-}
-
-float DividerMultiplier(float r1, float r2, float rS, float rL)
-{
-  float r3 = rS + rL;
-  float rr123 = r1*r2 + r1*r3 + r2*r3;
-  float rr12s = r1*r2 + r1*rS + r2*rS;
-  return rr123 / rr12s;
 }
