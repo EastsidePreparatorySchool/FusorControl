@@ -147,20 +147,24 @@ void updateAll()
     // get the edge-detected Geiger counts
     //
     long now;
-    static long last = 0;
+    static long lastGC = 0;
     int d2now, d3now;
     float interval;
 
     now = millis();
-    if (now > last + 1000) // update only once per second
+    if (now > lastGC + 1000) // update only once per second
     {
-        last = now;
+        lastGC = now;
         noInterrupts();
         d2now = d2;
         d3now = d3;
         d2 = 0;
         d3 = 0;
         interrupts();
+  
+        // Divide by two to account for double pulse ?
+        d2now /= 2;
+        d3now /= 2;
 
         fusorSetIntVariable("gc2", d2now);
         fusorSetIntVariable("gc3", d3now);
@@ -169,30 +173,27 @@ void updateAll()
     //
     // Read the HFM gas flow board
     //
-
-    // range of return values for analogRead is 0 to 1023, where 1023 is the max scale
-    // in this case, the max scale is 5 volts, so we multiply the reading by that
-    // we adjusted the 5.0 down to 4.98538 by calibrating with a known standard
-    float flowMeterReading = 4.98538 * (analogRead(5) / 1023.0);
-
-    fusorSetFloatVariable("hfm", flowMeterReading);
+    static long lastHFM = 0;
+    now = millis();
+    if (now > lastHFM +100)
+    {
+        lastHFM = now;
+        // range of return values for analogRead is 0 to 1023, where 1023 is the max scale
+        // in this case, the max scale is 5 volts, so we multiply the reading by that
+        // we adjusted the 5.0 down to 4.98538 by calibrating with a known standard
+        float flowMeterReading = 4.98538 * (analogRead(5) / 1023.0);
+    
+        fusorSetFloatVariable("hfm", flowMeterReading);
+    }
 }
 
 
 void ISR2() 
 {
-  long now = micros();
-  if (now > timeLastPulseGc2+4000){
-    d2++;
-    timeLastPulseGc2 = now;
-  }
+  d2++;
 }
 
 void ISR3()
 {
-  long now = micros();
-  if (now > timeLastPulseGc3+4000){
-    d3++;
-    timeLastPulseGc3 = now;
-  }
+  d3++;
 }
