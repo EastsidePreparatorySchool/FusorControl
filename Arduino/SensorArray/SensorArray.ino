@@ -162,7 +162,6 @@ void updateAll()
         d3now = d3;
         d2 = 0;
         d3 = 0;
-        interrupts();
   
         // Divide by two to account for double pulse ?
         d2now /= 2;
