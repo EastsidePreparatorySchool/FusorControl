@@ -38,8 +38,9 @@ void setup(){
   pinMode(2, INPUT);
   pinMode(3, INPUT);
 
-  attachInterrupt(digitalPinToInterrupt(2), ISR2, RISING);
-  attachInterrupt(digitalPinToInterrupt(3), ISR3, RISING);
+  //attachInterrupt(digitalPinToInterrupt(2), ISR2, RISING);
+  //attachInterrupt(digitalPinToInterrupt(3), ISR3, RISING);
+  
   
   FUSOR_LED_ON();
   delay(200);
@@ -50,7 +51,8 @@ void loop() {
   fusorLoop();
   
   updateAll();
-  delay(5);
+  d2+=digitalRead(2);
+  d3+=digitalRead(3);  
 }
 
 void updateAll()
@@ -165,6 +167,9 @@ void updateAll()
         // Divide by two to account for double pulse ?
         d2now /= 2;
         d3now /= 2;
+
+        d2now /= 8.5;
+        d3now /= 8.5;
 
         fusorSetIntVariable("gc2", d2now);
         fusorSetIntVariable("gc3", d3now);
