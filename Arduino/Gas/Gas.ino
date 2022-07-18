@@ -1,8 +1,7 @@
 //
 // Fusor project code for control Arduino
 // "GAS" - gas controller
-// Adafruit Feather Huzzah ESP8266 Wifi (wifi not used)
-// Board support: http://arduino.esp8266.com/stable/package_esp8266com_index.json
+// Arduino Uno
 //
 
 #include "fusor.h"
@@ -11,8 +10,8 @@
 #define SOL 15 // digital out pin for solenoid
 
 Servo needlevalveservo;
-int MIN_MS = 1000.0f;
-int MAX_MS = 2000.0f;
+int MIN_MS = 650.0f;
+int MAX_MS = 2400.0f;
 int SERVO_PWM_PORT = 2;
 
 int solstat = false;
