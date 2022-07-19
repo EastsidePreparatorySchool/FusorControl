@@ -21,18 +21,18 @@ void setup(){
   // must do this in init, the rest is optional
   fusorInit("SENSORARRAY");
   fusorAddVariable("gc1",FUSOR_VARTYPE_INT);
-  fusorAddVariable("lastByte", FUSOR_VARTYPE_INT);
-  fusorAddVariable("pin",FUSOR_VARTYPE_FLOAT);
-  fusorAddVariable("gc2",FUSOR_VARTYPE_FLOAT);
-  fusorAddVariable("gc3",FUSOR_VARTYPE_FLOAT);
+//  fusorAddVariable("lastByte", FUSOR_VARTYPE_INT);
+//  fusorAddVariable("pin",FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("gc2",FUSOR_VARTYPE_INT);
+  fusorAddVariable("gc3",FUSOR_VARTYPE_INT);
   fusorAddVariable("hfm", FUSOR_VARTYPE_FLOAT);
   fusorSetIntVariable("gc1",0);
-  fusorSetFloatVariable("pin",0.0);
-  fusorSetFloatVariable("gc1",0.0);
-  fusorSetFloatVariable("gc2",0.0);
+  //fusorSetFloatVariable("pin",0.0);
+  fusorSetIntVariable("gc2",0);
+  fusorSetIntVariable("gc3",0);
   fusorSetFloatVariable("hfm",0.0);
 
-  Serial1.begin(9600); // PIN gamma sensor (8N1 ?)
+//  Serial1.begin(9600); // PIN gamma sensor (8N1 ?)
   Serial3.begin(9600);  // Dr. Whitmer's Geiger counter (8N1)
 
   pinMode(2, INPUT);
@@ -40,6 +40,7 @@ void setup(){
 
   //attachInterrupt(digitalPinToInterrupt(2), ISR2, RISING);
   //attachInterrupt(digitalPinToInterrupt(3), ISR3, RISING);
+  
   
   FUSOR_LED_ON();
   delay(200);
@@ -50,15 +51,16 @@ void loop() {
   fusorLoop();
   
   updateAll();
-  delay(5);
+  d2+=digitalRead(2);
+  d3+=digitalRead(3);  
 }
 
 void updateAll()
 {
-    static char text[12];
-    static char *str = text;
-    static float decayingAvgCps = 0;
-    const float newFraction = 0.1;
+//    static char text[12];
+//    static char *str = text;
+//    static float decayingAvgCps = 0;
+//    const float newFraction = 0.1;
 
     // read the latest message from the serial GC if there is one
     // format: low byte, high byte
@@ -114,85 +116,88 @@ void updateAll()
     }
 
     // read the latest message from the PIN diode sensor if there is one
-    if (Serial1.available())
-    {
-        while (Serial1.available())
-        {
-            // format: <x02>M:1.24<CR><LF>
-            // could assert "<0x02>M:" but won't
-            char b = Serial1.read();
-            if (b == 0x02)
-            {
-                // STX (start of transmission), reset buffer
-                str = text;
-                *str = 0;
-            }
-            else
-            {
-                if (b == 0x0D)
-                {
-                    // CR, end of message
-                    *str = 0;                                         // insert 0 instead of <CR>
-                    fusorSetFloatVariableFromString("pin", &text[2]); // skipping "M:"
-                }
-                else
-                {
-                    *str++ = b;
-                }
-            }
-        }
-    }
+//    if (Serial1.available())
+//    {
+//        while (Serial1.available())
+//        {
+//            // format: <x02>M:1.24<CR><LF>
+//            // could assert "<0x02>M:" but won't
+//            char b = Serial1.read();
+//            if (b == 0x02)
+//            {
+//                // STX (start of transmission), reset buffer
+//                str = text;
+//                *str = 0;
+//            }
+//            else
+//            {
+//                if (b == 0x0D)
+//                {
+//                    // CR, end of message
+//                    *str = 0;                                         // insert 0 instead of <CR>
+//                    fusorSetFloatVariableFromString("pin", &text[2]); // skipping "M:"
+//                }
+//                else
+//                {
+//                    *str++ = b;
+//                }
+//            }
+//        }
+//    }
 
     //
     // get the edge-detected Geiger counts
     //
     long now;
-    static long last = 0;
+    static long lastGC = 0;
     int d2now, d3now;
     float interval;
 
     now = millis();
-    if (now > last + 1000) // update only once per second
+    if (now > lastGC + 1000) // update only once per second
     {
-        last = now;
+        lastGC = now;
         noInterrupts();
         d2now = d2;
         d3now = d3;
         d2 = 0;
         d3 = 0;
-        interrupts();
+  
+        // Divide by two to account for double pulse ?
+        d2now /= 2;
+        d3now /= 2;
 
-        fusorSetFloatVariable("gc2", d2now);
-        fusorSetFloatVariable("gc3", d3now);
+        d2now /= 8.5;
+        d3now /= 8.5;
+
+        fusorSetIntVariable("gc2", d2now);
+        fusorSetIntVariable("gc3", d3now);
     }
 
     //
     // Read the HFM gas flow board
     //
-
-    // range of return values for analogRead is 0 to 1023, where 1023 is the max scale
-    // in this case, the max scale is 5 volts, so we multiply the reading by that
-    // we adjusted the 5.0 down to 4.98538 by calibrating with a known standard
-    float flowMeterReading = 4.98538 * (analogRead(5) / 1023.0);
-
-    fusorSetFloatVariable("hfm", flowMeterReading);
+    static long lastHFM = 0;
+    now = millis();
+    if (now > lastHFM +100)
+    {
+        lastHFM = now;
+        // range of return values for analogRead is 0 to 1023, where 1023 is the max scale
+        // in this case, the max scale is 5 volts, so we multiply the reading by that
+        // we adjusted the 5.0 down to 4.98538 by calibrating with a known standard
+        float flowMeterReading = 4.98538 * (analogRead(5) / 1023.0);
+    
+        fusorSetFloatVariable("hfm", flowMeterReading);
+    }
 }
 
 
 void ISR2() 
 {
-  long now = micros();
-  if (now > timeLastPulseGc2+4000){
-    d2++;
-    timeLastPulseGc2 = now;
-  }
+  d2++;
 }
 
 void ISR3()
 {
-  long now = micros();
-  if (now > timeLastPulseGc3+4000){
-    d3++;
-    timeLastPulseGc3 = now;
-  }
+  d3++;
 }

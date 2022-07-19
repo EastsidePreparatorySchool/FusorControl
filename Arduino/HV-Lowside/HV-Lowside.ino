@@ -134,12 +134,12 @@ void updateAll() {
   float nstReading = analogRead(nstAdcPin);
   nstOutputFitter.Accumulate(micros(), v(nstReading, NST_R1, NST_R2, NST_R3)/1000); //in KV 
 
-  float cwReading = analogRead(nstAdcPin);
+  float cwReading = analogRead(cwAdcPin) / 1023.0;
   cwOutput.accumulate((cwReading*1.1 - cwOffset) * cwMultiplier); // In KV.
 
   // Read the CW current
   // Measured as voltage over 100 Ohm resistor
-  float cwCurrentReading = analogRead(cwCurrentAdcPin); // readConstantTime(cwCurrentAdcPin, 0, 1000.0/currentResistor); // in mA
+  float cwCurrentReading = analogRead(cwCurrentAdcPin) / 1023.0; // readConstantTime(cwCurrentAdcPin, 0, 1000.0/currentResistor); // in mA
   cwCurrent.accumulate((cwCurrentReading*1.1) * (1000.0/currentResistor));
 }
 
