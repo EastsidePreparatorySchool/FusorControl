@@ -1,21 +1,19 @@
 //
 // Fusor project code for control Arduino
 // "VARIAC"
-// Adafruit Feather ESP32 with Motor/Stepper Wing
-// Board support https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_dev_index.json
 //
 
 #include "fusor.h"
 #include <Adafruit_MotorShield.h>
 
 
-
 #define MINVOLTS 0.0
 #define MAXVOLTS 130.0
 #define MINSTEPS 0
-#define MAXSTEPS 520
+#define MAXSTEPS 1120
 
-#define STEP_DELAY_MS 500
+#define STEP_DELAY_MS 250
+#define STEPS_TO_ZERO 700
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 Adafruit_StepperMotor *myMotor;
@@ -31,8 +29,10 @@ void setup() {
 
   // stepper control for variac
   AFMS.begin(); 
-  myMotor = AFMS.getStepper(200, 1);  // 200 steps per rotation, port 1
-  myMotor->setSpeed(60);              // 60 rpm = 1 rps 
+  myMotor = AFMS.getStepper(400, 1);  // 200 * 2 steps (new gear ratio) per rotation, port 1
+  myMotor->setSpeed(120);              // 60 * 2(new gear ratio) rpm = 1 rps 
+
+  zeroVoltage();
   
   currentVolts = 0;
   fusorSetFloatVariable("dial_volts", 0.0);
@@ -102,9 +102,9 @@ void zeroVoltage() {
   //set the variac as low as we can
   setVoltage(MINVOLTS);
 
-  //drive down 40 bonus steps, so we get to actual zero
+  //drive down STEPS_TO_ZERO bonus steps, so we get to actual zero
   FUSOR_LED_ON();
-  for (int i=0; i<40; i++) {
+  for (int i=0; i< STEPS_TO_ZERO ; i++) {
     myMotor->onestep(BACKWARD, SINGLE); 
   }
   myMotor->release();
