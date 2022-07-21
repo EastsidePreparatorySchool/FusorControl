@@ -134,8 +134,9 @@ void updateAll() {
   float nstReading = analogRead(nstAdcPin);
   nstOutputFitter.Accumulate(micros(), v(nstReading, NST_R1, NST_R2, NST_R3)/1000); //in KV 
 
+  #define HACK_OFFSET 0.75
   float cwReading = analogRead(cwAdcPin) / 1023.0;
-  cwOutput.accumulate((cwReading*1.1 - cwOffset) * cwMultiplier); // In KV.
+  cwOutput.accumulate((cwReading*1.1 - cwOffset) * cwMultiplier - HACK_OFFSET); // In KV.
 
   // Read the CW current
   // Measured as voltage over 100 Ohm resistor

@@ -26,6 +26,8 @@ void setup(){
   //avgSignal = analogRead(A0);
 
   pinMode(LED_BUILTIN, OUTPUT);
+
+  delay(3000);
   
   Serial3.begin(9600);//, SERIAL_8N1);
 
