@@ -148,6 +148,13 @@ public class DataLogger {
         return DataLogger.closePseudoDeviceEntry(sb, millis);
     }
 
+    static String makeEmergencyStopResultDeviceText(String device, boolean success, long millis) {
+        StringBuilder sb = DataLogger.startPseudoDeviceEntry(1000);
+        DataLogger.addPseudoDeviceStringVariable(sb, "succcess", success?"success":"failed", millis);
+        DataLogger.addPseudoDeviceStringVariable(sb, "text", device+":[emergency stop]:"+success, millis);
+        return DataLogger.closePseudoDeviceEntry(sb, millis);
+    }
+
     static String makeAdminCommandText(String name, String ip, String command, long millis) {
         StringBuilder sb = DataLogger.startPseudoDeviceEntry(1000);
         DataLogger.addPseudoDeviceStringVariable(sb, "observer", name, millis);

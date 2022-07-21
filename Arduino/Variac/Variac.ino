@@ -1,6 +1,7 @@
 //
 // Fusor project code for control Arduino
 // "VARIAC"
+// needs Adafruit Motor Shield library
 //
 
 #include "fusor.h"
@@ -12,30 +13,30 @@
 #define MINSTEPS 0
 #define MAXSTEPS 1120
 
-#define STEP_DELAY_MS 250
+#define STEP_DELAY_MS 50
 #define STEPS_TO_ZERO 700
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 Adafruit_StepperMotor *myMotor;
 
 
-float currentVolts = 0.0;
+int currentVolts = 0.0;
 
 void setup() {
   fusorInit("VARIAC", 100);
-  fusorAddVariable("input_volts", FUSOR_VARTYPE_FLOAT);
-  fusorAddVariable("dial_volts", FUSOR_VARTYPE_FLOAT);
+  fusorAddVariable("input_volts", FUSOR_VARTYPE_INT);
+  fusorAddVariable("dial_volts", FUSOR_VARTYPE_INT);
   fusorAddVariable("stop", FUSOR_VARTYPE_BOOL);
 
   // stepper control for variac
   AFMS.begin(); 
   myMotor = AFMS.getStepper(400, 1);  // 200 * 2 steps (new gear ratio) per rotation, port 1
-  myMotor->setSpeed(120);              // 60 * 2(new gear ratio) rpm = 1 rps 
+//  myMotor->setSpeed(120);              // 60 * 2(new gear ratio) rpm = 1 rps 
 
-  zeroVoltage();
+  calibrate();
   
   currentVolts = 0;
-  fusorSetFloatVariable("dial_volts", 0.0);
+  fusorSetIntVariable("dial_volts", 0);
 
   FUSOR_LED_ON();
   fusorDelay(300);
@@ -46,35 +47,41 @@ int voltToSteps(float volts) {
   return map(volts, MINVOLTS, MAXVOLTS, MINSTEPS, MAXSTEPS);
 }
 
-float fmap(float x, float in_min, float in_max, float out_min, float out_max) {
+float fmap(int x, float in_min, float in_max, float out_min, float out_max) {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
-float stepsToVolts(int steps) {
+int stepsToVolts(int steps) {
   return fmap(steps, MINSTEPS, MAXSTEPS, MINVOLTS, MAXVOLTS);
 }
 
-void setVoltage(float volts) {
+void setVoltage(int inputVolts, int speedParam) {
   int diff, steps, sign;
+  bool abortSet = false;
+  float volts;
 
   // reset stop detection
   fusorSetBoolVariable("stop", false);
+
+//  myMotor->setSpeed(speedParam);
       
 
   // convert volts to steps
-  if (volts > MAXVOLTS || volts < 0) return;
+  if (inputVolts > MAXVOLTS || inputVolts < 0) return;
 
-  steps = voltToSteps(abs(volts - currentVolts));
-  sign = ((volts - currentVolts) < 0) ? -1 : 1;
+  steps = voltToSteps(abs(inputVolts - currentVolts));
+  sign = ((inputVolts - currentVolts) < 0) ? -1 : 1;
 
   // do it
   FUSOR_LED_ON();
   int i;
+  volts = currentVolts;
   for (i = 0; i<steps; i++) {
-    myMotor->onestep(sign>0?FORWARD:BACKWARD, INTERLEAVE); 
+    myMotor->step(1, sign>0?FORWARD:BACKWARD, INTERLEAVE); 
 
     // update our variables
-    fusorSetFloatVariable("dial_volts", currentVolts + sign*stepsToVolts(i));
-
+    volts += sign*(float)(stepsToVolts(1000)/1000.f);
+    fusorSetIntVariable("dial_volts", volts);
+    
     // don't want to do this too fast
     fusorDelay(STEP_DELAY_MS);
 
@@ -82,43 +89,66 @@ void setVoltage(float volts) {
     if (fusorVariableUpdated("stop")) {
       if (fusorGetBoolVariable("stop")) {
         fusorSetBoolVariable("stop", false);
+        abortSet = true;
         break;
       }
     }
   }
 
+  if (abortSet) {
+    currentVolts = round(volts);
+  } else {
+    currentVolts = inputVolts;
+  }
+  fusorSetIntVariable("dial_volts", currentVolts);
   
   // we don't need to hold this by force, turn it off
   myMotor->release();
   FUSOR_LED_OFF();
+}
 
-  currentVolts += sign*stepsToVolts(i);
-  fusorSetFloatVariable("dial_volts", currentVolts);
+void zeroVoltage() {
+  int inputVolts = 0;
+  int diff, steps, sign;
+
+  // convert volts to steps
+  if (inputVolts > MAXVOLTS || inputVolts < 0) return;
+
+  steps = voltToSteps(abs(inputVolts - currentVolts));
+  sign = ((inputVolts - currentVolts) < 0) ? -1 : 1;
+
+  // do it
+  FUSOR_LED_ON();
+  int i;
+  myMotor->step(steps, sign>0?FORWARD:BACKWARD, DOUBLE); 
+
+  // update our variables
+  currentVolts = 0;
+  fusorSetIntVariable("dial_volts", currentVolts);
+
+  // we don't need to hold this by force, turn it off
+  myMotor->release();
+  FUSOR_LED_OFF();
 }
 
 
-
-void zeroVoltage() {
-  //set the variac as low as we can
-  setVoltage(MINVOLTS);
-
-  //drive down STEPS_TO_ZERO bonus steps, so we get to actual zero
+void extraBackward(int steps, int speedParam) {
+  //drive down steps, so we get to actual zero (most situations)
   FUSOR_LED_ON();
-  for (int i=0; i< STEPS_TO_ZERO ; i++) {
-    myMotor->onestep(BACKWARD, SINGLE); 
-  }
+//  myMotor->setSpeed(speedParam);
+  myMotor->step(steps, BACKWARD, DOUBLE);
+//  for (int i=0; i< steps; i++) {
+//    myMotor->onestep(BACKWARD, DOUBLE); 
+//  }
   myMotor->release();
   FUSOR_LED_OFF();
+  fusorSetIntVariable("dial_volts", 0.0);
 }
 
 void calibrate() {
-  FUSOR_LED_ON();
-  for (int i=0; i<500; i++) {
-    myMotor->onestep(BACKWARD, DOUBLE); 
-  }
-  myMotor->release();
-  FUSOR_LED_OFF();
+  extraBackward(STEPS_TO_ZERO, 255);
   currentVolts = 0;
+  fusorSetIntVariable("dial_volts", 0.0);
 }
 
 void loop() {
@@ -130,17 +160,26 @@ void loop() {
 }
 
 void updateAll() {
-  float volts;
+  int volts;
 
   // if "input_volts" was updated, set variac to that voltage
   if (fusorVariableUpdated("input_volts")) 
   {
-    volts = fusorGetFloatVariable("input_volts");
+    volts = fusorGetIntVariable("input_volts");
     if (volts == 0) 
     {
+      // reasonably quick zero
       zeroVoltage();
-    } else {
-      setVoltage(volts);
+      extraBackward(100,255);
+    } else if (volts < 0)
+    {
+      // emergency stop
+      calibrate();
+      fusorSetIntVariable("input_volts", 0);
+    } else 
+    {
+      // regular set
+      setVoltage(volts, 1);
     }
   }
 }

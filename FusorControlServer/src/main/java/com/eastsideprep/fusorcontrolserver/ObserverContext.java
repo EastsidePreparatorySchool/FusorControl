@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletResponse;
-import static spark.Spark.halt;
 
 public class ObserverContext extends Context {
 
@@ -62,17 +61,27 @@ public class ObserverContext extends Context {
         String logText = DataLogger.makeEmergencyStopDeviceText(this.name, ip, millis);
         WebServer.dm.recordStatus("Command", millis, logText);
 
-        cd.gas.setClosed();
-        System.out.println("Closed solenoid");
+        boolean success;
         
-        cd.gas.set("nv_in", 0);
-        System.out.println("Closed needle valve");
-        
-        cd.variac.set("input", 0);
-        System.out.println("variac 0");
+        success = cd.hvrelay.off();
+        System.out.println("HV relay off: " + success);
+        logText = DataLogger.makeEmergencyStopResultDeviceText("HV-relay", success, millis);
+        WebServer.dm.recordStatus("SYSTEM", millis, logText);
 
-        cd.hvrelay.off();
-        System.out.println("hv relay off");
+        success = cd.gas.setClosed();
+        System.out.println("Closed solenoid: " + success);
+        logText = DataLogger.makeEmergencyStopResultDeviceText("GAS:SOL", success, millis);
+        WebServer.dm.recordStatus("SYSTEM", millis, logText);
+
+        success = cd.gas.set("nv_in", 0);
+        System.out.println("Closed needle valve: " + success);
+        logText = DataLogger.makeEmergencyStopResultDeviceText("GAS:NV", success, millis);
+        WebServer.dm.recordStatus("SYSTEM", millis, logText);
+
+        success = cd.variac.emergencyZero();
+        System.out.println("Variac to zero: " + success);
+        logText = DataLogger.makeEmergencyStopResultDeviceText("VARIAC:", success, millis);
+        WebServer.dm.recordStatus("SYSTEM", millis, logText);
 
         return "emergency stop attempt complete";
     }
