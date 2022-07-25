@@ -11,7 +11,7 @@ public abstract class SerialDevice {
     public String name;
     public String originalName;
     public String function;
-     OutputStream os;
+    OutputStream os;
     SerialPort port;
     private String lastStatus;
     private String currentStatus;
@@ -27,7 +27,7 @@ public abstract class SerialDevice {
     public final static String FUSOR_IDENTIFY = "IDENTIFY";
     public final static String FUSOR_STATUS = "STATUS";
     public final static String FUSOR_STATUS_AUTO = "STATUS:AUTO";
-    
+
     abstract void processSerialData(SerialPortEvent e);
 
     public static String makeCommand(String s) {
@@ -101,30 +101,49 @@ public abstract class SerialDevice {
             return true;
         }
 
+        synchronized (this.confMonitor) {
+            this.confirmation = null;
+            this.confMonitor.notify();
+        }
+
         // try this up to 5 times, wait for confirmation
-        for (int i = 0; i < 5; i++) {
+        int i;
+        for (i = 0; i < 5; i++) {
             try {
                 if (!write(cmd)) {
-                    System.out.println("SD Command failure: "+this.name+": "+cmd);
-                    DataLogger.recordSDAdvisory("SD Command failure: "+this.name+": "+cmd);
+                    System.out.println("SD Command failure: " + this.name + ": " + cmd);
+                    DataLogger.recordSDAdvisory("SD Command failure: " + this.name + ": " + cmd);
                     return false;
                 }
-                waitForConfirmation(FusorControlServer.config.cmdTimeOut);
+                if (waitForConfirmation(FusorControlServer.config.cmdTimeOut)) {
+                    break;
+                }
             } catch (Exception e) {
                 System.out.println("SD command: exception: " + e);
                 return false;
             }
 
-            // no need to check for conf text on liveness status
-            if (s.equals("IDENTIFY")) {
-                return true;
-            }
-            
-            // but otherwise, confirm
-            if (retrieveConfirmation(s)) {
-                return true;
-            }
         }
+
+        if (i == 5) {
+//            System.out.println("timed out.");
+            return false;
+        }
+
+        // no need to check for conf text on liveness status
+        if (s.equals("IDENTIFY")) {
+//            System.out.println("confirmed identify.");
+            return true;
+        }
+
+        // but otherwise, confirm
+        if (retrieveConfirmation(s)) {
+//            System.out.println("correct confirmation.");
+            return true;
+        }
+
+//        System.out.println("retries exceeded.");
+
         return false;
     }
 
@@ -140,13 +159,18 @@ public abstract class SerialDevice {
         return result;
     }
 
-    private void waitForConfirmation(long ms) throws InterruptedException {
+    private boolean waitForConfirmation(long ms) throws InterruptedException {
         synchronized (this.confMonitor) {
+            this.confirmation = null;
+//            System.out.println("waiting for conf ... ");
             this.confMonitor.wait(ms);
+//            System.out.println("result: " + (this.confirmation != null));
+            return this.confirmation != null;
         }
     }
 
     public void setConfirmation(String conf) {
+//        System.out.println("Setting confirmation for " + this.name);
         synchronized (this.confMonitor) {
             this.confirmation = conf;
             this.confMonitor.notify();

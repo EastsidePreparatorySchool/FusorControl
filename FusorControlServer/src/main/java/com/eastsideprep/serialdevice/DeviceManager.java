@@ -16,6 +16,9 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class DeviceManager {
 
@@ -23,6 +26,7 @@ public class DeviceManager {
     // the static part of this class acts as the manager for serial devices
     //
     static DeviceManager instance;
+    static boolean initialPhase;
 
     private SerialDeviceMap deviceMap = new SerialDeviceMap();
     private Thread queryThread;
@@ -142,7 +146,24 @@ public class DeviceManager {
         }
     }
 
+    public static boolean isJson(String Json) {
+        try {
+            new JSONObject(Json);
+        } catch (JSONException ex) {
+            try {
+                new JSONArray(Json);
+            } catch (JSONException ex1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public void recordStatusForDevice(SerialDevice sd, long time, String data) {
+        if (!isJson(data)) {
+            System.out.println("Not Json: " + data);
+            return;
+        }
         recordStatus(sd.name, time, data);
     }
 
@@ -153,6 +174,7 @@ public class DeviceManager {
     }
 
     public CoreDevices init() {
+        DeviceManager.initialPhase = true;
         SerialPort[] ports = SerialPort.getCommPorts();
 
         //
@@ -177,6 +199,7 @@ public class DeviceManager {
             try {
                 semaphore.wait(30000);
             } catch (InterruptedException ex) {
+                System.out.println("queryThreadLoop timed out on semaphore wait in cd.init()");
             }
         }
 
@@ -210,6 +233,7 @@ public class DeviceManager {
         // discovering new devices is not that important, after all
         Thread.currentThread().setPriority(Thread.NORM_PRIORITY - 2);
         while (!Thread.interrupted()) {
+//            System.out.println("Another round through quering ..." + System.currentTimeMillis());
             try {
                 queryIdentifyAll(semaphore);
                 Thread.sleep(1000);
@@ -222,6 +246,7 @@ public class DeviceManager {
                 System.out.println("DeviceManager loop exception: " + e);
                 e.printStackTrace();
             }
+            DeviceManager.initialPhase = false;
         }
 
     }
@@ -454,8 +479,10 @@ public class DeviceManager {
                 System.out.println("closing port " + port.getSystemPortName());
                 port.closePort();
 
-                // add NullSerialDevice to system, to prevent further querying
-                deviceMap.put(new NullSerialDevice(port, "<unknown>"));
+                if (DeviceManager.initialPhase) {
+                    // add NullSerialDevice to system, to prevent further querying
+                    deviceMap.put(new NullSerialDevice(port, "<unknown>"));
+                }
             }
         }
         System.out.println("=================== done collecting new ports, total devices now registered: " + this.deviceMap.validDeviceCount());

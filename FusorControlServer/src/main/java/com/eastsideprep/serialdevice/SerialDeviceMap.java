@@ -62,6 +62,7 @@ public class SerialDeviceMap {
         HashSet<String> set = new HashSet<>(list.stream().map((sp) -> sp.getSystemPortName()).collect(Collectors.toList()));
         ArrayList<SerialDevice> removals = new ArrayList<>();
         Set<String> ports;
+//        System.out.println("  pruning port list ...");
         synchronized (this) {
             ports = this.portMap.keySet();
         }
@@ -75,11 +76,14 @@ public class SerialDeviceMap {
                     removals.add(sd);
                 } else {
                     // is valid serial device. Arduino?
-                    if (sd instanceof Arduino) {
+                    if ((sd instanceof Arduino) && !(sd instanceof NullSerialDevice)) {
+//                        System.out.println("  sending ping to "+sd.name+" "+sd.port+" ...");
                         if (!sd.command("IDENTIFY")) {
-                            System.out.println("device not responding, removing: " + sd.name + " (" + port + ")");
+                            System.out.println("  device not responding, removing: " + sd.name + " (" + port + ")");
                             DataLogger.recordSDAdvisory("Device not responding, removing: " + sd.name + " (" + port + ")");
                             removals.add(sd);
+                        } else {
+//                            System.out.println("  received ack");
                         }
                     }
                 }

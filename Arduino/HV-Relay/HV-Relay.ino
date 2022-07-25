@@ -17,6 +17,7 @@ void setup(){
   
   // relay control 
   pinMode(RELAY, OUTPUT);
+  pinMode(4, INPUT_PULLUP);
   digitalWrite(RELAY, LOW);
   stat = false;
 
@@ -26,6 +27,12 @@ void setup(){
 }
 
 void loop() {
+  if (digitalRead(4) == LOW) {
+      FUSOR_LED_ON();
+
+    return; // simulate being offline
+  }
+    FUSOR_LED_OFF();
   fusorLoop();
   updateAll();
   delay(5);
