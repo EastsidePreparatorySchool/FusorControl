@@ -56,6 +56,10 @@
                     <input disabled style="width:31%;" id="needleValue" min="0" max="100" step="0.1" value="0" type="number"  onchange="needleValve(this.value)" >
                     <button disabled style="width:31%;" id="needleButton" class="btn btn-primary btn-large" onclick="needleValve(document.getElementById('needleValue').value)" >Set</button>
                     <button disabled style="width:31%;" id="needleZero" class="btn btn-primary btn-large" onclick="needleValve('0')" >Zero</button>
+                    Pressure control:<br>
+                    <input disabled style="width:31%;" id="pressureTarget" min="0" max="100" step="0.25" value="0" type="number"  onchange="setPressureTarget(this.value)" >
+                    <button disabled style="width:23%;" id="setPressureTarget" class="btn btn-primary btn-large" onclick="setPressureTarget(document.getElementById('pressureTarget').value)" >Set</button>
+                    <button disabled style="width:39%;" id="releasePressureControl" class="btn btn-primary btn-large" onclick="setPressureTarget('-1')" >Release</button>
 
                     <br>
                     <br>

@@ -14,7 +14,7 @@ public abstract class SerialDevice {
     OutputStream os;
     SerialPort port;
     private String lastStatus;
-    private String currentStatus;
+    protected String currentStatus;
     private boolean autoStatus = false;
     private String confirmation = null;
     private final Object confMonitor = new Object();

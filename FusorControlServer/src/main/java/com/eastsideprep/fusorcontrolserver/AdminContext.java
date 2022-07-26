@@ -30,10 +30,10 @@ public class AdminContext extends ObserverContext {
         String upgradeCommand = "#promote";
         String devicesCommand = "#devices";
 
-        if (text.startsWith(upgradeCommand) 
-                && (this.login.equals("gmein") 
-                || this.login.equals("klewellen") 
-                || this.login.equals("SYSTEM") 
+        if (text.startsWith(upgradeCommand)
+                && (this.login.equals("gmein")
+                || this.login.equals("klewellen")
+                || this.login.equals("SYSTEM")
                 || this.login.equals("chuck"))) {
             String obs = text.substring(upgradeCommand.length()).trim();
             upgradeObserver(obs);
@@ -87,7 +87,9 @@ public class AdminContext extends ObserverContext {
             if (dl != null) {
                 dl.shutdown();
             }
-            WebServer.log.clear(new FusorWebLogState(), new FusorWebLogEntry("<reset>", System.currentTimeMillis(), "{}"));
+            String logName = DataLogger.name;
+            String data = "{\"logname\":\""+logName+"\"}";
+            WebServer.log.clear(new FusorWebLogState(), new FusorWebLogEntry("<reset>", System.currentTimeMillis(), data));
             dl = new DataLogger();
             dl.init(dm, cs, req.queryParams("filename"));
 
@@ -117,11 +119,11 @@ public class AdminContext extends ObserverContext {
         int variacValue = Integer.parseInt(req.queryParams("value"));
         logAdminCommand("variac:set:" + variacValue);
         System.out.println("Received Variac Set " + variacValue);
-        
+
         if (!cd.variac.set("stop", true)) {
             throw halt("Variac stop failed");
         }
-        
+
         if (cd.variac.setVoltage(variacValue)) {
             return "set value as " + req.queryParams("value");
         }
@@ -211,12 +213,24 @@ public class AdminContext extends ObserverContext {
         float value = Float.parseFloat(req.queryParams("value"));
         logAdminCommand("Set needle valve:" + value);
         System.out.println("Received needle valve Set " + value);
-        if (cd.gas.set("nv_in", value)) {
+        if (cd.gas.setNV(value)) {
             System.out.println("needle valve success");
             return "set needle valve value as " + value;
         }
         System.out.println("needle valve fail");
         throw halt(500, "set needle valve failed");
+    }
+
+    String pressureTargetRoute(spark.Request req) {
+        float value = Float.parseFloat(req.queryParams("value"));
+        if (value < 0) {
+            logAdminCommand("Relasing pressure target.");
+        } else {
+            logAdminCommand("Set pressure target:" + value);
+        }
+        System.out.println("Received pressure target set " + value);
+        cd.pressureTarget(value);
+        return "pressure target "+(value < 0?"released":"set to "+value);
     }
 
     void logAdminCommand(String command) {

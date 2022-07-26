@@ -25,6 +25,7 @@ public class DataLogger {
     private CamStreamer cs;
     public long baseTime;
     public String currentFile;
+    public static String name;
 
     public static String makeLogResponse(SerialDevice sd, long time, String response) {
         return "{\"device\":\"" + sd.name + "\",\"data\":" + response + ",\"servertime\":" + time + "}";
@@ -39,6 +40,7 @@ public class DataLogger {
     public void init(DeviceManager dm, CamStreamer cs, String customName) {
         this.dm = dm;
         this.currentFile = "";
+        DataLogger.name= (customName != null?customName:"<unnamed>");
 
         if (!FusorControlServer.config.noLog) {
             // make sure the folder exists
@@ -51,7 +53,7 @@ public class DataLogger {
             // create logfile
             this.baseTime = WebServer.log.baseTime;
             try {
-                open(fileName + (customName != null ? "_" + customName : ""), ts);
+                open(fileName + "_"+ customName, ts);
             } catch (IOException ex) {
                 System.out.println("Could not create log file, no permanent log on this run");
                 writer = null;
@@ -128,6 +130,7 @@ public class DataLogger {
     static String makeHeartbeatDeviceText(double val, long millis) {
         StringBuilder sb = startPseudoDeviceEntry(500);
         addPseudoDeviceDoubleVariable(sb, "beat", val, millis);
+        addPseudoDeviceStringVariable(sb, "logname", DataLogger.name, millis);
         addPseudoDeviceIntVariable(sb, "logsize", WebLog.instance.getLogSize() / 1000, millis);
         return closePseudoDeviceEntry(sb, millis);
     }

@@ -27,7 +27,8 @@ function enableAdminControls(enable) {
         "startLog", "saveLog", //"getStatus", "kill",
         "hvon", "hvoff", "tmpon", "tmpoff", "variacValue", "variacButton",
         "solon", "soloff", "needleValue", "needleButton",
-        "variacStop", "variacZero", "tmplow", "tmphigh", "needleZero"
+        "variacStop", "variacZero", "tmplow", "tmphigh", "needleZero",
+        "pressureTarget", "setPressureTarget", "releasePressureControl"
     ];
 
     for (var i = 0; i < adminControls.length; i++) {
@@ -50,6 +51,8 @@ function enableAdminControls(enable) {
                 console.log("camera error: " + error);
             });
 }
+
+
 
 
 //this kills the server (needs testing)
@@ -124,12 +127,12 @@ function saveLog() {
 
     console.log("savelog");
     document.getElementById("chat").innerText = "";
-    logFileName = newLogName(logFileName);
-    let name = logFileName;
-    if (name.startsWith("Unnamed ")) {
-        name = name.substring(8);
-    }
-    request({url: "/protected/admin/startlog?filename=" + name, method: "GET"})
+//    logFileName = newLogName(logFileName);
+//    let name = logFileName;
+//    if (name.startsWith("Unnamed ")) {
+//        name = name.substring(8);
+//    }
+    request({url: "/protected/admin/startlog", method: "GET"})
             .then(data => {
                 console.log(data);
                 initStatus();
@@ -198,6 +201,18 @@ function needleValve(num) {
                 console.log("needle valve error: " + error);
             });
 }
+
+function setPressureTarget(num) {
+    console.log("pressureTarget set:" + num);
+    request({url: "/protected/admin/pressureTarget?value=" + num, method: "GET"})
+            .then(data => {
+                console.log(data);
+            })
+            .catch(error => {
+                console.log("pressureTarget error: " + error);
+            });
+}
+
 
 //control tmp
 function tmpOn() {

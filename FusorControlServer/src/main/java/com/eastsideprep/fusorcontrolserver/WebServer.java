@@ -196,6 +196,7 @@ public class WebServer {
         get("/protected/admin/tmpLow", (req, res) -> getAdminCtx(req).tmpLowRoute());
         get("/protected/admin/tmpHigh", (req, res) -> getAdminCtx(req).tmpHighRoute());
         get("/protected/admin/needleValve", (req, res) -> getAdminCtx(req).needleValveRoute(req));
+        get("/protected/admin/pressureTarget", (req, res) -> getAdminCtx(req).pressureTargetRoute(req));
         get("/protected/admin/solenoidOn", (req, res) -> getAdminCtx(req).solenoidOnRoute());
         get("/protected/admin/solenoidOff", (req, res) -> getAdminCtx(req).solenoidOffRoute());
 

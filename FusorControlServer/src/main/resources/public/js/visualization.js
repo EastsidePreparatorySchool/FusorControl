@@ -382,6 +382,7 @@ function updateViz(dataArray, textOnly) {
         if (devicename === "<reset>") {
             // restart visualization with fresh log data
             resetViz();
+            updateLogName(devicedata["logname"]);
             console.log("<reset> ts " + data["servertime"]);
             startTime = Number(data["servertime"]);
             logStart = startTime;
@@ -498,6 +499,11 @@ function updateViz(dataArray, textOnly) {
         }
         renderText(true, secs);
     }
+}
+
+function updateLogName(name) {
+    let logInfo = document.getElementById("logInfo");
+    logInfo.innerText = name;
 }
 
 //
