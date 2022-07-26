@@ -161,10 +161,11 @@ public class DeviceManager {
 
     public void recordStatusForDevice(SerialDevice sd, long time, String data) {
         if (!isJson(data)) {
-            System.out.println("Not Json: " + data);
+//            System.out.println("Not Json: " + data);
             return;
         }
         recordStatus(sd.name, time, data);
+        sd.setStatus(data);
     }
 
     public void recordStatus(String device, long time, String data) {
@@ -224,6 +225,7 @@ public class DeviceManager {
         try {
             this.queryThread.interrupt();
             this.queryThread.join(1500);
+            this.cd.shutdownThreads();
         } catch (Exception ex) {
         }
     }
@@ -581,6 +583,11 @@ public class DeviceManager {
                 case "GAS":
                     sd = new GasControlDevice(a);
                     sd.function = "Gas control";
+                    break;
+
+               case "PIRANI":
+                    sd = new PressureGaugeDevice(a);
+                    sd.function = "Pressure gauge";
                     break;
 
                 case "HV-RELAY":

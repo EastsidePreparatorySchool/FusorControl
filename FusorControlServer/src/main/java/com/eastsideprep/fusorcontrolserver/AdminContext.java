@@ -213,6 +213,7 @@ public class AdminContext extends ObserverContext {
         float value = Float.parseFloat(req.queryParams("value"));
         logAdminCommand("Set needle valve:" + value);
         System.out.println("Received needle valve Set " + value);
+        cd.pressureTarget(-1.0f);
         if (cd.gas.setNV(value)) {
             System.out.println("needle valve success");
             return "set needle valve value as " + value;
@@ -224,7 +225,7 @@ public class AdminContext extends ObserverContext {
     String pressureTargetRoute(spark.Request req) {
         float value = Float.parseFloat(req.queryParams("value"));
         if (value < 0) {
-            logAdminCommand("Relasing pressure target.");
+            logAdminCommand("Releasing pressure target.");
         } else {
             logAdminCommand("Set pressure target:" + value);
         }

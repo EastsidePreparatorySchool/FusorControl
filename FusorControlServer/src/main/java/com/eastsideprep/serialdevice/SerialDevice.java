@@ -206,10 +206,10 @@ public abstract class SerialDevice {
     }
 
     public void setStatus(String s) {
-        synchronized (this) {
-            this.lastStatus = s;
-            this.currentStatus = s;
-        }
+//        synchronized (this) {
+//            this.lastStatus = s;
+//            this.currentStatus = s;
+//        }
     }
 
     public String getCurrentStatus() {

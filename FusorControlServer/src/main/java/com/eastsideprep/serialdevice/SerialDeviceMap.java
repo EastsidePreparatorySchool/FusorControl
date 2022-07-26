@@ -77,6 +77,10 @@ public class SerialDeviceMap {
                 } else {
                     // is valid serial device. Arduino?
                     if ((sd instanceof Arduino) && !(sd instanceof NullSerialDevice)) {
+                        Arduino a = (Arduino) sd;
+                        if (a.pingSuspended()) {
+                            continue;
+                        }
 //                        System.out.println("  sending ping to "+sd.name+" "+sd.port+" ...");
                         if (!sd.command("IDENTIFY")) {
                             System.out.println("  device not responding, removing: " + sd.name + " (" + port + ")");
